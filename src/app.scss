@@ -1,0 +1,61 @@
+@use './variables.scss' as *;
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('/fonts/roboto-regular.woff') format('woff');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('/fonts/roboto-medium.woff') format('woff');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('/fonts/roboto-bold.woff') format('woff');
+	font-weight: 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html {
+	font-family: Roboto, Arial;
+	background-color: $c-black-1;
+	color: white;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+button {
+	font-family: Roboto, Arial;
+}
+
+button:hover {
+	cursor: pointer;
+}
+
+a {
+	color: $c-blue-1;
+	text-decoration: none;
+}
+
+a:hover {
+	color: $c-blue-1;
+	text-decoration: underline;
+	cursor: pointer;
+}
