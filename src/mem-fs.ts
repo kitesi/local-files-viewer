@@ -9,6 +9,7 @@ import type { Stats } from 'fs';
 
 export interface WalkDirItem {
 	name: string;
+	isDirectory: boolean;
 	children?: WalkDirItem[];
 }
 
@@ -22,6 +23,7 @@ const cached = {
 export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
 	const baseItem: WalkDirItem & { children: WalkDirItem[] } = {
 		name: path.basename(baseDirectory),
+		isDirectory: true,
 		children: []
 	};
 
@@ -44,7 +46,10 @@ export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
 				continue;
 			}
 
-			const item: WalkDirItem = { name: file };
+			const item: WalkDirItem = {
+				name: file,
+				isDirectory: stats[i].isDirectory()
+			};
 
 			if (stats[i].isDirectory()) {
 				item.children = [];

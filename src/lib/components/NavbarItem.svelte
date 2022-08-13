@@ -1,11 +1,19 @@
 <script context="module" lang="ts">
 	let activeTag: HTMLAnchorElement | undefined;
 
-	function handleClick(ev: Event) {
-		const a = (ev.target as HTMLElement).parentElement;
+	// todo: prob better ways to do these two functions
+	function switchActive(ev: Event) {
+		if (
+			!(ev.target instanceof HTMLElement) &&
+			!(ev.target instanceof SVGElement)
+		) {
+			return ev.preventDefault();
+		}
 
-		if (!a || !(a instanceof HTMLAnchorElement)) {
-			return;
+		const a = ev.target.closest('a');
+
+		if (!a) {
+			return ev.preventDefault();
 		}
 
 		if (!activeTag) {
@@ -20,12 +28,20 @@
 
 		a.classList.add('active');
 		activeTag = a;
+	}
 
-		if (!a.parentElement?.classList.contains('has-children')) {
+	function collapseDirectory(ev: Event) {
+		if (!(ev.target instanceof HTMLElement)) {
 			return;
 		}
 
-		a.parentElement!.classList.toggle('collapse');
+		const button = ev.target.closest('button');
+
+		if (!button) {
+			return;
+		}
+
+		button.parentElement!.classList.toggle('collapse');
 	}
 </script>
 
@@ -34,12 +50,11 @@
 	import Icon from './Icon.svelte';
 	import { page } from '$app/stores';
 
-	export let name: string;
-	export let children: WalkDirItem[] | undefined;
+	export let item: WalkDirItem;
 	export let basePath: string;
 
-	const hasChildren = children && children.length > 0;
-	const href = basePath + '/' + name;
+	const hasChildren = item.children && item.children.length > 0;
+	const href = basePath + '/' + item.name;
 	const isActive = '/' + $page.params.file === href;
 	let shouldCollapse = true;
 
@@ -56,19 +71,22 @@
 	}
 </script>
 
-<li
-	class:has-children={hasChildren}
-	class:active={isActive}
-	class:collapse={shouldCollapse}
->
-	<a on:click={handleClick} {href}>
-		<Icon name={hasChildren ? 'folder' : 'file'} />
-		<span>{name}</span>
-	</a>
-	{#if children}
+<li class:has-children={hasChildren} class:collapse={shouldCollapse}>
+	{#if item.isDirectory}
+		<button on:click={collapseDirectory}>
+			<Icon name="folder" />
+			<span>{item.name}</span>
+		</button>
+	{:else}
+		<a on:click={switchActive} class:active={isActive} {href}>
+			<Icon name="file" />
+			<span>{item.name}</span>
+		</a>
+	{/if}
+	{#if item.children}
 		<ul>
-			{#each children as child (child.name)}
-				<svelte:self {...child} basePath={href} />
+			{#each item.children as child (child.name)}
+				<svelte:self item={child} basePath={href} />
 			{/each}
 		</ul>
 	{/if}
@@ -85,14 +103,26 @@
 		max-width: 400px;
 	}
 
-	a {
+	a,
+	button {
 		color: inherit;
 		display: flex;
 		gap: 8px;
 		align-items: center;
 	}
 
-	a span {
+	button {
+		background-color: transparent;
+		width: 100%;
+		border: none;
+		font-size: inherit;
+	}
+
+	button:hover {
+		text-decoration: underline;
+	}
+
+	span {
 		overflow: hidden;
 		text-overflow: '..';
 		white-space: nowrap;

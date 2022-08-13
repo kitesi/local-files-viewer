@@ -1,8 +1,7 @@
 import path from 'path';
 import mime from 'mime-types';
-
 import { compile } from 'mdsvex';
-import { stat, walkdir, readdir, readFile, type WalkDirItem } from '../mem-fs';
+import { stat, walkdir, readFile } from '../mem-fs';
 
 import { existsSync } from 'fs';
 
@@ -43,25 +42,9 @@ export async function GET({ params, url }: { params: any; url: any }) {
 	}
 
 	if (stats.isDirectory()) {
-		let current: WalkDirItem | undefined = allFiles;
-
-		for (const file of params.file.split(path.sep)) {
-			current = current?.children?.find((i) => i.name === file);
-		}
-
-		const readMeNames = ['readme.md', 'index.md'];
-		const filesInDirectory = await readdir(filePath);
-
-		const readMeFile = filesInDirectory.find((f) =>
-			readMeNames.includes(f.toLowerCase())
-		);
-
 		return {
 			body: {
-				files: allFiles,
-				markdownHTML:
-					readMeFile &&
-					(await compile(await readFile(path.join(filePath, readMeFile))))?.code
+				files: allFiles
 			}
 		};
 	}

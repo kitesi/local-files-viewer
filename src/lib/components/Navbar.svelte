@@ -23,7 +23,7 @@
 	<ul>
 		{#if files.children}
 			{#each files.children as child (child.name)}
-				<NavbarItem name={child.name} children={child.children} basePath="" />
+				<NavbarItem item={child} basePath="" />
 			{/each}
 		{/if}
 	</ul>

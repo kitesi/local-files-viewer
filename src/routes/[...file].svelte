@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
+	import Prism from 'prismjs';
 
 	import type { WalkDirItem } from 'src/mem-fs';
 	import '../doc.scss';
@@ -17,7 +18,7 @@
 	const languages: { [k: string]: string } = {
 		json: 'json',
 		'x-sh': 'shell',
-		javascript: 'javascript',
+		javascript: 'js',
 		css: 'css',
 		html: 'html'
 	};
@@ -47,7 +48,9 @@
 				Your browser does not support the audio element.
 			</audio>
 		{:else if isProgrammingFile}
-			<pre class={'language-' + languages[stripedLanguage]}>{content}</pre>
+			<pre><code class={'language-' + languages[stripedLanguage]}
+					>{content}</code
+				></pre>
 		{:else if content !== undefined}
 			<p>{content}</p>
 		{:else if unknownMimeType}
@@ -55,7 +58,7 @@
 				Could not handle mime type of: {mimeType}
 			</h1>
 		{:else}
-			<h1>No entry file for this folder</h1>
+			<h1>In Directory.</h1>
 		{/if}
 	</section>
 </main>
@@ -93,7 +96,8 @@
 	div {
 		display: grid;
 		place-items: center;
-		height: 100%;
+		min-height: 100%;
+		overflow: auto;
 	}
 
 	@media screen and (min-width: $size-1) {
