@@ -7,7 +7,27 @@
 	export let error: any;
 	export let markdownHTML: string;
 	export let content: string;
+	export let mimeType: string | false;
+	export let unknownMimeType: boolean;
 	export let files: WalkDirItem;
+
+	const imageMimeTypes = ['image/webp', 'image/jpeg', 'image/png'];
+	const audioMimeTypes = ['audio/mp4', 'audio/mpeg'];
+
+	const languages: { [k: string]: string } = {
+		json: 'json',
+		'x-sh': 'shell',
+		javascript: 'javascript',
+		css: 'css',
+		html: 'html'
+	};
+
+	let stripedLanguage = '';
+	let isProgrammingFile = false;
+
+	$: stripedLanguage =
+		(mimeType && mimeType.replace(/(text|application)\//, '')) || '';
+	$: isProgrammingFile = stripedLanguage in languages;
 </script>
 
 <main>
@@ -17,10 +37,25 @@
 			<h1>{error}</h1>
 		{:else if markdownHTML}
 			{@html markdownHTML}
-		{:else if content}
+		{:else if mimeType && imageMimeTypes.includes(mimeType)}
+			<div>
+				<img src={content} alt="" />
+			</div>
+		{:else if mimeType && audioMimeTypes.includes(mimeType)}
+			<audio controls>
+				<source src={content} />
+				Your browser does not support the audio element.
+			</audio>
+		{:else if isProgrammingFile}
+			<pre class={'language-' + languages[stripedLanguage]}>{content}</pre>
+		{:else if content !== undefined}
 			<p>{content}</p>
+		{:else if unknownMimeType}
+			<h1>
+				Could not handle mime type of: {mimeType}
+			</h1>
 		{:else}
-			<h1>No entry file for this folder.</h1>
+			<h1>No entry file for this folder</h1>
 		{/if}
 	</section>
 </main>
@@ -35,11 +70,16 @@
 
 	p {
 		white-space: pre-wrap;
-		max-width: 80ch;
+		max-width: 90ch;
+		font-size: 1.1rem;
 	}
 
 	main {
 		height: 100%;
+	}
+
+	audio {
+		width: 100%;
 	}
 
 	section {
@@ -48,6 +88,12 @@
 		width: 100%;
 		overflow: auto;
 		scroll-behavior: smooth;
+	}
+
+	div {
+		display: grid;
+		place-items: center;
+		height: 100%;
 	}
 
 	@media screen and (min-width: $size-1) {

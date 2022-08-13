@@ -1,4 +1,5 @@
 import path from 'path';
+import mime from 'mime-types';
 
 import { compile } from 'mdsvex';
 import { stat, walkdir, readdir, readFile, type WalkDirItem } from '../mem-fs';
@@ -65,20 +66,41 @@ export async function GET({ params, url }: { params: any; url: any }) {
 		};
 	}
 
-	let content = await readFile(filePath);
-	let markdownHTML: string | undefined = '';
+	const mimeType = mime.lookup(filePath);
+	const body: { [k: string]: any } = {
+		files: allFiles,
+		mimeType
+	};
 
-	if (filePath.endsWith('.md')) {
-		markdownHTML = (await compile(content))?.code;
-		// mdsvex adds {@html `<code>....</code>`} for some reason.
-		markdownHTML = markdownHTML?.replace('{@html `', '').replace('`}', '');
+	switch (mimeType) {
+		case 'text/plain':
+		case 'text/html':
+		case 'application/x-sh':
+		case 'application/json':
+		case 'application/css':
+		case 'application/javascript':
+		case false:
+			body.content = await readFile(filePath);
+			break;
+		case 'image/webp':
+		case 'image/jpeg':
+		case 'image/png':
+		case 'audio/mpeg':
+		case 'audio/mp4':
+			body.content =
+				'data:' + mimeType + ';base64,' + (await readFile(filePath, 'base64'));
+			break;
+		case 'text/markdown':
+			let markdownHTML = (await compile(await readFile(filePath)))?.code;
+			// mdsvex adds {@html `<code>....</code>`} for some reason.
+			markdownHTML = markdownHTML?.replace('{@html `', '').replace('`}', '');
+			body.markdownHTML = markdownHTML;
+			break;
+		default:
+			body.unknownMimeType = true;
 	}
 
 	return {
-		body: {
-			content,
-			markdownHTML,
-			files: allFiles
-		}
+		body
 	};
 }

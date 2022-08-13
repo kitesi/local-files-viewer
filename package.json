@@ -14,8 +14,10 @@
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/kit": "next",
+		"@types/mime-types": "^2.1.1",
 		"feather-icons": "^4.29.0",
 		"mdsvex": "^0.10.6",
+		"mime-types": "^2.1.35",
 		"prettier": "^2.6.2",
 		"prettier-plugin-svelte": "^2.7.0",
 		"sass": "^1.54.3",

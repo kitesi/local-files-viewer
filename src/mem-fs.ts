@@ -91,9 +91,12 @@ export async function readdir(filePath: string) {
 	return cached.readdir.get(filePath)!;
 }
 
-export async function readFile(filePath: string) {
+export async function readFile(
+	filePath: string,
+	encoding: 'utf-8' | 'base64' = 'utf-8'
+) {
 	if (!cached.readFile.has(filePath)) {
-		cached.readFile.set(filePath, await fsReadFile(filePath, 'utf-8'));
+		cached.readFile.set(filePath, await fsReadFile(filePath, encoding));
 	}
 
 	return cached.readFile.get(filePath)!;

@@ -2,7 +2,7 @@
 	let activeTag: HTMLAnchorElement | undefined;
 
 	function handleClick(ev: Event) {
-		const a = ev.target;
+		const a = (ev.target as HTMLElement).parentElement;
 
 		if (!a || !(a instanceof HTMLAnchorElement)) {
 			return;
@@ -67,8 +67,8 @@
 >
 	<a on:click={handleClick} {href}>
 		<Icon name={hasChildren ? 'folder' : 'file'} />
-		{name}</a
-	>
+		<span>{name}</span>
+	</a>
 	{#if children}
 		<ul>
 			{#each children as child (child.name)}
@@ -86,13 +86,19 @@
 
 	li {
 		padding: 5px;
-		max-width: 90%;
+		max-width: 400px;
 	}
+
 	a {
 		color: inherit;
 		display: flex;
 		gap: 8px;
 		align-items: center;
-		/* overflow: hidden; */
+	}
+
+	a span {
+		overflow: hidden;
+		text-overflow: '..';
+		white-space: nowrap;
 	}
 </style>
