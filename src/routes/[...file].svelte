@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
+
 	import type { WalkDirItem } from 'src/mem-fs';
 	import '../doc.scss';
 

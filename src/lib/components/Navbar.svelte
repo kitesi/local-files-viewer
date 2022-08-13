@@ -1,85 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import NavbarItem from './NavbarItem.svelte';
 
 	import type { WalkDirItem } from '../../mem-fs';
 	export let files: WalkDirItem;
 
 	let isChecked = false;
-
-	// function removeChecked(ev: Event) {
-	// 	isChecked = false;
-	// }
-
-	let html = '';
-	let level = 1;
-
-	function addLiElement(item: WalkDirItem, basePath: string) {
-		const hasChildren = item.children && item.children.length > 0;
-		const href = basePath + '/' + item.name;
-		const active = '/' + $page.params.file === href;
-
-		html += `<li class="level-${level}${hasChildren ? ' has-children' : ''}${
-			active ? ' active' : ''
-		}"><a href="${href}">${item.name}</a>`;
-	}
-
-	function addUlElement(items: WalkDirItem[], basePath: string) {
-		html += '<ul>';
-
-		for (const item of items) {
-			addLiElement(item, basePath);
-
-			if (item.children) {
-				level++;
-				addUlElement(item.children, basePath + '/' + item.name);
-				level--;
-			}
-
-			html += '</li>';
-		}
-
-		html += '</ul>';
-	}
-
-	addUlElement(files.children!, '');
-
-	onMount(() => {
-		const aTagsOfLiParent = document.querySelectorAll('li.has-children a');
-		const aTags = document.getElementsByTagName('a');
-		let activeTag = document.querySelector('.active');
-
-		function toggleCollapse(ev: Event) {
-			const aTag = ev.target;
-
-			if (!aTag || !(aTag instanceof HTMLAnchorElement)) {
-				return;
-			}
-
-			aTag.parentElement!.classList.toggle('collapse');
-		}
-
-		function setActiveClass(ev: Event) {
-			activeTag?.classList.remove('active');
-
-			const aTag = ev.target;
-
-			if (!aTag || !(aTag instanceof HTMLAnchorElement)) {
-				return;
-			}
-
-			aTag.parentElement!.classList.add('active');
-			activeTag = aTag.parentElement!;
-		}
-
-		for (const aTag of [...aTagsOfLiParent]) {
-			aTag.addEventListener('click', toggleCollapse);
-		}
-
-		for (const aTag of aTags) {
-			aTag.addEventListener('click', setActiveClass);
-		}
-	});
 </script>
 
 <input
@@ -95,7 +20,13 @@
 </label>
 
 <div>
-	{@html html}
+	<ul>
+		{#if files.children}
+			{#each files.children as child (child.name)}
+				<NavbarItem name={child.name} children={child.children} basePath="" />
+			{/each}
+		{/if}
+	</ul>
 </div>
 
 <style lang="scss">
@@ -122,39 +53,18 @@
 		overflow: auto;
 	}
 
+	ul {
+		margin-left: 10px;
+		list-style-type: none;
+	}
+
 	div:global {
-		ul {
-			margin-left: 10px;
-			list-style-type: none;
-		}
-
-		li {
-			padding: 5px;
-			max-width: 90%;
-		}
-
-		li.has-children::before {
-			content: '🗀 ';
-		}
-
-		li.has-children.collapse::before {
-			content: '🗁 ';
-		}
-
-		li.level-1 {
-			font-weight: 700;
-		}
-
 		.active {
 			color: #76ec94;
 		}
 
 		.active ul {
 			color: white;
-		}
-
-		a {
-			color: inherit;
 		}
 
 		li:not(.collapse) > ul {

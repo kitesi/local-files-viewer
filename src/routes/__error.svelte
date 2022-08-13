@@ -30,6 +30,10 @@
 		font-size: 5rem;
 	}
 
+	h2 {
+		max-width: 80ch;
+	}
+
 	div {
 		display: flex;
 		flex-direction: column;
