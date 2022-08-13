@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	let activeTag: HTMLAnchorElement;
+	let activeTag: HTMLAnchorElement | undefined;
 
 	function handleClick(ev: Event) {
 		const a = ev.target;
@@ -9,12 +9,14 @@
 		}
 
 		if (!activeTag) {
-			activeTag = document.getElementsByClassName(
-				'active'
-			)[0] as HTMLAnchorElement;
+			activeTag = document.getElementsByClassName('active')[0] as
+				| HTMLAnchorElement
+				| undefined;
 		}
 
-		activeTag.classList.remove('active');
+		if (activeTag) {
+			activeTag.classList.remove('active');
+		}
 
 		a.classList.add('active');
 		activeTag = a;
@@ -40,7 +42,6 @@
 	const href = basePath + '/' + name;
 	const isActive = '/' + $page.params.file === href;
 	let shouldCollapse = true;
-	console.log(href, $page.params.file);
 
 	const filesInPageParam = $page.params.file.split('/');
 	const filesInHref = href.split('/').slice(1);
@@ -92,5 +93,6 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
+		/* overflow: hidden; */
 	}
 </style>
