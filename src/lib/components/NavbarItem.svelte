@@ -49,11 +49,7 @@
 	// prob a better/faster way to do this
 	// if a folder has already been collapsed, obv it's siblings can't be collapsed
 	// originally had $page.params.file.split('/').includes(name) but that's in accurate
-	for (
-		let i = 0;
-		i < filesInHref.length && i < filesInPageParam.length && shouldCollapse;
-		i++
-	) {
+	for (let i = 0; i < filesInHref.length && shouldCollapse; i++) {
 		if (filesInHref[i] !== filesInPageParam[i]) {
 			shouldCollapse = false;
 		}
