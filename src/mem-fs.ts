@@ -55,6 +55,17 @@ export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
 			}
 		}
 
+		const collactor = new Intl.Collator(undefined, {
+			numeric: true,
+			sensitivity: 'base'
+		});
+
+		const compare = (a: WalkDirItem, b: WalkDirItem) =>
+			collactor.compare(a.name, b.name);
+
+		populateDirs.sort(compare);
+		populateFiles.sort(compare);
+
 		toPopulate.push(...populateDirs, ...populateFiles);
 
 		await Promise.all(recursivePromises);
