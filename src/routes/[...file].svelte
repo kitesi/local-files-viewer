@@ -1,34 +1,19 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
-	import Prism from 'prismjs';
+	import { escape, unescape } from 'html-escaper';
 
 	import type { WalkDirItem } from 'src/mem-fs';
 	import '../doc.scss';
+	import '../prism.css';
+	import type { Genre } from './[...file]';
 
 	export let error: any;
-	export let markdownHTML: string;
+	export let html: string;
 	export let content: string;
-	export let mimeType: string | false;
+	export let fullMimeType: string;
+	export let mimeTypeGenre: Genre;
 	export let unknownMimeType: boolean;
 	export let files: WalkDirItem;
-
-	const imageMimeTypes = ['image/webp', 'image/jpeg', 'image/png'];
-	const audioMimeTypes = ['audio/mp4', 'audio/mpeg'];
-
-	const languages: { [k: string]: string } = {
-		json: 'json',
-		'x-sh': 'shell',
-		javascript: 'js',
-		css: 'css',
-		html: 'html'
-	};
-
-	let stripedLanguage = '';
-	let isProgrammingFile = false;
-
-	$: stripedLanguage =
-		(mimeType && mimeType.replace(/(text|application)\//, '')) || '';
-	$: isProgrammingFile = stripedLanguage in languages;
 </script>
 
 <main>
@@ -36,26 +21,28 @@
 	<section class="markdown-body">
 		{#if error}
 			<h1>{error}</h1>
-		{:else if markdownHTML}
-			{@html markdownHTML}
-		{:else if mimeType && imageMimeTypes.includes(mimeType)}
+		{:else if html}
+			{@html html}
+		{:else if mimeTypeGenre === 'image'}
 			<div>
 				<img src={content} alt="" />
 			</div>
-		{:else if mimeType && audioMimeTypes.includes(mimeType)}
+		{:else if mimeTypeGenre === 'audio'}
 			<audio controls>
 				<source src={content} />
 				Your browser does not support the audio element.
 			</audio>
-		{:else if isProgrammingFile}
-			<pre><code class={'language-' + languages[stripedLanguage]}
-					>{content}</code
-				></pre>
+		{:else if mimeTypeGenre === 'video'}
+			<video controls>
+				<source src={content} />
+				<track kind="captions" />
+				Your browser does not support the audio element. track
+			</video>
 		{:else if content !== undefined}
 			<p>{content}</p>
 		{:else if unknownMimeType}
 			<h1>
-				Could not handle mime type of: {mimeType}
+				Could not handle mime type of: {fullMimeType}
 			</h1>
 		{:else}
 			<h1>In Directory.</h1>

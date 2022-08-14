@@ -18,12 +18,12 @@
 	vertical-align: text-bottom;
 }
 
-.markdown-body h1:hover .anchor .octicon-link:before,
-.markdown-body h2:hover .anchor .octicon-link:before,
-.markdown-body h3:hover .anchor .octicon-link:before,
-.markdown-body h4:hover .anchor .octicon-link:before,
-.markdown-body h5:hover .anchor .octicon-link:before,
-.markdown-body h6:hover .anchor .octicon-link:before {
+.markdown-body h1:hover .anchor:not(span) .octicon-link:before,
+.markdown-body h2:hover .anchor:not(span) .octicon-link:before,
+.markdown-body h3:hover .anchor:not(span) .octicon-link:before,
+.markdown-body h4:hover .anchor:not(span) .octicon-link:before,
+.markdown-body h5:hover .anchor:not(span) .octicon-link:before,
+.markdown-body h6:hover .anchor:not(span) .octicon-link:before {
 	width: 16px;
 	height: 16px;
 	content: ' ';
@@ -523,14 +523,14 @@
 	color: #f85149;
 }
 
-.markdown-body .anchor {
+.markdown-body .anchor:not(span) {
 	float: left;
 	padding-right: 4px;
 	margin-left: -20px;
 	line-height: 1;
 }
 
-.markdown-body .anchor:focus {
+.markdown-body .anchor:not(span):focus {
 	outline: none;
 }
 
@@ -573,21 +573,21 @@
 	visibility: hidden;
 }
 
-.markdown-body h1:hover .anchor,
-.markdown-body h2:hover .anchor,
-.markdown-body h3:hover .anchor,
-.markdown-body h4:hover .anchor,
-.markdown-body h5:hover .anchor,
-.markdown-body h6:hover .anchor {
+.markdown-body h1:hover .anchor:not(span),
+.markdown-body h2:hover .anchor:not(span),
+.markdown-body h3:hover .anchor:not(span),
+.markdown-body h4:hover .anchor:not(span),
+.markdown-body h5:hover .anchor:not(span),
+.markdown-body h6:hover .anchor:not(span) {
 	text-decoration: none;
 }
 
-.markdown-body h1:hover .anchor .octicon-link,
-.markdown-body h2:hover .anchor .octicon-link,
-.markdown-body h3:hover .anchor .octicon-link,
-.markdown-body h4:hover .anchor .octicon-link,
-.markdown-body h5:hover .anchor .octicon-link,
-.markdown-body h6:hover .anchor .octicon-link {
+.markdown-body h1:hover .anchor:not(span) .octicon-link,
+.markdown-body h2:hover .anchor:not(span) .octicon-link,
+.markdown-body h3:hover .anchor:not(span) .octicon-link,
+.markdown-body h4:hover .anchor:not(span) .octicon-link,
+.markdown-body h5:hover .anchor:not(span) .octicon-link,
+.markdown-body h6:hover .anchor:not(span) .octicon-link {
 	visibility: visible;
 }
 
