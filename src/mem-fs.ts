@@ -16,7 +16,7 @@ export interface WalkDirItem {
 const cached = {
 	walkdir: new Map<string, WalkDirItem>(),
 	readdir: new Map<string, string[]>(),
-	readFile: new Map<string, string>(),
+	readFile: new Map<string, string | Buffer>(),
 	stats: new Map<string, Stats>()
 };
 
@@ -27,11 +27,7 @@ export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
 		children: []
 	};
 
-	async function recurse(
-		dir: string,
-		toPopulate: WalkDirItem[],
-		parent?: WalkDirItem
-	) {
+	async function recurse(dir: string, toPopulate: WalkDirItem[]) {
 		const files = await fsReaddir(dir);
 		const stats = await Promise.all(files.map((f) => stat(path.join(dir, f))));
 		const recursivePromises: Promise<any>[] = [];
@@ -98,13 +94,23 @@ export async function readdir(filePath: string) {
 
 export async function readFile(
 	filePath: string,
-	encoding: 'utf-8' | 'base64' = 'utf-8'
+	encoding: null
+): Promise<Buffer>;
+export async function readFile(
+	filePath: string,
+	encoding: 'utf-8' | 'base64'
+): Promise<string>;
+export async function readFile(
+	filePath: string,
+	encoding: 'utf-8' | 'base64' | null
 ) {
-	if (!cached.readFile.has(filePath)) {
-		cached.readFile.set(filePath, await fsReadFile(filePath, encoding));
+	const key = [filePath, encoding].toString();
+
+	if (!cached.readFile.has(key)) {
+		cached.readFile.set(key, await fsReadFile(filePath, encoding));
 	}
 
-	return cached.readFile.get(filePath)!;
+	return cached.readFile.get(key)!;
 }
 
 export async function stat(filePath: string) {

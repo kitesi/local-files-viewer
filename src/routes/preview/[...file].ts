@@ -1,69 +1,23 @@
 import path from 'path';
 import Prism from 'prismjs';
 import loadLanguages from 'prismjs/components/index';
-import mime from 'mime-types';
 import { compile } from 'mdsvex';
 import { escape } from 'html-escaper';
-import { stat, walkdir, readFile } from '../mem-fs';
+import { stat, walkdir, readFile } from '../../mem-fs';
+import { getMimeType } from '../../get-mime-types';
 
 import { existsSync } from 'fs';
 
 import type { Stats } from 'fs';
 
-let baseDirectory: string = '';
-
 loadLanguages();
+
+let baseDirectory: string = '';
 
 if (process.env.LFV_DEFAULT_FOLDER) {
 	baseDirectory = process.env.LFV_DEFAULT_FOLDER;
 } else {
 	throw new Error('No base directory provided.');
-}
-
-export type Genre =
-	| 'text'
-	| 'application'
-	| 'video'
-	| 'x-conference'
-	| 'model'
-	| 'font'
-	| 'chemical'
-	| 'audio'
-	| 'image'
-	| 'messsage'
-	| 'unknown';
-
-function getMimeType(file: string): {
-	genre: Genre;
-	specific: string;
-} {
-	if (file.endsWith('.ts') || file.endsWith('.d.ts')) {
-		return { genre: 'text', specific: 'typescript' };
-	}
-
-	const plains = [
-		'.npmrc',
-		'.prettierrc',
-		'.prettierignore',
-		'.gitignore',
-		'.svelte'
-	];
-
-	if (plains.some((p) => file.endsWith(p))) {
-		return { genre: 'text', specific: 'plain-code' };
-	}
-
-	const mimeType = mime.lookup(file);
-	let genre: Genre = 'unknown';
-	let specific = 'unknown';
-
-	if (mimeType) {
-		const splitContent = mimeType.split('/');
-		genre = splitContent[0] as Genre;
-		specific = splitContent[1];
-	}
-
-	return { genre, specific };
 }
 
 function highlight(code: string, grammar: Prism.Grammar, language: string) {
@@ -75,6 +29,7 @@ function highlight(code: string, grammar: Prism.Grammar, language: string) {
 }
 
 export async function GET({ params, url }: { params: any; url: any }) {
+	const filePath = path.join(baseDirectory, params.file);
 	const allFiles = await walkdir(baseDirectory);
 
 	function generateErrorResponse(error: Error) {
@@ -85,8 +40,6 @@ export async function GET({ params, url }: { params: any; url: any }) {
 			}
 		};
 	}
-
-	const filePath = path.join(baseDirectory, params.file);
 
 	if (!existsSync(filePath)) {
 		return generateErrorResponse(new Error('Path does not exist.'));
@@ -109,12 +62,9 @@ export async function GET({ params, url }: { params: any; url: any }) {
 	}
 
 	const mimeType = getMimeType(filePath);
-	const fullMimeType = mimeType.genre + '/' + mimeType.specific;
 	const body: { [k: string]: any } = {
 		files: allFiles,
-		mimeType,
-		fullMimeType: fullMimeType,
-		mimeTypeGenre: mimeType.genre
+		mimeType
 	};
 
 	if (
@@ -122,23 +72,34 @@ export async function GET({ params, url }: { params: any; url: any }) {
 		mimeType.genre === 'video' ||
 		mimeType.genre === 'image'
 	) {
-		body.content =
-			'data:' +
-			fullMimeType +
-			';base64,' +
-			(await readFile(filePath, 'base64'));
+		body.content = '/serve/' + params.file;
 		return { body };
 	}
 
 	if (mimeType.genre === 'text' || mimeType.genre === 'application') {
-		const content = await readFile(filePath);
+		const content = await readFile(filePath, 'utf-8');
 
 		switch (mimeType.specific) {
 			case 'markdown':
-				// mdsvex adds {@html `<code>....</code>`} for some reason.
 				body.html = (await compile(content))?.code
+					// mdsvex adds {@html `<code>....</code>`} for some reason.
 					?.replace('{@html `', '')
-					.replace('`}', '');
+					.replace('`}', '')
+					.replace(/<img src="([^"]*)"/g, (m, src) => {
+						if (src.startsWith('http')) {
+							return m;
+						}
+
+						const dirname = src.startsWith('/')
+							? ''
+							: path.dirname(params.file);
+
+						if (dirname === '.') {
+							return `<img src="/serve/${src}"`;
+						}
+
+						return `<img src="/serve/${path.join(dirname, src)}"`;
+					});
 
 				break;
 			case 'typescript':

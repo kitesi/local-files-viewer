@@ -1,17 +1,15 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
-	import { escape, unescape } from 'html-escaper';
 
-	import type { WalkDirItem } from 'src/mem-fs';
-	import '../doc.scss';
-	import '../prism.css';
-	import type { Genre } from './[...file]';
+	import '../../doc.scss';
+	import '../../prism.css';
+	import type { MimeType } from '../../get-mime-types';
+	import type { WalkDirItem } from '../../mem-fs';
 
 	export let error: any;
 	export let html: string;
 	export let content: string;
-	export let fullMimeType: string;
-	export let mimeTypeGenre: Genre;
+	export let mimeType: MimeType | undefined;
 	export let unknownMimeType: boolean;
 	export let files: WalkDirItem;
 </script>
@@ -23,16 +21,16 @@
 			<h1>{error}</h1>
 		{:else if html}
 			{@html html}
-		{:else if mimeTypeGenre === 'image'}
+		{:else if mimeType?.genre === 'image'}
 			<div>
 				<img src={content} alt="" />
 			</div>
-		{:else if mimeTypeGenre === 'audio'}
+		{:else if mimeType?.genre === 'audio'}
 			<audio controls>
 				<source src={content} />
 				Your browser does not support the audio element.
 			</audio>
-		{:else if mimeTypeGenre === 'video'}
+		{:else if mimeType?.genre === 'video'}
 			<video controls>
 				<source src={content} />
 				<track kind="captions" />
@@ -42,7 +40,7 @@
 			<p>{content}</p>
 		{:else if unknownMimeType}
 			<h1>
-				Could not handle mime type of: {fullMimeType}
+				Could not handle mime type of: {mimeType?.full}
 			</h1>
 		{:else}
 			<h1>In Directory.</h1>
@@ -51,7 +49,7 @@
 </main>
 
 <style lang="scss">
-	@use '../variables.scss' as *;
+	@use '../../variables.scss' as *;
 
 	main {
 		height: 100%;
