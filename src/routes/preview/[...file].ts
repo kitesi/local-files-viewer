@@ -3,7 +3,7 @@ import Prism from 'prismjs';
 import loadLanguages from 'prismjs/components/index';
 import { compile } from 'mdsvex';
 import { escape } from 'html-escaper';
-import { stat, walkdir, readFile } from '../../mem-fs';
+import { stat, walkdir, readFile, type WalkDirItem } from '../../mem-fs';
 import { getMimeType } from '../../get-mime-types';
 import { getBaseDirectory } from '../../base-directory';
 

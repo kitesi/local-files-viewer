@@ -36,13 +36,15 @@
 	import { page } from '$app/stores';
 	import { files } from '../../stores';
 
-	import type { WalkDirItem } from 'src/mem-fs';
+	import { getWalkdirItem } from '../../get-walkdir-item';
+	import type { WalkDirItem } from '../../mem-fs';
 
 	export let item: WalkDirItem;
 	export let parentPath: string;
 
 	const href = parentPath + '/' + item.name;
-	const isActive = '/' + $page.params.file === href;
+	const isActive = '/preview/' + $page.params.file === href;
+
 	let shouldCollapse = true;
 	let liElement: HTMLLIElement;
 
@@ -73,17 +75,7 @@
 		const json = await res.json();
 
 		const paths = dataHref.split('/');
-		let current: WalkDirItem = $files;
-
-		for (const path of paths) {
-			const next = current.children?.find((e) => e.name === path);
-
-			if (!next) {
-				break;
-			}
-
-			current = next;
-		}
+		const current = getWalkdirItem(paths, $files);
 
 		if (current.name === item.name) {
 			current.children = json.files.children;
