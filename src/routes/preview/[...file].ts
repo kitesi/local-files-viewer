@@ -118,6 +118,11 @@ export async function GET({ params, url }: { params: any; url: any }) {
 				body.html = `<pre><code>${escape(content)}</code></pre>`;
 				break;
 			default:
+				if (mimeType.genre === 'application') {
+					body.unknownMimeType = true;
+					return { body };
+				}
+
 				const grammer = Prism.languages[mimeType.specific];
 
 				if (!grammer) {
