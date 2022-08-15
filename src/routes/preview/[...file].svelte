@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
+	import * as stores from '../../stores';
 
 	import '../../doc.scss';
 	import '../../prism.css';
@@ -11,11 +12,14 @@
 	export let content: string;
 	export let mimeType: MimeType | undefined;
 	export let unknownMimeType: boolean;
+
 	export let files: WalkDirItem;
+
+	stores.files.set(files);
 </script>
 
 <main>
-	<Navbar {files} />
+	<Navbar />
 	<section class="markdown-body">
 		{#if error}
 			<h1>{error}</h1>

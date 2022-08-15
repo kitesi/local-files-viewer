@@ -30,12 +30,12 @@ function highlight(code: string, grammar: Prism.Grammar, language: string) {
 
 export async function GET({ params, url }: { params: any; url: any }) {
 	const filePath = path.join(baseDirectory, params.file);
-	const allFiles = await walkdir(baseDirectory);
+	const files = await walkdir(baseDirectory, 3);
 
 	function generateErrorResponse(error: Error) {
 		return {
 			body: {
-				files: allFiles,
+				files: files,
 				error: error.message
 			}
 		};
@@ -56,14 +56,14 @@ export async function GET({ params, url }: { params: any; url: any }) {
 	if (stats.isDirectory()) {
 		return {
 			body: {
-				files: allFiles
+				files: files
 			}
 		};
 	}
 
 	const mimeType = getMimeType(filePath);
 	const body: { [k: string]: any } = {
-		files: allFiles,
+		files: files,
 		mimeType
 	};
 

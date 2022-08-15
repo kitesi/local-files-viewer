@@ -1,5 +1,5 @@
 /** @type {import('@sveltejs/kit').RequestHandler} */
-export async function GET({ params, url }: { params: any; url: URL }) {
+export async function GET({ url }: { url: URL }) {
 	return {
 		headers: {
 			Location: '/preview' + url.pathname

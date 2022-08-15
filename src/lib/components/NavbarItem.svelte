@@ -29,34 +29,22 @@
 		a.classList.add('active');
 		activeTag = a;
 	}
-
-	function collapseDirectory(ev: Event) {
-		if (!(ev.target instanceof HTMLElement)) {
-			return;
-		}
-
-		const button = ev.target.closest('button');
-
-		if (!button) {
-			return;
-		}
-
-		button.parentElement!.classList.toggle('collapse');
-	}
 </script>
 
 <script lang="ts">
-	import type { WalkDirItem } from 'src/mem-fs';
 	import Icon from './Icon.svelte';
 	import { page } from '$app/stores';
+	import { files } from '../../stores';
+
+	import type { WalkDirItem } from 'src/mem-fs';
 
 	export let item: WalkDirItem;
-	export let basePath: string;
+	export let parentPath: string;
 
-	const hasChildren = item.children && item.children.length > 0;
-	const href = basePath + '/' + item.name;
+	const href = parentPath + '/' + item.name;
 	const isActive = '/' + $page.params.file === href;
 	let shouldCollapse = true;
+	let liElement: HTMLLIElement;
 
 	const filesInPageParam = $page.params.file.split('/');
 	const filesInHref = href.split('/').slice(1);
@@ -69,9 +57,50 @@
 			shouldCollapse = false;
 		}
 	}
+
+	async function collapseDirectory(ev: Event) {
+		liElement.classList.toggle('collapse');
+
+		const dataHref = liElement
+			.getAttribute('data-href')
+			?.replace('/preview/', '');
+
+		if (!dataHref) {
+			return;
+		}
+
+		const res = await fetch(`/info?dir=${dataHref}/&depth=1`);
+		const json = await res.json();
+
+		const paths = dataHref.split('/');
+		let current: WalkDirItem = $files;
+
+		for (const path of paths) {
+			const next = current.children?.find((e) => e.name === path);
+
+			if (!next) {
+				break;
+			}
+
+			current = next;
+		}
+
+		if (current.name === item.name) {
+			current.children = json.files.children;
+		}
+
+		files.set($files);
+		liElement.setAttribute('data-href', '');
+	}
 </script>
 
-<li class:has-children={hasChildren} class:collapse={shouldCollapse}>
+<li
+	bind:this={liElement}
+	class:collapse={shouldCollapse}
+	data-href={item.isDirectory && item.children && item.children.length === 0
+		? href
+		: null}
+>
 	{#if item.isDirectory}
 		<button on:click={collapseDirectory}>
 			<Icon name="folder" />
@@ -86,7 +115,7 @@
 	{#if item.children}
 		<ul>
 			{#each item.children as child (child.name)}
-				<svelte:self item={child} basePath={href} />
+				<svelte:self item={child} parentPath={href} />
 			{/each}
 		</ul>
 	{/if}

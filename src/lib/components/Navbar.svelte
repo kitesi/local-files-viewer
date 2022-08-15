@@ -1,8 +1,6 @@
 <script lang="ts">
 	import NavbarItem from './NavbarItem.svelte';
-
-	import type { WalkDirItem } from '../../mem-fs';
-	export let files: WalkDirItem;
+	import { files } from '../../stores';
 
 	let isChecked = false;
 </script>
@@ -21,9 +19,9 @@
 
 <div>
 	<ul>
-		{#if files.children}
-			{#each files.children as child (child.name)}
-				<NavbarItem item={child} basePath="/preview" />
+		{#if $files.children}
+			{#each $files.children as child (child.name)}
+				<NavbarItem item={child} parentPath="/preview" />
 			{/each}
 		{/if}
 	</ul>

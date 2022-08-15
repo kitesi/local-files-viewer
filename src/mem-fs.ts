@@ -20,14 +20,21 @@ const cached = {
 	stats: new Map<string, Stats>()
 };
 
-export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
+export async function walkdirBase(
+	baseDirectory: string,
+	depth: number
+): Promise<WalkDirItem> {
 	const baseItem: WalkDirItem & { children: WalkDirItem[] } = {
 		name: path.basename(baseDirectory),
 		isDirectory: true,
 		children: []
 	};
 
-	async function recurse(dir: string, toPopulate: WalkDirItem[]) {
+	async function recurse(
+		dir: string,
+		toPopulate: WalkDirItem[],
+		level: number
+	) {
 		const files = await fsReaddir(dir);
 		const stats = await Promise.all(files.map((f) => stat(path.join(dir, f))));
 		const recursivePromises: Promise<any>[] = [];
@@ -50,7 +57,12 @@ export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
 			if (stats[i].isDirectory()) {
 				item.children = [];
 				populateDirs.push(item);
-				recursivePromises.push(recurse(path.join(dir, file), item.children));
+
+				if (level <= depth) {
+					recursivePromises.push(
+						recurse(path.join(dir, file), item.children, level + 1)
+					);
+				}
 			} else {
 				populateFiles.push(item);
 			}
@@ -72,13 +84,13 @@ export async function walkdirBase(baseDirectory: string): Promise<WalkDirItem> {
 		await Promise.all(recursivePromises);
 	}
 
-	await recurse(baseDirectory, baseItem.children);
+	await recurse(baseDirectory, baseItem.children, 1);
 	return baseItem;
 }
 
-export async function walkdir(dir: string) {
+export async function walkdir(dir: string, depth: number) {
 	if (!cached.walkdir.has(dir)) {
-		cached.walkdir.set(dir, await walkdirBase(dir));
+		cached.walkdir.set(dir, await walkdirBase(dir, depth));
 	}
 
 	return cached.walkdir.get(dir)!;
