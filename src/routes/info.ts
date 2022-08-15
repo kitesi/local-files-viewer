@@ -1,17 +1,6 @@
 import path from 'path';
 import { walkdirBase } from '../mem-fs';
-
-let baseDirectory: string = '';
-
-if (process.env.LFV_DEFAULT_FOLDER) {
-	baseDirectory = process.env.LFV_DEFAULT_FOLDER;
-} else {
-	throw new Error('No base directory provided.');
-}
-
-if (baseDirectory.endsWith('/')) {
-	baseDirectory = baseDirectory.slice(0, -1);
-}
+import { getBaseDirectory } from '../base-directory';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function GET({ url }: { url: URL }) {
@@ -36,7 +25,10 @@ export async function GET({ url }: { url: URL }) {
 
 	return {
 		body: {
-			files: await walkdirBase(path.join(baseDirectory, dir), depthAsNumber)
+			files: await walkdirBase(
+				path.join(getBaseDirectory(), dir),
+				depthAsNumber
+			)
 		}
 	};
 }

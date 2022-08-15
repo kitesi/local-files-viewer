@@ -6,7 +6,6 @@ import {
 } from 'fs/promises';
 
 import type { Stats } from 'fs';
-
 export interface WalkDirItem {
 	name: string;
 	isDirectory: boolean;

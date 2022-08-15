@@ -28,7 +28,7 @@
 </div>
 
 <style lang="scss">
-	@use '../../variables.scss' as *;
+	@use '../../lib/styles/variables.scss' as *;
 
 	input {
 		opacity: 0;

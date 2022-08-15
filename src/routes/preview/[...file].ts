@@ -5,20 +5,13 @@ import { compile } from 'mdsvex';
 import { escape } from 'html-escaper';
 import { stat, walkdir, readFile } from '../../mem-fs';
 import { getMimeType } from '../../get-mime-types';
+import { getBaseDirectory } from '../../base-directory';
 
 import { existsSync } from 'fs';
 
 import type { Stats } from 'fs';
 
 loadLanguages();
-
-let baseDirectory: string = '';
-
-if (process.env.LFV_DEFAULT_FOLDER) {
-	baseDirectory = process.env.LFV_DEFAULT_FOLDER;
-} else {
-	throw new Error('No base directory provided.');
-}
 
 function highlight(code: string, grammar: Prism.Grammar, language: string) {
 	return `<pre class="language-${language}"><code>${Prism.highlight(
@@ -29,8 +22,8 @@ function highlight(code: string, grammar: Prism.Grammar, language: string) {
 }
 
 export async function GET({ params, url }: { params: any; url: any }) {
-	const filePath = path.join(baseDirectory, params.file);
-	const files = await walkdir(baseDirectory, 3);
+	const filePath = path.join(getBaseDirectory(), params.file);
+	const files = await walkdir(getBaseDirectory(), 3);
 
 	function generateErrorResponse(error: Error) {
 		return {

@@ -2,8 +2,8 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import * as stores from '../../stores';
 
-	import '../../doc.scss';
-	import '../../prism.css';
+	import '$lib/styles/doc.scss';
+	import '$lib/styles/prism.css';
 	import type { MimeType } from '../../get-mime-types';
 	import type { WalkDirItem } from '../../mem-fs';
 
@@ -53,7 +53,7 @@
 </main>
 
 <style lang="scss">
-	@use '../../variables.scss' as *;
+	@use '../../lib/styles/variables.scss' as *;
 
 	main {
 		height: 100%;
