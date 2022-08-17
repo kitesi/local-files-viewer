@@ -6,6 +6,5 @@ open folder =>
 
 open file => add item to navbar 
 
-
-navbar should be resieable
+navbar should be resizeable
 
