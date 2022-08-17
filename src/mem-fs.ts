@@ -35,31 +35,38 @@ export async function walkdirBase(
 		level: number
 	) {
 		const files = await fsReaddir(dir);
-		const stats = await Promise.all(files.map((f) => stat(path.join(dir, f))));
+		const stats = await Promise.all(
+			files.map((f) => stat(path.join(dir, f)).catch(() => undefined))
+		);
 		const recursivePromises: Promise<any>[] = [];
 
 		const populateDirs: WalkDirItem[] = [];
 		const populateFiles: WalkDirItem[] = [];
 
 		for (let i = 0; i < files.length; i++) {
-			const file = files[i];
+			const currentFile = files[i];
+			const currentStats = stats[i];
 
-			if (file === '.git' || file === 'node_modules') {
+			if (
+				!currentStats ||
+				currentFile === '.git' ||
+				currentFile === 'node_modules'
+			) {
 				continue;
 			}
 
 			const item: WalkDirItem = {
-				name: file,
-				isDirectory: stats[i].isDirectory()
+				name: currentFile,
+				isDirectory: currentStats.isDirectory()
 			};
 
-			if (stats[i].isDirectory()) {
+			if (currentStats.isDirectory()) {
 				item.children = [];
 				populateDirs.push(item);
 
 				if (level <= depth) {
 					recursivePromises.push(
-						recurse(path.join(dir, file), item.children, level + 1)
+						recurse(path.join(dir, currentFile), item.children, level + 1)
 					);
 				}
 			} else {

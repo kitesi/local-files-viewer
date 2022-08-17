@@ -13,6 +13,8 @@ import type { PageServerLoad } from './$types';
 
 loadLanguages();
 
+const MAX_FILE_SIZE_MEGABYTES = 10;
+
 function highlight(code: string, grammar: Prism.Grammar, language: string) {
 	return `<pre class="language-${language}"><code>${Prism.highlight(
 		code,
@@ -25,15 +27,15 @@ export const load: PageServerLoad = async function ({ params }) {
 	const filePath = path.join(getBaseDirectory(), params.file);
 	const files = await walkdir(getBaseDirectory(), 3);
 
-	function generateErrorResponse(error: Error) {
+	function generateErrorResponse(error: string) {
 		return {
 			files: files,
-			error: error.message
+			error: error
 		};
 	}
 
 	if (!existsSync(filePath)) {
-		return generateErrorResponse(new Error('Path does not exist.'));
+		return generateErrorResponse('Path does not exist.');
 	}
 
 	let stats: Stats;
@@ -41,13 +43,17 @@ export const load: PageServerLoad = async function ({ params }) {
 	try {
 		stats = await stat(filePath);
 	} catch (err: any) {
-		return generateErrorResponse(err);
+		return generateErrorResponse(err?.message);
 	}
 
 	if (stats.isDirectory()) {
-		return {
-			files: files
-		};
+		return generateErrorResponse('In directory.');
+	}
+
+	if (stats.size / 1_000_000 > MAX_FILE_SIZE_MEGABYTES) {
+		return generateErrorResponse(
+			'File exceeds max size of: ' + MAX_FILE_SIZE_MEGABYTES + ' MB.'
+		);
 	}
 
 	const mimeType = getMimeType(filePath);
@@ -138,7 +144,7 @@ export const load: PageServerLoad = async function ({ params }) {
 		return body;
 	}
 
-	body.unknownMimeType = true;
-
-	return body;
+	return generateErrorResponse(
+		'Could not handle mime type of: ' + mimeType.full
+	);
 };

@@ -19,9 +19,8 @@
 	let html = data.html;
 	let content = data.content;
 	let mimeType = data.mimeType;
-	let unknownMimeType = data.unknownMimeType;
 
-	$: ({ files, html, content, mimeType, unknownMimeType } = data);
+	$: ({ files, html, content, mimeType, error } = data);
 
 	stores.files.set(files);
 
@@ -107,12 +106,6 @@
 			</video>
 		{:else if content !== undefined}
 			<p>{content}</p>
-		{:else if unknownMimeType}
-			<h1>
-				Could not handle mime type of: {mimeType?.full}
-			</h1>
-		{:else}
-			<h1>In Directory.</h1>
 		{/if}
 	</section>
 </main>
