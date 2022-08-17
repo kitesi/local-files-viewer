@@ -11,7 +11,6 @@
 	import '$lib/styles/prism.css';
 	import type { PageData } from './$types';
 
-	// typing??
 	export let data: PageData;
 
 	let error = data.error;

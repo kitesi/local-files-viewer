@@ -3,8 +3,8 @@ import Prism from 'prismjs';
 import loadLanguages from 'prismjs/components/index';
 import { compile } from 'mdsvex';
 import { escape } from 'html-escaper';
-import { stat, walkdir, readFile } from '../../../mem-fs';
-import { getMimeType } from '../../../get-mime-types';
+import { stat, walkdir, readFile, type WalkDirItem } from '../../../mem-fs';
+import { getMimeType, type MimeType } from '../../../get-mime-types';
 import { getBaseDirectory } from '../../../base-directory';
 
 import { existsSync } from 'fs';
@@ -23,6 +23,15 @@ function highlight(code: string, grammar: Prism.Grammar, language: string) {
 	)}</code></pre>`;
 }
 
+interface BodyReturn {
+	files: WalkDirItem;
+	mimeType?: MimeType;
+	content?: string;
+	html?: string;
+	error?: string;
+	[k: string]: any;
+}
+
 export const load: PageServerLoad = async function ({ params }) {
 	const filePath = path.join(getBaseDirectory(), params.file);
 	const files = await walkdir(getBaseDirectory(), 3);
@@ -31,7 +40,7 @@ export const load: PageServerLoad = async function ({ params }) {
 		return {
 			files: files,
 			error: error
-		};
+		} as BodyReturn;
 	}
 
 	if (!existsSync(filePath)) {
@@ -57,7 +66,7 @@ export const load: PageServerLoad = async function ({ params }) {
 	}
 
 	const mimeType = getMimeType(filePath);
-	const body: { [k: string]: any } = {
+	const body: BodyReturn = {
 		files: files,
 		mimeType
 	};
@@ -121,7 +130,6 @@ export const load: PageServerLoad = async function ({ params }) {
 				break;
 			default:
 				if (mimeType.genre === 'application') {
-					body.unknownMimeType = true;
 					return body;
 				}
 
