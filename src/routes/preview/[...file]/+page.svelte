@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
-	import * as stores from '../../stores';
-	import { getWalkdirItem } from '../../get-walkdir-item';
+	import * as stores from '../../../stores';
+	import { getWalkdirItem } from '../../../get-walkdir-item';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
@@ -9,15 +9,19 @@
 
 	import '$lib/styles/doc.scss';
 	import '$lib/styles/prism.css';
-	import type { MimeType } from '../../get-mime-types';
-	import type { WalkDirItem } from '../../mem-fs';
+	import type { PageData } from './$types';
 
-	export let error: any;
-	export let html: string;
-	export let content: string;
-	export let mimeType: MimeType | undefined;
-	export let unknownMimeType: boolean;
-	export let files: WalkDirItem;
+	// typing??
+	export let data: PageData;
+
+	let error = data.error;
+	let files = data.files;
+	let html = data.html;
+	let content = data.content;
+	let mimeType = data.mimeType;
+	let unknownMimeType = data.unknownMimeType;
+
+	$: ({ files, html, content, mimeType, unknownMimeType } = data);
 
 	stores.files.set(files);
 
@@ -114,7 +118,7 @@
 </main>
 
 <style lang="scss">
-	@use '../../lib/styles/variables.scss' as *;
+	@use '../../../lib/styles/variables.scss' as *;
 
 	main {
 		height: 100%;

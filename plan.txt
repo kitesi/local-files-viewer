@@ -1,0 +1,11 @@
+load as text file, other files?
+or if file size is lower than amount load
+
+open folder => 
+    change baseDirectory 
+
+open file => add item to navbar 
+
+
+navbar should be resieable
+

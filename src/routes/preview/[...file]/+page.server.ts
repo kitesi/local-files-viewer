@@ -3,13 +3,13 @@ import Prism from 'prismjs';
 import loadLanguages from 'prismjs/components/index';
 import { compile } from 'mdsvex';
 import { escape } from 'html-escaper';
-import { stat, walkdir, readFile, type WalkDirItem } from '../../mem-fs';
-import { getMimeType } from '../../get-mime-types';
-import { getBaseDirectory } from '../../base-directory';
+import { stat, walkdir, readFile } from '../../../mem-fs';
+import { getMimeType } from '../../../get-mime-types';
+import { getBaseDirectory } from '../../../base-directory';
 
 import { existsSync } from 'fs';
-
 import type { Stats } from 'fs';
+import type { PageServerLoad } from './$types';
 
 loadLanguages();
 
@@ -21,16 +21,14 @@ function highlight(code: string, grammar: Prism.Grammar, language: string) {
 	)}</code></pre>`;
 }
 
-export async function GET({ params, url }: { params: any; url: any }) {
+export const load: PageServerLoad = async function ({ params }) {
 	const filePath = path.join(getBaseDirectory(), params.file);
 	const files = await walkdir(getBaseDirectory(), 3);
 
 	function generateErrorResponse(error: Error) {
 		return {
-			body: {
-				files: files,
-				error: error.message
-			}
+			files: files,
+			error: error.message
 		};
 	}
 
@@ -48,9 +46,7 @@ export async function GET({ params, url }: { params: any; url: any }) {
 
 	if (stats.isDirectory()) {
 		return {
-			body: {
-				files: files
-			}
+			files: files
 		};
 	}
 
@@ -66,7 +62,7 @@ export async function GET({ params, url }: { params: any; url: any }) {
 		mimeType.genre === 'image'
 	) {
 		body.content = '/serve/' + params.file;
-		return { body };
+		return body;
 	}
 
 	if (mimeType.genre === 'text' || mimeType.genre === 'application') {
@@ -120,7 +116,7 @@ export async function GET({ params, url }: { params: any; url: any }) {
 			default:
 				if (mimeType.genre === 'application') {
 					body.unknownMimeType = true;
-					return { body };
+					return body;
 				}
 
 				const grammer = Prism.languages[mimeType.specific];
@@ -139,12 +135,10 @@ export async function GET({ params, url }: { params: any; url: any }) {
 				break;
 		}
 
-		return { body };
+		return body;
 	}
 
 	body.unknownMimeType = true;
 
-	return {
-		body
-	};
-}
+	return body;
+};
