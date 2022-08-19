@@ -85,25 +85,29 @@ export const load: PageServerLoad = async function ({ params }) {
 
 		switch (mimeType.specific) {
 			case 'markdown':
-				body.html = (await compile(content))?.code
-					// mdsvex adds {@html `<code>....</code>`} for some reason.
-					?.replace('{@html `', '')
-					.replace('`}', '')
-					.replace(/<img src="([^"]*)"/g, (m, src) => {
-						if (src.startsWith('http')) {
-							return m;
-						}
+				try {
+					const post = await import(filePath);
+					body.html = post.default
+						.render()
+						.html.replace(/<img src="([^"]*)"/g, (m: string, src: string) => {
+							if (src.startsWith('http')) {
+								return m;
+							}
 
-						const dirname = src.startsWith('/')
-							? ''
-							: path.dirname(params.file);
+							const dirname = src.startsWith('/')
+								? ''
+								: path.dirname(params.file);
 
-						if (dirname === '.') {
-							return `<img src="/serve/${src}"`;
-						}
+							if (dirname === '.') {
+								return `<img src="/serve/${src}"`;
+							}
 
-						return `<img src="/serve/${path.join(dirname, src)}"`;
-					});
+							return `<img src="/serve/${path.join(dirname, src)}"`;
+						});
+				} catch (err) {
+					// @ts-ignore
+					return generateErrorResponse(err?.message);
+				}
 
 				break;
 			case 'typescript':
