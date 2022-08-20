@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
+	import FilePallete from '$lib/components/FilePallete.svelte';
 	import * as stores from '../../../stores';
 	import { getWalkdirItem } from '../../../get-walkdir-item';
 	import { page } from '$app/stores';
@@ -23,7 +24,13 @@
 
 	stores.files.set(files);
 
-	function onKeyUp(ev: KeyboardEvent) {
+	function handleKey(ev: KeyboardEvent) {
+		if (ev.key === 'p' && ev.ctrlKey) {
+			ev.preventDefault();
+			stores.modalState.update((u) => (u === '' ? 'choose-file' : ''));
+			return;
+		}
+
 		const valid = ['h', 'l'];
 
 		if (!valid.includes(ev.key)) {
@@ -77,9 +84,13 @@
 
 		goto(path);
 	}
+
+	// setTimeout(() => stores.modalState.set('choose-file'), 200);
 </script>
 
-<svelte:window on:keyup={onKeyUp} />
+<svelte:window on:keydown={handleKey} />
+
+<FilePallete />
 
 <main>
 	<Navbar />

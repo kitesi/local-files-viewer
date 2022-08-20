@@ -39,3 +39,5 @@ like so: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
 `h` => go to previous file
 
 `l` => go to next file
+
+`ctrl+p` => toggle file finder
