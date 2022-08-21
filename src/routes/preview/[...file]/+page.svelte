@@ -2,6 +2,7 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import FilePallete from '$lib/components/FilePallete.svelte';
 	import * as stores from '../../../stores';
+	import * as mappings from '../../../key-mappings';
 	import { getWalkdirItem } from '../../../get-walkdir-item';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
@@ -31,9 +32,7 @@
 			return;
 		}
 
-		const valid = ['h', 'l'];
-
-		if (!valid.includes(ev.key)) {
+		if (!mappings.single.includes(ev.key)) {
 			return;
 		}
 

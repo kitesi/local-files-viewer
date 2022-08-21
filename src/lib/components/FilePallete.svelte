@@ -3,6 +3,7 @@
 	import Icon from './Icon.svelte';
 	import Fuse from 'fuse.js';
 	import { modalState, files } from '../../stores';
+	import * as mappings from '../../key-mappings';
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 
@@ -16,8 +17,10 @@
 	let flattenedFiles: File[] = [];
 	let filteredResults: File[] = [];
 	let fuse: Fuse<string>;
-	let input: HTMLInputElement;
+	let lastQuery = '';
 	let query = '';
+	let input: HTMLInputElement;
+	let currentSelected: Element | null;
 
 	function addToFlattenedArr(item: WalkDirItem, parent: string, arr: string[]) {
 		let nextPath = '';
@@ -81,31 +84,72 @@
 		}
 	});
 
-	function handleTyping(ev: KeyboardEvent) {
-		if (!(ev.key === 'p' && ev.ctrlKey)) {
-			ev.stopPropagation();
+	function changeSelected(newSelected?: Element | null) {
+		if (newSelected) {
+			currentSelected?.classList.remove('selected');
+			newSelected?.classList.add('selected');
+			currentSelected = newSelected;
+			newSelected.scrollIntoView({ block: 'center' });
 		}
-
-		filteredResults = fuse.search(query).map((e) => {
-			return flattenedFiles[e.refIndex];
-		});
 	}
 
-	function handleSubmit(ev: SubmitEvent) {
-		const submitter = ev.submitter;
+	function handleTyping(ev: KeyboardEvent) {
+		ev.stopPropagation();
 
-		if (!submitter) {
-			return;
+		if (
+			ev.key === 'Escape' ||
+			ev.key === 'Tab' ||
+			(mappings.ctrl.includes(ev.key) && ev.ctrlKey)
+		) {
+			ev.preventDefault();
 		}
 
-		const href = submitter.getAttribute('data-href');
-
-		if (!href) {
-			return;
+		if (!currentSelected) {
+			currentSelected = document.querySelector('.selected');
 		}
 
-		goto('/preview/' + href);
-		modalState.set('');
+		if (
+			ev.key === 'Escape' ||
+			(ev.ctrlKey && (ev.key === 'p' || ev.key === '['))
+		) {
+			modalState.set('');
+		}
+
+		if (ev.key === 'm' && ev.ctrlKey) {
+			handleSubmit();
+		}
+
+		if ((ev.key === 'Tab' && !ev.shiftKey) || (ev.ctrlKey && ev.key === 'j')) {
+			const nextElement = currentSelected?.nextElementSibling;
+			return changeSelected(nextElement);
+		}
+
+		if ((ev.key === 'Tab' && ev.shiftKey) || (ev.ctrlKey && ev.key === 'k')) {
+			const prevElement = currentSelected?.previousElementSibling;
+			return changeSelected(prevElement);
+		}
+
+		if (query !== lastQuery) {
+			filteredResults = fuse.search(query).map((e) => {
+				return flattenedFiles[e.refIndex];
+			});
+
+			currentSelected = document.querySelector('.selected');
+			lastQuery = query;
+		}
+	}
+
+	function handleSubmit() {
+		if (!currentSelected) {
+			currentSelected = document.querySelector('.selected');
+		}
+
+		const href = currentSelected?.getAttribute('data-href');
+
+		if (href) {
+			goto('/preview/' + href);
+			modalState.set('');
+		}
 	}
 </script>
 
@@ -122,8 +166,11 @@
 
 		<div class="button-container" tabindex="-1">
 			{#if $modalState === 'choose-file'}
-				{#each query ? filteredResults : flattenedFiles as file}
-					<button data-href={file.parent + '/' + file.name}>
+				{#each query ? filteredResults : flattenedFiles as file, i}
+					<button
+						data-href={file.parent + '/' + file.name}
+						class:selected={i === 0}
+					>
 						<Icon name="file" />
 						<span class="specific">{file.name}</span>
 						<span class="parent">{file.parent}</span>
@@ -161,8 +208,8 @@
 
 	.input-container {
 		padding: 5px;
+		color: white;
 	}
-
 	input {
 		background-color: darken($c-black-2, 3%);
 		height: 100%;
@@ -186,7 +233,7 @@
 		font-size: 1rem;
 	}
 
-	button:focus {
+	.selected {
 		outline: none;
 		background-color: $c-black-2;
 	}

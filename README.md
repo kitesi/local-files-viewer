@@ -31,7 +31,6 @@ Javascript:
 This program currently works by opening up a folder: your env variable of `LFV_DEFAULT_FOLDER`.
 I usually run this program by going to the directory of the source code, setting my env variable and
 running `npm run dev`
-
 like so: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
 
 ## Keybindings
@@ -41,3 +40,13 @@ like so: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
 `l` => go to next file
 
 `ctrl+p` => toggle file finder
+
+pallete mode:
+
+`ctrl+j`, `tab` => next item
+
+`ctrl+k`, `shift+tab` => previous item
+
+`ctrl+m`, `enter` => select item
+
+`ctrl+[`, `Escape` => close pallete
