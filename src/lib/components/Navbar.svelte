@@ -19,10 +19,12 @@
 
 <div>
 	<ul>
-		{#if $files.children}
+		{#if $files.children && $files.children.length > 0}
 			{#each $files.children as child (child.name)}
 				<NavbarItem item={child} parentPath="/preview" />
 			{/each}
+		{:else}
+			<p><b>No files</b></p>
 		{/if}
 	</ul>
 </div>
