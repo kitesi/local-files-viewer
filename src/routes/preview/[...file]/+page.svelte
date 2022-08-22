@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
 	import FilePallete from '$lib/components/FilePallete.svelte';
+	import ErrorTray from '$lib/components/ErrorTray.svelte';
 	import * as stores from '../../../stores';
 	import * as mappings from '../../../key-mappings';
 	import { getWalkdirItem } from '../../../get-walkdir-item';
@@ -130,6 +131,8 @@
 		{/if}
 	</section>
 </main>
+
+<ErrorTray />
 
 <style lang="scss">
 	@use '../../../lib/styles/variables.scss' as *;

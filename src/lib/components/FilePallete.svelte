@@ -2,7 +2,7 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
 	import Fuse from 'fuse.js';
-	import { modalState, files } from '../../stores';
+	import { modalState, files, addToastError } from '../../stores';
 	import * as mappings from '../../key-mappings';
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
@@ -219,7 +219,11 @@
 		}
 
 		if ($modalState === 'choose-file') {
-			goto('/preview/' + href);
+			goto('/preview/' + href).catch((err) => {
+				if (err.message) {
+					addToastError(err.message, 2000);
+				}
+			});
 		} else {
 			fetch('/info', {
 				method: 'POST',
@@ -227,7 +231,15 @@
 				headers: {
 					'Content-Type': 'application/json'
 				}
-			}).then(() => (window.location.href = '/preview'));
+			})
+				.then((res) => res.json())
+				.then((json) => {
+					if (json.error) {
+						addToastError(json.error, 2000);
+					} else {
+						window.location.href = '/preview';
+					}
+				});
 		}
 
 		modalState.set('');
