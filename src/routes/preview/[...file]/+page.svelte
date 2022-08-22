@@ -122,6 +122,10 @@
 			<h1>{error}</h1>
 		{:else if html}
 			{@html html}
+
+			{#if mimeType?.specific === 'html'}
+				<iframe title="" src={'/serve/' + $page.params.file} frameborder="0" />
+			{/if}
 		{:else if mimeType?.genre === 'font'}
 			<div class="font-container">
 				{#each fontCharacters as char}
@@ -179,6 +183,11 @@
 	}
 
 	main {
+		height: 100%;
+	}
+
+	iframe {
+		width: 100%;
 		height: 100%;
 	}
 
