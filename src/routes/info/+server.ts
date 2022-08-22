@@ -78,9 +78,43 @@ async function oneLevelDirSearch(url: URL) {
 	});
 }
 
+function getFontStyleSheet(url: URL) {
+	const file = url.searchParams?.get('file');
+
+	if (!file) {
+		return error(400, 'No file provided');
+	}
+
+	let format = 'truetype';
+
+	if (file.endsWith('.otf')) {
+		format = 'opentype';
+	} else if (file.endsWith('.woff')) {
+		format = 'woff';
+	} else if (file.endsWith('.woff2')) {
+		format = 'woff2';
+	}
+
+	return new Response(
+		`@font-face {font-family:'placeholder';src:url('/serve/${file}') format('${format}');}`,
+		{
+			headers: {
+				'Content-Type': 'text/css'
+			}
+		}
+	);
+}
+
 export const GET: RequestHandler = async function ({ url }) {
-	const actions = ['new-base-dir-search', 'complete-search'];
-	const action = url.searchParams?.get('action');
+	const actions = [
+		'new-base-dir-search',
+		'complete-search',
+		'get-font-stylesheet'
+	] as const;
+
+	const action = url.searchParams?.get('action') as
+		| typeof actions[number]
+		| null;
 
 	if (!action) {
 		return error(400, 'No action provided');
@@ -94,7 +128,11 @@ export const GET: RequestHandler = async function ({ url }) {
 		return await completeSearch(url);
 	}
 
-	return await oneLevelDirSearch(url);
+	if (action === 'new-base-dir-search') {
+		return await oneLevelDirSearch(url);
+	}
+
+	return getFontStyleSheet(url);
 };
 
 export const POST: RequestHandler = async function ({ request }) {

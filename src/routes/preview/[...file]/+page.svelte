@@ -97,12 +97,23 @@
 		goto(path);
 	}
 
-	// setTimeout(() => stores.modalState.set('choose-file'), 200);
+	const fontCharacters =
+		'abcdefghijklmnoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789()-_=+~`!@#$%^&*[]{}\\|;:\'",.<>/?'.split(
+			''
+		);
 </script>
 
 <svelte:window on:keydown={handleKey} />
 
 <FilePallete />
+
+<svelte:head>
+	<link
+		rel="stylesheet"
+		href={'/info?action=get-font-stylesheet&file=' + $page.params.file}
+		type="text/css"
+	/>
+</svelte:head>
 
 <main>
 	<Navbar />
@@ -111,6 +122,12 @@
 			<h1>{error}</h1>
 		{:else if html}
 			{@html html}
+		{:else if mimeType?.genre === 'font'}
+			<div class="font-container">
+				{#each fontCharacters as char}
+					<p>{char}</p>
+				{/each}
+			</div>
 		{:else if mimeType?.genre === 'image'}
 			<div>
 				<img src={content} alt="" />
@@ -136,6 +153,19 @@
 
 <style lang="scss">
 	@use '../../../lib/styles/variables.scss' as *;
+
+	.font-container {
+		display: flex;
+		font-family: 'placeholder', Arial;
+		align-items: flex-start;
+		align-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.font-container p {
+		padding: 5px;
+		font-size: 2rem;
+	}
 
 	main {
 		height: 100%;

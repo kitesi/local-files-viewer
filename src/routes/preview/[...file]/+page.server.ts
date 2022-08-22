@@ -79,6 +79,10 @@ export const load: PageServerLoad = async function ({ params }) {
 		return body;
 	}
 
+	if (mimeType.genre === 'font') {
+		return body;
+	}
+
 	if (mimeType.genre === 'text' || mimeType.genre === 'application') {
 		const content = await readFile(filePath, 'utf-8');
 
@@ -133,7 +137,9 @@ export const load: PageServerLoad = async function ({ params }) {
 				break;
 			default:
 				if (mimeType.genre === 'application') {
-					return body;
+					return generateErrorResponse(
+						'Could not handle mime type of: ' + mimeType.full
+					);
 				}
 
 				const grammer = Prism.languages[mimeType.specific];
