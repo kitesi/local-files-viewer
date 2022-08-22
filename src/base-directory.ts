@@ -9,3 +9,7 @@ if (process.env.LFV_DEFAULT_FOLDER) {
 export function getBaseDirectory() {
 	return baseDirectory;
 }
+
+export function setBaseDirectory(dir: string) {
+	baseDirectory = dir;
+}

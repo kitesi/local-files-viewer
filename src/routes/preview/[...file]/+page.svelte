@@ -28,7 +28,19 @@
 	function handleKey(ev: KeyboardEvent) {
 		if (ev.key === 'p' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.update((u) => (u === '' ? 'choose-file' : ''));
+			stores.modalState.update((u) =>
+				u !== 'choose-file' ? 'choose-file' : ''
+			);
+
+			return;
+		}
+
+		if (ev.key === 'o' && ev.ctrlKey) {
+			ev.preventDefault();
+			stores.modalState.update((u) =>
+				u !== 'choose-directory' ? 'choose-directory' : ''
+			);
+
 			return;
 		}
 

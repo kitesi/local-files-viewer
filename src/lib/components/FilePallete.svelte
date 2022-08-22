@@ -8,31 +8,40 @@
 	import { goto } from '$app/navigation';
 
 	import type { WalkDirItem } from '../../mem-fs';
-
 	interface File {
-		parent: string;
+		parents: string;
 		name: string;
 	}
 
-	let flattenedFiles: File[] = [];
+	interface WalkDirItemWithParent extends WalkDirItem {
+		parents: string;
+	}
+
+	let flattenedResults: File[] = [];
 	let filteredResults: File[] = [];
 	let fuse: Fuse<string>;
-	let lastQuery = '';
 	let query = '';
 	let input: HTMLInputElement;
 	let currentSelected: Element | null;
 
-	function addToFlattenedArr(item: WalkDirItem, parent: string, arr: string[]) {
+	function addToFlattenedArr(
+		item: WalkDirItem,
+		directParent: string,
+		arr: WalkDirItemWithParent[]
+	) {
 		let nextPath = '';
 
-		if (parent && parent !== '/') {
-			nextPath = parent + '/' + item.name;
+		if (directParent && directParent !== '/') {
+			nextPath = directParent + '/' + item.name;
 		} else {
 			nextPath = item.name;
 		}
 
-		if (nextPath && !item.isDirectory) {
-			arr.push(nextPath);
+		if (nextPath) {
+			arr.push({
+				...item,
+				parents: directParent
+			});
 		}
 
 		if (item.children) {
@@ -44,22 +53,57 @@
 		return arr;
 	}
 
+	async function setFilteredDirectoryResults() {
+		const res = await fetch(
+			// vite has some weird thing where if a query=../.. it will try to parse it ig
+			`/info?action=new-base-dir-search&query=` + query.replaceAll('/', '\\')
+		);
+
+		const json = (await res.json()) as { files: string[]; homedir: string };
+
+		let normalizedQuery = query.replace(/(?<!\\)~/, json.homedir);
+		let pathsOfQuery = normalizedQuery.match(/\/?[^/]*$/);
+
+		if (pathsOfQuery && pathsOfQuery[0]) {
+			normalizedQuery = pathsOfQuery[0];
+
+			if (normalizedQuery.startsWith('/')) {
+				normalizedQuery = normalizedQuery.slice(1);
+			}
+		}
+
+		filteredResults = json.files
+			.map((e) => {
+				const paths = e.split('/');
+				let name = '';
+
+				if (paths.length > 1) {
+					name = paths.pop()!;
+				}
+
+				return { name, parents: paths.join('/') };
+			})
+			.filter((e) => e.name.startsWith(normalizedQuery));
+
+		return;
+	}
+
 	modalState.subscribe(async () => {
 		if (!browser) {
 			return;
 		}
 
-		if ($modalState !== '') {
-			if (input) {
-				setTimeout(() => input.focus(), 100);
-			}
+		if ($modalState === '') {
+			return;
+		}
 
-			if (fuse) {
-				return;
-			}
+		if (input) {
+			setTimeout(() => input.focus(), 100);
+		}
 
+		if ($modalState === 'choose-file') {
 			const res = await fetch(
-				window.location.origin + '/info?dir=/&depth=Infinity&action=more'
+				'/info?dir=/&depth=Infinity&action=complete-search'
 			);
 			const json = await res.json();
 
@@ -70,17 +114,22 @@
 			files.set(json.files);
 			json.files.name = '';
 
-			let results = addToFlattenedArr(json.files, '', []);
-			fuse = new Fuse(results);
+			flattenedResults = addToFlattenedArr(json.files, '', [])
+				.filter((e) => !e.isDirectory)
+				.map(({ name, parents }) => {
+					return {
+						name,
+						parents
+					};
+				});
 
-			flattenedFiles = results.map((r) => {
-				const items = r.split('/');
-				const name = items.pop() || '';
-				return {
-					name,
-					parent: items.join('/')
-				};
-			});
+			filteredResults = flattenedResults;
+			fuse = new Fuse(flattenedResults.map((e) => e.parents + '/' + e.name));
+		}
+
+		if ($modalState === 'choose-directory') {
+			flattenedResults = [];
+			filteredResults = [];
 		}
 	});
 
@@ -93,7 +142,7 @@
 		}
 	}
 
-	function handleTyping(ev: KeyboardEvent) {
+	async function handleKeydown(ev: KeyboardEvent) {
 		ev.stopPropagation();
 
 		if (
@@ -110,7 +159,7 @@
 
 		if (
 			ev.key === 'Escape' ||
-			(ev.ctrlKey && (ev.key === 'p' || ev.key === '['))
+			(ev.ctrlKey && (ev.key === 'p' || ev.key === 'o' || ev.key === '['))
 		) {
 			modalState.set('');
 		}
@@ -119,23 +168,39 @@
 			handleSubmit();
 		}
 
-		if ((ev.key === 'Tab' && !ev.shiftKey) || (ev.ctrlKey && ev.key === 'j')) {
+		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
+		const isShiftTab = ev.key === 'Tab' && ev.shiftKey;
+
+		if ($modalState === 'choose-directory') {
+			if (isShiftTab) {
+				return;
+			}
+
+			if (isNormalTab) {
+				if (filteredResults.length !== 1) {
+					return;
+				}
+
+				const completion = filteredResults[0].name;
+
+				if (!query.includes('/')) {
+					query = completion;
+				} else {
+					query = query.replace(/\/[^/]*$/, '/' + completion);
+				}
+
+				return;
+			}
+		}
+
+		if (isNormalTab || (ev.ctrlKey && ev.key === 'j')) {
 			const nextElement = currentSelected?.nextElementSibling;
 			return changeSelected(nextElement);
 		}
 
-		if ((ev.key === 'Tab' && ev.shiftKey) || (ev.ctrlKey && ev.key === 'k')) {
+		if (isShiftTab || (ev.ctrlKey && ev.key === 'k')) {
 			const prevElement = currentSelected?.previousElementSibling;
 			return changeSelected(prevElement);
-		}
-
-		if (query !== lastQuery) {
-			filteredResults = fuse.search(query).map((e) => {
-				return flattenedFiles[e.refIndex];
-			});
-
-			currentSelected = document.querySelector('.selected');
-			lastQuery = query;
 		}
 	}
 
@@ -144,12 +209,44 @@
 			currentSelected = document.querySelector('.selected');
 		}
 
-		const href = currentSelected?.getAttribute('data-href');
+		const href =
+			$modalState === 'choose-directory'
+				? query
+				: currentSelected?.getAttribute('data-href');
 
-		if (href) {
-			goto('/preview/' + href);
-			modalState.set('');
+		if (!href) {
+			return;
 		}
+
+		if ($modalState === 'choose-file') {
+			goto('/preview/' + href);
+		} else {
+			fetch('/info', {
+				method: 'POST',
+				body: JSON.stringify({ action: 'new-base-dir', dir: href }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then(() => (window.location.href = '/preview'));
+		}
+
+		modalState.set('');
+	}
+
+	async function handleInput() {
+		if ($modalState === 'choose-directory') {
+			return setFilteredDirectoryResults().catch((err) => console.error(err));
+		}
+
+		if (!query) {
+			filteredResults = flattenedResults;
+		} else {
+			filteredResults = fuse.search(query).map((e) => {
+				return flattenedResults![e.refIndex];
+			});
+		}
+
+		currentSelected = document.querySelector('.selected');
 	}
 </script>
 
@@ -160,22 +257,25 @@
 				type="text"
 				bind:this={input}
 				bind:value={query}
-				on:keydown={handleTyping}
+				on:keydown={handleKeydown}
+				on:input={handleInput}
 			/>
 		</div>
 
 		<div class="button-container" tabindex="-1">
-			{#if $modalState === 'choose-file'}
-				{#each query ? filteredResults : flattenedFiles as file, i}
+			{#if filteredResults.length > 0}
+				{#each filteredResults as file, i}
 					<button
-						data-href={file.parent + '/' + file.name}
-						class:selected={i === 0}
+						data-href={file.parents + '/' + file.name}
+						class:selected={$modalState === 'choose-file' && i === 0}
 					>
-						<Icon name="file" />
+						<Icon name={$modalState === 'choose-file' ? 'file' : 'folder'} />
 						<span class="specific">{file.name}</span>
-						<span class="parent">{file.parent}</span>
+						<span class="parent">{file.parents}</span>
 					</button>
 				{/each}
+			{:else}
+				<p>No matching results.</p>
 			{/if}
 		</div>
 	</form>
@@ -231,6 +331,11 @@
 		padding: 2px 10px;
 		border: none;
 		font-size: 1rem;
+	}
+
+	p {
+		color: white;
+		padding: 5px 10px;
 	}
 
 	.selected {

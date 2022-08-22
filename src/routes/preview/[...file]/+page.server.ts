@@ -1,7 +1,6 @@
 import path from 'path';
 import Prism from 'prismjs';
 import loadLanguages from 'prismjs/components/index';
-import { compile } from 'mdsvex';
 import { escape } from 'html-escaper';
 import { stat, walkdir, readFile, type WalkDirItem } from '../../../mem-fs';
 import { getMimeType, type MimeType } from '../../../get-mime-types';
