@@ -22,7 +22,10 @@
 	let content = data.content;
 	let mimeType = data.mimeType;
 
-	$: ({ files, html, content, mimeType, error } = data);
+	$: {
+		({ files, html, content, mimeType, error } = data);
+		stores.baseDirectory.set(data.baseDirectory);
+	}
 
 	stores.files.set(files);
 

@@ -1,8 +1,15 @@
 <script lang="ts">
 	import NavbarItem from './NavbarItem.svelte';
-	import { files } from '../../stores';
+	import { baseDirectory, files } from '../../stores';
 
 	let isChecked = false;
+
+	function getLastDirectory(dir: string) {
+		const paths = dir.split('/');
+		return dir.endsWith('/')
+			? paths[paths.length - 2]
+			: paths[paths.length - 1];
+	}
 </script>
 
 <input
@@ -18,6 +25,7 @@
 </label>
 
 <div>
+	<p class="base-dir"><b>{getLastDirectory($baseDirectory)}</b></p>
 	<ul>
 		{#if $files.children && $files.children.length > 0}
 			{#each $files.children as child (child.name)}
@@ -31,6 +39,13 @@
 
 <style lang="scss">
 	@use '../../lib/styles/variables.scss' as *;
+
+	.base-dir {
+		padding: 5px;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: auto;
+	}
 
 	input {
 		opacity: 0;

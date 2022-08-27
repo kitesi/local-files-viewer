@@ -24,8 +24,6 @@ async function completeSearch(url: URL) {
 		return error(400, 'Depth is not a valid number');
 	}
 
-	console.log(path.join(getBaseDirectory(), dir));
-
 	return json({
 		files: await walkdirBase(path.join(getBaseDirectory(), dir), depthAsNumber)
 	});

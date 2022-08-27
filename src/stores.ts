@@ -30,3 +30,4 @@ export const modalState = writable(
 	'' as '' | 'choose-file' | 'choose-directory'
 );
 export const toasts = writable([] as ToastError[]);
+export const baseDirectory = writable('');

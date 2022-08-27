@@ -101,6 +101,8 @@
 			setTimeout(() => input.focus(), 100);
 		}
 
+		query = '';
+
 		if ($modalState === 'choose-file') {
 			const res = await fetch(
 				'/info?dir=/&depth=Infinity&action=complete-search'
@@ -265,13 +267,22 @@
 <dialog open={!!$modalState} on:click|self={() => modalState.set('')}>
 	<form on:submit|preventDefault={handleSubmit}>
 		<div class="input-container">
-			<input
-				type="text"
-				bind:this={input}
-				bind:value={query}
-				on:keydown={handleKeydown}
-				on:input={handleInput}
-			/>
+			<div>
+				<label for="query"
+					>{$modalState === 'choose-directory' ? 'Folder:' : 'File:'}</label
+				>
+				<input
+					type="text"
+					id="query"
+					autocomplete="off"
+					autocapitalize="off"
+					autocorrect="off"
+					bind:this={input}
+					bind:value={query}
+					on:keydown={handleKeydown}
+					on:input={handleInput}
+				/>
+			</div>
 		</div>
 
 		<div class="button-container" tabindex="-1">
@@ -322,14 +333,30 @@
 		padding: 5px;
 		color: white;
 	}
-	input {
+
+	.input-container div {
+		display: flex;
+		align-items: center;
 		background-color: darken($c-black-2, 3%);
+		padding-left: 5px;
+	}
+
+	.input-container div:focus-within {
+		outline: 2px solid $c-blue-2;
+	}
+
+	input {
 		height: 100%;
-		padding: 6px;
+		padding: 5px;
 		width: 100%;
 		border: none;
 		color: white;
+		background-color: transparent;
 		font-size: 0.8rem;
+	}
+
+	input:focus {
+		outline: none;
 	}
 
 	button {

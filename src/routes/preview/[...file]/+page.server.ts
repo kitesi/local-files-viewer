@@ -24,6 +24,7 @@ function highlight(code: string, grammar: Prism.Grammar, language: string) {
 
 interface BodyReturn {
 	files: WalkDirItem;
+	baseDirectory: string;
 	mimeType?: MimeType;
 	content?: string;
 	html?: string;
@@ -38,7 +39,8 @@ export const load: PageServerLoad = async function ({ params }) {
 	function generateErrorResponse(error: string) {
 		return {
 			files: files,
-			error: error
+			error: error,
+			baseDirectory: getBaseDirectory()
 		} as BodyReturn;
 	}
 
@@ -67,7 +69,8 @@ export const load: PageServerLoad = async function ({ params }) {
 	const mimeType = getMimeType(filePath);
 	const body: BodyReturn = {
 		files: files,
-		mimeType
+		mimeType,
+		baseDirectory: getBaseDirectory()
 	};
 
 	if (
