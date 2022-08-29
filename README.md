@@ -8,8 +8,6 @@ Simple program to view files in your browser. Text files, markdown, html, images
 git clone https://github.com/sixskys/local-files-viewer.git
 cd local-files-viewer
 npm i
-npm run build
-npm run preview
 ```
 
 ## Previews
@@ -23,9 +21,26 @@ For more previews, visit [previews.md](previews.md)
 ## Usage
 
 This program currently works by opening up a folder: your env variable of `LFV_DEFAULT_FOLDER`.
-I usually run this program by going to the directory of the source code, setting my env variable and
-running `npm run dev`
-like so: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
+You can use this program two ways:
+
+a. going to this project directory changing your env variable and running `npm run dev`: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
+b. Use the helper script below, usage: `lfv <folder>`
+
+```sh
+#!/bin/sh
+
+if [ ! "$1" = "" ]; then
+    OLD_LFV=$LFV_DEFAULT_FOLDER
+    LFV_DEFAULT_FOLDER="$(cd "$1" && pwd -P)"
+fi
+
+echo $LFV_DEFAULT_FOLDER
+
+cd ~/code/local-files-viewer/
+npm run dev
+
+LFV_DEFAULT_FOLDER=$OLD_LFV
+```
 
 ## Keybindings
 
