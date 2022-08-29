@@ -10,8 +10,9 @@
 
 	import { get } from 'svelte/store';
 
-	import '$lib/styles/doc.scss';
+	import '$lib/styles/github-doc.scss';
 	import '$lib/styles/prism.css';
+	import '$lib/styles/doc.scss';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
