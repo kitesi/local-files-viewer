@@ -3,6 +3,7 @@
 
 	// todo: prob better ways to do these two functions
 	function switchActive(ev: Event) {
+		closeSidebar();
 		if (
 			!(ev.target instanceof HTMLElement) &&
 			!(ev.target instanceof SVGElement)
@@ -29,12 +30,16 @@
 		a.classList.add('active');
 		activeTag = a;
 	}
+
+	function closeSidebar() {
+		isSidebarOpen.set(false);
+	}
 </script>
 
 <script lang="ts">
 	import Icon from './Icon.svelte';
 	import { page } from '$app/stores';
-	import { files } from '../../stores';
+	import { files, isSidebarOpen } from '../../stores';
 
 	import { getWalkdirItem } from '../../get-walkdir-item';
 	import type { WalkDirItem } from '../../mem-fs';

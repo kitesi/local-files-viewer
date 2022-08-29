@@ -30,6 +30,10 @@
 	box-sizing: border-box;
 }
 
+::-webkit-scrollbar {
+	display: none;
+}
+
 html {
 	font-family: Roboto, Arial;
 	background-color: $c-black-1;

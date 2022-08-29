@@ -31,3 +31,4 @@ export const modalState = writable(
 );
 export const toasts = writable([] as ToastError[]);
 export const baseDirectory = writable('');
+export const isSidebarOpen = writable(false);

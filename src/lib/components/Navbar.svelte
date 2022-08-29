@@ -1,8 +1,6 @@
 <script lang="ts">
 	import NavbarItem from './NavbarItem.svelte';
-	import { baseDirectory, files } from '../../stores';
-
-	let isChecked = false;
+	import { baseDirectory, files, isSidebarOpen } from '../../stores';
 
 	function getLastDirectory(dir: string) {
 		const paths = dir.split('/');
@@ -13,10 +11,10 @@
 </script>
 
 <input
-	aria-label={isChecked ? 'Close' : 'Open'}
+	aria-label={$isSidebarOpen ? 'Close' : 'Open'}
 	type="checkbox"
 	id="menu-toggle"
-	bind:checked={isChecked}
+	bind:checked={$isSidebarOpen}
 />
 <label for="menu-toggle">
 	<span class="top" />
