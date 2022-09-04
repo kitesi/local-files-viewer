@@ -20,3 +20,5 @@ initially load with 3 directorys deep
 a. keep requesting in the background
     1. on baseDirectory just keep adding a level, completely set the $files again
     2. on indidvidual folders, doesn't completely set the $files, idk if preformance benefit
+
+better color system

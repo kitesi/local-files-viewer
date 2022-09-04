@@ -322,8 +322,10 @@
 	}
 
 	form {
-		background-color: darken($c-black-2, 10%);
-		box-shadow: 4px 7px 20px 8px rgba(0, 0, 0, 0.1);
+		background-color: lighten($c-black-3, 2%);
+		border: 2px solid $c-black-4;
+		// box-shadow: 4px 7px 20px 8px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
 		margin: 10px auto;
 		width: 800px;
 		max-width: 90%;

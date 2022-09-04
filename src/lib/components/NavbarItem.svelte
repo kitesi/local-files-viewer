@@ -149,6 +149,11 @@
 		text-decoration: underline;
 	}
 
+	a:hover,
+	button:hover {
+		color: white;
+	}
+
 	span {
 		overflow: hidden;
 		text-overflow: '..';

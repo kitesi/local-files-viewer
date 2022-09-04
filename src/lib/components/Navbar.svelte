@@ -43,6 +43,9 @@
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		overflow: auto;
+		margin-left: 15px;
+		margin-top: 5px;
+		color: white;
 	}
 
 	input {
@@ -52,32 +55,30 @@
 
 	div {
 		position: absolute;
+		background-color: $c-black-3;
+		color: #858383;
 		top: 0;
 		left: 0;
 		width: 100%;
 		max-width: 10rem;
 		min-width: 280px;
 		height: 100%;
-		background-color: darken($c-black-2, 5%);
+		border-right: 1px solid $c-black-4;
 		transform: translateX(-100%);
 		transition: 100ms linear;
-		padding: 15px;
 		z-index: 2;
 		overflow: auto;
+		scrollbar-width: none;
 	}
 
 	ul {
-		margin-left: 10px;
+		margin-left: 15px;
 		list-style-type: none;
 	}
 
 	div:global {
 		.active {
-			color: #76ec94;
-		}
-
-		.active ul {
-			color: white;
+			color: $c-yellow-1;
 		}
 
 		li:not(.collapse) > ul {
@@ -142,6 +143,7 @@
 
 		label {
 			opacity: 0;
+			visibility: hidden;
 		}
 	}
 </style>
