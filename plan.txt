@@ -1,10 +1,22 @@
 load as text file, other files?
 or if file size is lower than amount load
 
-open folder => 
-    change baseDirectory 
+ERRORS:
+- action errors: show up in notification bar
+    - goto() fails
+    - change baseDirectory fails
+- medium errors
+    - can't handle mime type
+    - filesize too big
+    - in directory
 
-open file => add item to navbar 
+caching?
 
-navbar should be resizeable
+need to handle collapseDirectory and all that
+regardless file pallete should only show things in $files
 
+initially load with 3 directorys deep
+
+a. keep requesting in the background
+    1. on baseDirectory just keep adding a level, completely set the $files again
+    2. on indidvidual folders, doesn't completely set the $files, idk if preformance benefit

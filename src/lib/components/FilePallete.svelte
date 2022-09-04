@@ -1,6 +1,7 @@
 <!-- inspired by vscode's file/command pallete -->
 <script lang="ts">
 	import Icon from './Icon.svelte';
+	import FileIcon from './FileIcon.svelte';
 	import Fuse from 'fuse.js';
 	import { modalState, files, addToastError } from '../../stores';
 	import * as mappings from '../../key-mappings';
@@ -292,7 +293,11 @@
 						data-href={file.parents + '/' + file.name}
 						class:selected={$modalState === 'choose-file' && i === 0}
 					>
-						<Icon name={$modalState === 'choose-file' ? 'file' : 'folder'} />
+						{#if $modalState === 'choose-file'}
+							<FileIcon fileName={file.name} size="20px" />
+						{:else}
+							<Icon name="folder" />
+						{/if}
 						<span class="specific">{file.name}</span>
 						<span class="parent">{file.parents}</span>
 					</button>

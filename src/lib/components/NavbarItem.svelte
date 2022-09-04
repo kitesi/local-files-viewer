@@ -38,6 +38,7 @@
 
 <script lang="ts">
 	import Icon from './Icon.svelte';
+	import FileIcon from './FileIcon.svelte';
 	import { page } from '$app/stores';
 	import { files, isSidebarOpen } from '../../stores';
 
@@ -105,7 +106,7 @@
 		</button>
 	{:else}
 		<a on:click={switchActive} class:active={isActive} {href}>
-			<Icon name="file" />
+			<FileIcon fileName={item.name} size="20px" />
 			<span>{item.name}</span>
 		</a>
 	{/if}
