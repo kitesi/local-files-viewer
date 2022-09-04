@@ -322,9 +322,8 @@
 	}
 
 	form {
-		background-color: lighten($c-black-3, 2%);
+		background-color: lighten($c-black-3, 1%);
 		border: 2px solid $c-black-4;
-		// box-shadow: 4px 7px 20px 8px rgba(0, 0, 0, 0.1);
 		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
 		margin: 10px auto;
 		width: 800px;
@@ -344,7 +343,7 @@
 	.input-container div {
 		display: flex;
 		align-items: center;
-		background-color: darken($c-black-2, 3%);
+		background-color: darken($c-black-2, 2%);
 		padding-left: 5px;
 	}
 
@@ -377,6 +376,12 @@
 		padding: 2px 10px;
 		border: none;
 		font-size: 1rem;
+	}
+
+	span {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	p {

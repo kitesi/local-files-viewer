@@ -6,8 +6,7 @@
 	-webkit-text-size-adjust: 100%;
 	margin: 0;
 	color: #c9d1d9;
-	// could also use $c-black-3, idk how i got this color
-	background-color: #0e0f11;
+	background-color: $c-black-5;
 
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
 		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
@@ -796,8 +795,9 @@
 	padding: 0.2em 0.4em;
 	margin: 0;
 	font-size: 85%;
-	background-color: rgba(110, 118, 129, 0.4);
-	border-radius: 6px;
+	background-color: $c-black-3;
+	border: 1px solid $c-black-4;
+	border-radius: 0.2em;
 }
 
 .markdown-body code br,

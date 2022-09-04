@@ -1,3 +1,5 @@
+@use './variables.scss' as *;
+
 /**
  * Coldark Theme for Prism.js
  * Theme variation: Dark
@@ -50,8 +52,8 @@ pre[class*='language-'] {
 :not(pre) > code[class*='language-'],
 pre[class*='language-'],
 pre {
-	background: #0e1014;
-	border: 1px solid #181c23;
+	background: $c-black-3;
+	border: 1px solid $c-black-4;
 	font-size: 0.9em;
 }
 

@@ -10,17 +10,13 @@
 	}
 </script>
 
-<input
-	aria-label={$isSidebarOpen ? 'Close' : 'Open'}
-	type="checkbox"
-	id="menu-toggle"
-	bind:checked={$isSidebarOpen}
-/>
-<label for="menu-toggle">
-	<span class="top" />
-	<span class="middle" />
-	<span class="bottom" />
-</label>
+<button
+	on:click={() => isSidebarOpen.set(!$isSidebarOpen)}
+	aria-pressed={$isSidebarOpen}
+	aria-label="toggle sidebar"
+>
+	<span />
+</button>
 
 <div>
 	<p class="base-dir"><b>{getLastDirectory($baseDirectory)}</b></p>
@@ -48,14 +44,9 @@
 		color: white;
 	}
 
-	input {
-		opacity: 0;
-		position: absolute;
-	}
-
 	div {
 		position: absolute;
-		background-color: $c-black-3;
+		background-color: $c-black-5;
 		color: #858383;
 		top: 0;
 		left: 0;
@@ -86,54 +77,68 @@
 		}
 	}
 
-	input:checked ~ div {
-		transform: translateX(0);
-		box-shadow: 27px 0px 43px -3px rgba(0, 0, 0, 0.27);
-		-webkit-box-shadow: 27px 0px 43px -3px rgba(0, 0, 0, 0.27);
-		-moz-box-shadow: 27px 0px 43px -3px rgba(0, 0, 0, 0.27);
-	}
-
-	span {
-		display: block;
-		top: 20px;
-		right: 0px;
-	}
-
-	span {
-		display: block;
-		width: 1.8rem;
-		height: 2px;
-		background-color: white;
-		transition-duration: 100ms;
-	}
-
-	label {
-		display: flex;
+	$hamburger-gap: 7px;
+	button {
 		position: absolute;
-		right: 20px;
-		top: 20px;
-		flex-direction: column;
-		justify-content: space-between;
-		height: 16px;
-		z-index: 1;
-		cursor: pointer;
+		background-color: transparent;
+		inset: $hamburger-gap 0 auto auto;
+		border: none;
+		padding: 15px;
+		z-index: 3;
 	}
 
-	input:checked ~ label .middle {
-		opacity: 0;
+	span {
+		display: block;
+		position: relative;
 	}
 
-	input:checked ~ label .top {
+	span,
+	span::before,
+	span::after {
+		width: 2em;
+		height: 3px;
+		background-color: white;
+		transition: transform 150ms ease-in-out, opacity 200ms linear;
+	}
+
+	span::before,
+	span::after {
+		content: '';
+		position: absolute;
+		left: 0;
+	}
+
+	span::before {
+		top: $hamburger-gap;
+	}
+
+	span::after {
+		bottom: $hamburger-gap;
+	}
+
+	button[aria-pressed='true'] ~ div {
+		transform: translateX(0);
+		visibility: visible;
+		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
+		-webkit-box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
+		-moz-box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
+	}
+
+	button[aria-pressed='true'] > span {
 		transform: rotate(45deg);
 	}
 
-	input:checked ~ label .bottom {
-		transform: rotate(135deg) translate(-10px, 10px);
+	button[aria-pressed='true'] > span::before {
+		opacity: 0;
+	}
+
+	button[aria-pressed='true'] > span::after {
+		transform: rotate(90deg) translateX($hamburger-gap);
 	}
 
 	@media screen and (min-width: $size-1) {
 		div,
-		input:checked ~ div {
+		button[aria-pressed='true'] ~ div {
 			position: static;
 			transform: translateX(0);
 			box-shadow: none;
@@ -141,9 +146,10 @@
 			-moz-box-shadow: none;
 		}
 
-		label {
+		button {
 			opacity: 0;
 			visibility: hidden;
+			pointer-events: none;
 		}
 	}
 </style>
