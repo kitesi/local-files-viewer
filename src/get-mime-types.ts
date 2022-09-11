@@ -24,13 +24,11 @@ export function getMimeType(file: string): MimeType {
 		return { genre: 'text', specific: 'typescript', full: 'text/typescript' };
 	}
 
-	const plains = [
-		'.npmrc',
-		'.prettierrc',
-		'.prettierignore',
-		'.gitignore',
-		'.svelte'
-	];
+	if (file.endsWith('.svelte')) {
+		return { genre: 'text', specific: 'svelte', full: 'text/svelte' };
+	}
+
+	const plains = ['.npmrc', '.prettierrc', '.prettierignore', '.gitignore'];
 
 	if (plains.some((p) => file.endsWith(p))) {
 		return { genre: 'text', specific: 'plain-code', full: 'text/plain-code' };

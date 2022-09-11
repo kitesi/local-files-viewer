@@ -1,6 +1,8 @@
+// @ts-check
 import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
 import { mdsvex } from 'mdsvex';
+import { highlighterWrapper } from './highlight.js';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -10,7 +12,10 @@ const config = {
 	preprocess: [
 		preprocess(),
 		mdsvex({
-			extensions: ['.md']
+			extensions: ['.md'],
+			highlight: {
+				highlighter: highlighterWrapper
+			}
 		})
 	],
 	kit: {

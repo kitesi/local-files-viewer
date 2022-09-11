@@ -10,7 +10,8 @@ import {
 	siSvg,
 	siSass,
 	siPrettier,
-	siNpm
+	siNpm,
+	siSvelte
 } from 'simple-icons/icons';
 import type { SimpleIcon } from 'simple-icons';
 
@@ -20,7 +21,7 @@ interface Style {
 
 function addStylesProp(
 	simpleIcon: SimpleIcon,
-	styles: Style = { fill: 'white' }
+	styles: Style = { fill: 'currentColor' }
 ) {
 	return {
 		simpleIcon,
@@ -39,14 +40,14 @@ export function getFileIcon(file: string) {
 		case '.js':
 		case '.cjs':
 		case '.mjs':
-			return addStylesProp(siJavascript);
+			return addStylesProp(siJavascript, { fill: '#F7DF1E' });
 		case '.md':
 		case '.markdown':
 			return addStylesProp(siMarkdown);
 		case '.css':
-			return addStylesProp(siCss3);
+			return addStylesProp(siCss3, { fill: '#1572B6' });
 		case '.html':
-			return addStylesProp(siHtml5);
+			return addStylesProp(siHtml5, { fill: '#E34F26' });
 		case '.ts':
 			return addStylesProp(siTypescript, { fill: '#007ACC' });
 		case '.json':
@@ -59,10 +60,12 @@ export function getFileIcon(file: string) {
 			return addStylesProp(siSvg);
 		case '.sass':
 		case '.scss':
-			return addStylesProp(siSass);
+			return addStylesProp(siSass, { fill: '#CC6699' });
 		case '.prettierignore':
 		case '.prettierrc':
 			return addStylesProp(siPrettier);
+		case '.svelte':
+			return addStylesProp(siSvelte, { fill: '#FF3E00' });
 		case '.npmrc':
 			return addStylesProp(siNpm, { fill: '#CB3837' });
 		case '.png':

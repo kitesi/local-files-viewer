@@ -1,26 +1,15 @@
 import path from 'path';
-import Prism from 'prismjs';
-import loadLanguages from 'prismjs/components/index';
-import { escape } from 'html-escaper';
+import { escapeSvelte } from 'mdsvex';
 import { stat, walkdir, readFile, type WalkDirItem } from '../../../mem-fs';
 import { getMimeType, type MimeType } from '../../../get-mime-types';
 import { getBaseDirectory } from '../../../base-directory';
+import { highlighterWrapper } from '../../../../highlight';
 
 import { existsSync } from 'fs';
 import type { Stats } from 'fs';
 import type { PageServerLoad } from './$types';
 
-loadLanguages();
-
 const MAX_FILE_SIZE_MEGABYTES = 10;
-
-function highlight(code: string, grammar: Prism.Grammar, language: string) {
-	return `<pre class="language-${language}"><code>${Prism.highlight(
-		code,
-		grammar,
-		language
-	)}</code></pre>`;
-}
 
 interface BodyReturn {
 	files: WalkDirItem;
@@ -117,26 +106,18 @@ export const load: PageServerLoad = async function ({ params }) {
 
 				break;
 			case 'typescript':
-				body.html = highlight(
-					content,
-					Prism.languages.typescript,
-					'typescript'
-				);
-				break;
 			case 'javascript':
-				body.html = highlight(content, Prism.languages.js, 'js');
-				break;
 			case 'json':
-				body.html = highlight(content, Prism.languages.json, 'json');
+				body.html = highlighterWrapper(content, mimeType.specific);
 				break;
 			case 'x-scss':
-				body.html = highlight(content, Prism.languages.scss, 'scss');
+				body.html = highlighterWrapper(content, 'sass');
 				break;
 			case 'plain':
 				body.content = content;
 				break;
 			case 'plain-code':
-				body.html = `<pre><code>${escape(content)}</code></pre>`;
+				body.html = `<pre><code>${escapeSvelte(content)}</code></pre>`;
 				break;
 			default:
 				if (mimeType.genre === 'application') {
@@ -145,18 +126,7 @@ export const load: PageServerLoad = async function ({ params }) {
 					);
 				}
 
-				const grammer = Prism.languages[mimeType.specific];
-
-				if (!grammer) {
-					body.content = content;
-					break;
-				}
-
-				try {
-					body.html = highlight(content, grammer, mimeType.specific);
-				} catch (err) {
-					body.content = content;
-				}
+				body.html = highlighterWrapper(content, mimeType.specific);
 
 				break;
 		}
