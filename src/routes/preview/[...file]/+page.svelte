@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Navbar from '$lib/components/Navbar.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
 	import FilePallete from '$lib/components/FilePallete.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
 	import * as stores from '../../../stores';
@@ -9,10 +9,13 @@
 	import { goto } from '$app/navigation';
 
 	import { get } from 'svelte/store';
+	import { afterUpdate, onMount } from 'svelte';
+	import { dev } from '$app/env';
 
 	import '$lib/styles/github-doc.scss';
 	import '$lib/styles/shiki.css';
 	import '$lib/styles/doc.scss';
+
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -105,6 +108,26 @@
 		'abcdefghijklmnoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789()-_=+~`!@#$%^&*[]{}\\|;:\'",.<>/?'.split(
 			''
 		);
+
+	let outlineHeadings: NodeListOf<Element> | null;
+
+	afterUpdate(() => {
+		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+		// sveltekit has hot refresh development, although
+		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
+		// and you save some changes, the website is reloaded without
+		// taking the hash into consideration. This scrolls it back
+		// to the right position, but the element does not get the :target attribute
+		if (dev) {
+			const hash = window.location.hash;
+			const el = hash && document.getElementById(hash.slice(1));
+
+			if (el) {
+				el.scrollIntoView();
+			}
+		}
+	});
 </script>
 
 <svelte:window on:keydown={handleKey} />
@@ -120,24 +143,26 @@
 </svelte:head>
 
 <main>
-	<Navbar />
+	<Sidebar {outlineHeadings} />
 	<section class="markdown-body">
 		{#if error}
 			<h1>{error}</h1>
 		{:else if html}
-			{@html html}
+			<div class="markdown-content">
+				{@html html}
+			</div>
 
 			{#if mimeType?.specific === 'html'}
 				<iframe title="" src={'/serve/' + $page.params.file} frameborder="0" />
 			{/if}
 		{:else if mimeType?.genre === 'font'}
-			<div class="font-container">
+			<div class="font-container center">
 				{#each fontCharacters as char}
 					<p>{char}</p>
 				{/each}
 			</div>
 		{:else if mimeType?.genre === 'image'}
-			<div>
+			<div class="center">
 				<img src={content} alt="" />
 			</div>
 		{:else if mimeType?.genre === 'audio'}
@@ -182,8 +207,10 @@
 
 	p {
 		white-space: pre-wrap;
-		max-width: 90ch;
+		max-width: 80ch;
 		font-size: 1.1rem;
+		margin-inline: auto;
+		padding-block: min(100px, calc((100% - 80ch) / 2));
 	}
 
 	main {
@@ -207,7 +234,17 @@
 		scroll-behavior: smooth;
 	}
 
-	div {
+	.markdown-content {
+		max-width: 90ch;
+		margin-inline: auto;
+		padding-block: min(100px, calc((100% - 90ch) / 2));
+	}
+
+	:global(.content h1) {
+		font-size: clamp(2rem, 3vw + 1rem, 6rem);
+	}
+
+	.center {
 		display: grid;
 		place-items: center;
 		min-height: 100%;

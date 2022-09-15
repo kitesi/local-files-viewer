@@ -1,0 +1,233 @@
+<script lang="ts">
+	import SidebarFileItem from './SidebarFileItem.svelte';
+	import CollapsableSidebarSection from './CollapsableSidebarSection.svelte';
+	import { baseDirectory, files, isSidebarOpen } from '../../stores';
+
+	import type { OutlineItem } from './outline-item';
+	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
+
+	export let outlineHeadings: NodeListOf<Element> | null;
+
+	function getLastDirectory(dir: string) {
+		const paths = dir.split('/');
+		return dir.endsWith('/')
+			? paths[paths.length - 2]
+			: paths[paths.length - 1];
+	}
+
+	function getItemFromHeading(heading: Element): OutlineItem {
+		return {
+			level: Number.parseInt(heading.tagName[1]),
+			name: heading.textContent || '',
+			id: heading.id,
+			children: []
+		};
+	}
+
+	function searchParent(
+		lookThrough: OutlineItem,
+		lookFor: OutlineItem
+	): OutlineItem | undefined {
+		if (lookThrough === lookFor) return;
+
+		for (const heading of lookThrough.children) {
+			if (heading === lookFor) {
+				return lookThrough;
+			}
+
+			const cache = searchParent(heading, lookFor);
+			if (cache) return cache;
+		}
+	}
+
+	function transformOutlineHeadings(headings: NodeListOf<Element>) {
+		const outerMostOutlineItem = {
+			id: headings[0].id,
+			name: headings[0].textContent || '',
+			level: -1,
+			children: [] as OutlineItem[]
+		};
+
+		let history: OutlineItem[] = [outerMostOutlineItem];
+
+		for (const heading of headings) {
+			const item = getItemFromHeading(heading);
+
+			if (outerMostOutlineItem.children.length === 0) {
+				outerMostOutlineItem.children.push(item);
+				history.push(item);
+				continue;
+			}
+
+			for (let i = history.length - 1; i >= 0; i--) {
+				if (item.level > history[i].level) {
+					history[i].children.push(item);
+					history.push(item);
+					break;
+				} else if (item.level === history[i].level || i === 1) {
+					searchParent(outerMostOutlineItem, history[i])?.children.push(item);
+					history.push(item);
+					break;
+				}
+			}
+		}
+
+		return outerMostOutlineItem;
+	}
+</script>
+
+<button
+	on:click={() => isSidebarOpen.set(!$isSidebarOpen)}
+	aria-pressed={$isSidebarOpen}
+	aria-label="toggle sidebar"
+	class="toggle-sidebar"
+>
+	<span />
+</button>
+
+<div>
+	<CollapsableSidebarSection
+		name={getLastDirectory($baseDirectory)}
+		open={true}
+	>
+		<ul>
+			{#if $files.children && $files.children.length > 0}
+				{#each $files.children as child (child.name)}
+					<SidebarFileItem item={child} parentPath="" />
+				{/each}
+			{:else}
+				<p class="no-files"><b>No files</b></p>
+			{/if}
+		</ul>
+	</CollapsableSidebarSection>
+
+	<CollapsableSidebarSection name="outline" open={false}>
+		<ul style="margin-bottom: 20px;">
+			{#if outlineHeadings && outlineHeadings.length !== 0}
+				{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
+					<SidebarOutlineItem item={heading} />
+				{/each}
+			{:else}
+				<p><b>No outline</b></p>
+			{/if}
+		</ul>
+	</CollapsableSidebarSection>
+</div>
+
+<style lang="scss">
+	@use '../../lib/styles/variables.scss' as *;
+
+	p {
+		padding-left: 5px;
+		margin: 5px 0;
+	}
+
+	div {
+		position: absolute;
+		background-color: $c-black-5;
+		color: #858383;
+		top: 0;
+		left: 0;
+		width: 100%;
+		max-width: 10rem;
+		min-width: 280px;
+		height: 100%;
+		border-right: 1px solid $c-black-4;
+		transform: translateX(-100%);
+		transition: 100ms linear;
+		z-index: 2;
+		overflow: auto;
+		scrollbar-width: none;
+	}
+
+	ul {
+		margin-left: 15px;
+		list-style-type: none;
+	}
+
+	div:global {
+		.active {
+			color: $c-yellow-1;
+		}
+
+		li:not(.collapse) > ul {
+			display: none;
+		}
+	}
+
+	$hamburger-gap: 7px;
+	.toggle-sidebar {
+		position: absolute;
+		background-color: transparent;
+		inset: $hamburger-gap 0 auto auto;
+		border: none;
+		padding: 15px;
+		z-index: 3;
+	}
+
+	span {
+		display: block;
+		position: relative;
+	}
+
+	span,
+	span::before,
+	span::after {
+		width: 2em;
+		height: 3px;
+		background-color: white;
+		transition: transform 150ms ease-in-out, opacity 200ms linear;
+	}
+
+	span::before,
+	span::after {
+		content: '';
+		position: absolute;
+		left: 0;
+	}
+
+	span::before {
+		top: $hamburger-gap;
+	}
+
+	span::after {
+		bottom: $hamburger-gap;
+	}
+
+	.toggle-sidebar[aria-pressed='true'] ~ div {
+		transform: translateX(0);
+		visibility: visible;
+		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
+		-webkit-box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
+		-moz-box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
+	}
+
+	.toggle-sidebar[aria-pressed='true'] > span {
+		transform: rotate(45deg);
+	}
+
+	.toggle-sidebar[aria-pressed='true'] > span::before {
+		opacity: 0;
+	}
+
+	.toggle-sidebar[aria-pressed='true'] > span::after {
+		transform: rotate(90deg) translateX($hamburger-gap);
+	}
+
+	@media screen and (min-width: $size-1) {
+		div,
+		.toggle-sidebar[aria-pressed='true'] ~ div {
+			position: static;
+			transform: translateX(0);
+			box-shadow: none;
+			-webkit-box-shadow: none;
+			-moz-box-shadow: none;
+		}
+
+		.toggle-sidebar {
+			opacity: 0;
+			visibility: hidden;
+			pointer-events: none;
+		}
+	}
+</style>

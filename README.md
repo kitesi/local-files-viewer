@@ -66,10 +66,23 @@ pallete mode:
 
 `ctrl+[`, `Escape` => close pallete
 
+## Technologies / Attribution
+
+- SvelteKit, typescript, scss, etc..
+- mdsvex: used to render markdown, might be a bit overkill since I don't use
+  any special features mdsvex provides, might just switch to `markdown-it` or `micromark`.
+  Although, I might add a feature to render markdown files that include svelte components,
+  but I don't know how likely that is.
+- shiki: used for syntax highlighting, mdsvex includes prismjs by default, but I don't like
+  how they handle line highlights
+- Took some inspiration from vscode ui
+- Icons
+  - [feather](https://feathericons.com/), only used `hash`, `file`, and `folder`
+  - [simple-icons](https://simpleicons.org/), used for language file icons
+
 ## Future
 
 - More optimizations, more modularization
-- Editing files? Doubtful
 - Handle large directorys mor gracefully. Originally the idea was to load x amount deep, then when the user requests
   load more, but with the file picker I switched it back to loading recurisively as much as needed.
 - Error handling

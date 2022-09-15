@@ -122,7 +122,9 @@
 	}
 
 	li {
-		padding: 5px;
+		padding-inline: 5px;
+		/* use collapsing margins */
+		margin-block: 10px;
 		max-width: 400px;
 	}
 

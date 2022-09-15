@@ -4,9 +4,9 @@
 	color-scheme: dark;
 	-ms-text-size-adjust: 100%;
 	-webkit-text-size-adjust: 100%;
-	margin: 0;
+	// margin-inline: auto;
 	color: #c9d1d9;
-	background-color: $c-black-5;
+	// max-width: 80ch;
 
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
 		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
@@ -509,11 +509,13 @@
 	content: '';
 }
 
-.markdown-body > *:first-child {
+.markdown-body > *:first-child,
+.markdown-body .markdown-content > *:first-child {
 	margin-top: 0 !important;
 }
 
-.markdown-body > *:last-child {
+.markdown-body > *:last-child,
+.markdown-body .markdown-content > *:last-child {
 	margin-bottom: 0 !important;
 }
 
@@ -946,4 +948,24 @@
 
 .markdown-body ::-webkit-calendar-picker-indicator {
 	filter: invert(50%);
+}
+
+/* OWN STYLES */
+
+.markdown-body {
+	scroll-padding-top: 20%;
+}
+
+:target {
+	position: relative;
+	width: fit-content;
+}
+
+:target::before {
+	content: '';
+	bottom: 0;
+	width: 100%;
+	height: 0.12em;
+	position: absolute;
+	background-color: skyblue;
 }

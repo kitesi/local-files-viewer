@@ -1,6 +1,7 @@
 // @ts-check
 import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
+import rehypeSlug from 'rehype-slug';
 import { mdsvex } from 'mdsvex';
 import { highlighterWrapper } from './highlight.js';
 
@@ -13,6 +14,7 @@ const config = {
 		preprocess(),
 		mdsvex({
 			extensions: ['.md'],
+			rehypePlugins: [rehypeSlug],
 			highlight: {
 				highlighter: highlighterWrapper
 			}
