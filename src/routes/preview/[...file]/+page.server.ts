@@ -4,12 +4,14 @@ import { stat, walkdir, readFile, type WalkDirItem } from '../../../mem-fs';
 import { getMimeType, type MimeType } from '../../../get-mime-types';
 import { getBaseDirectory } from '../../../base-directory';
 import { highlighterWrapper } from '../../../../highlight';
+import {
+	INITIAL_FOLDER_LOAD_DEPTH,
+	MAX_FILE_SIZE_MEGABYTES
+} from '../../../config';
 
 import { existsSync } from 'fs';
 import type { Stats } from 'fs';
 import type { PageServerLoad } from './$types';
-
-const MAX_FILE_SIZE_MEGABYTES = 10;
 
 interface BodyReturn {
 	files: WalkDirItem;
@@ -24,7 +26,7 @@ interface BodyReturn {
 
 export const load: PageServerLoad = async function ({ params }) {
 	const filePath = path.join(getBaseDirectory(), params.file);
-	const files = await walkdir(getBaseDirectory(), 3);
+	const files = await walkdir(getBaseDirectory(), INITIAL_FOLDER_LOAD_DEPTH);
 
 	function generateErrorResponse(error: string) {
 		return {

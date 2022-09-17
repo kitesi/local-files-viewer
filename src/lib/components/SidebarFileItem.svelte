@@ -42,7 +42,7 @@
 	import { page } from '$app/stores';
 	import { files, isSidebarOpen } from '../../stores';
 
-	// import { getWalkdirItem } from '../../get-walkdir-item';
+	import { getWalkdirItem } from '../../get-walkdir-item';
 	import type { WalkDirItem } from '../../mem-fs';
 
 	export let item: WalkDirItem;
@@ -69,32 +69,36 @@
 	async function collapseDirectory(ev: Event) {
 		liElement.classList.toggle('collapse');
 
-		// const dataHref = liElement.getAttribute('data-href');
+		const dataHref = liElement.getAttribute('data-href');
 
-		// if (!dataHref) {
-		// 	return;
-		// }
+		if (!dataHref) {
+			return;
+		}
 
-		// const res = await fetch(`/info?dir=${dataHref}/&depth=1`);
-		// const json = await res.json();
+		const res = await fetch(
+			`/info?dir=${dataHref}/&depth=1&action=complete-search`
+		);
+		const json = await res.json();
 
-		// const paths = dataHref.split('/');
-		// const current = getWalkdirItem(paths, $files);
+		const paths = dataHref.split('/').slice(1);
+		const current = getWalkdirItem(paths, $files);
 
-		// if (current.name === item.name) {
-		// 	current.children = json.files.children;
-		// }
+		if (current.name === item.name) {
+			current.children = json.files.children;
+		}
 
-		// files.set($files);
-		// liElement.setAttribute('data-href', '');
+		files.set($files);
+		liElement.setAttribute('data-href', '');
 	}
 </script>
 
-<!-- data-href={item.isDirectory && item.children && item.children.length === 0
+<li
+	bind:this={liElement}
+	class:collapse={shouldCollapse}
+	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
-		: null} -->
-
-<li bind:this={liElement} class:collapse={shouldCollapse}>
+		: null}
+>
 	{#if item.isDirectory}
 		<button on:click={collapseDirectory}>
 			<Icon name="folder" />

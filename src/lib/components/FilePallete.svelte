@@ -105,19 +105,7 @@
 		query = '';
 
 		if ($modalState === 'choose-file') {
-			const res = await fetch(
-				'/info?dir=/&depth=Infinity&action=complete-search'
-			);
-			const json = await res.json();
-
-			if (json.error) {
-				return;
-			}
-
-			files.set(json.files);
-			json.files.name = '';
-
-			flattenedResults = addToFlattenedArr(json.files, '', [])
+			flattenedResults = addToFlattenedArr($files, '', [])
 				.filter((e) => !e.isDirectory)
 				.map(({ name, parents }) => {
 					return {
