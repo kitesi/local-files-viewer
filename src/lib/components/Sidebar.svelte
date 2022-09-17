@@ -5,6 +5,7 @@
 
 	import type { OutlineItem } from './outline-item';
 	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
+	import { browser } from '$app/env';
 
 	export let outlineHeadings: NodeListOf<Element> | null;
 
@@ -74,6 +75,22 @@
 
 		return outerMostOutlineItem;
 	}
+
+	let isResizing = false;
+	let sidebarElement: HTMLElement;
+
+	function resize(ev: MouseEvent) {
+		if (!isResizing) {
+			return;
+		}
+
+		sidebarElement.style.width = ev.clientX + 9 + 'px';
+	}
+
+	if (browser) {
+		window.addEventListener('mousemove', resize);
+		window.addEventListener('mouseup', () => (isResizing = false));
+	}
 </script>
 
 <button
@@ -85,59 +102,85 @@
 	<span />
 </button>
 
-<div>
-	<CollapsableSidebarSection
-		name={getLastDirectory($baseDirectory)}
-		open={true}
-	>
-		<ul>
-			{#if $files.children && $files.children.length > 0}
-				{#each $files.children as child (child.name)}
-					<SidebarFileItem item={child} parentPath="" />
-				{/each}
-			{:else}
-				<p class="no-files"><b>No files</b></p>
-			{/if}
-		</ul>
-	</CollapsableSidebarSection>
+<svelte:body class:resizing={isResizing} />
 
-	<CollapsableSidebarSection name="outline" open={false}>
-		<ul style="margin-bottom: 20px;">
-			{#if outlineHeadings && outlineHeadings.length !== 0}
-				{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
-					<SidebarOutlineItem item={heading} />
-				{/each}
-			{:else}
-				<p><b>No outline</b></p>
-			{/if}
-		</ul>
-	</CollapsableSidebarSection>
-</div>
+<section bind:this={sidebarElement} class:resizing={isResizing}>
+	<div>
+		<div
+			class="border"
+			on:mousedown|preventDefault={() => (isResizing = true)}
+		/>
+		<CollapsableSidebarSection
+			name={getLastDirectory($baseDirectory)}
+			open={true}
+		>
+			<ul>
+				{#if $files.children && $files.children.length > 0}
+					{#each $files.children as child (child.name)}
+						<SidebarFileItem item={child} parentPath="" />
+					{/each}
+				{:else}
+					<p class="no-files"><b>No files</b></p>
+				{/if}
+			</ul>
+		</CollapsableSidebarSection>
+
+		<CollapsableSidebarSection name="outline" open={false}>
+			<ul style="margin-bottom: 20px;">
+				{#if outlineHeadings && outlineHeadings.length !== 0}
+					{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
+						<SidebarOutlineItem item={heading} />
+					{/each}
+				{:else}
+					<p><b>No outline</b></p>
+				{/if}
+			</ul>
+		</CollapsableSidebarSection>
+	</div>
+</section>
 
 <style lang="scss">
 	@use '../../lib/styles/variables.scss' as *;
+
+	section > div {
+		display: flow-root;
+		position: relative;
+		height: 100%;
+	}
+
+	.border {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 0.3em;
+		bottom: 0;
+		// background-color: $c-black-4;
+		border-inline: 0.1em solid $c-black-4;
+		border-left-color: transparent;
+		cursor: ew-resize;
+	}
 
 	p {
 		padding-left: 5px;
 		margin: 5px 0;
 	}
 
-	div {
+	section {
 		position: absolute;
 		background-color: $c-black-5;
 		color: #858383;
 		top: 0;
 		left: 0;
-		width: 100%;
-		max-width: 10rem;
+		// width: 100%;
+		max-width: 22rem;
 		min-width: 280px;
 		height: 100%;
-		border-right: 1px solid $c-black-4;
 		transform: translateX(-100%);
 		transition: 100ms linear;
 		z-index: 2;
 		overflow: auto;
 		scrollbar-width: none;
+		flex-grow: 1;
 	}
 
 	ul {
@@ -145,7 +188,7 @@
 		list-style-type: none;
 	}
 
-	div:global {
+	section:global {
 		.active {
 			color: $c-yellow-1;
 		}
@@ -194,7 +237,7 @@
 		bottom: $hamburger-gap;
 	}
 
-	.toggle-sidebar[aria-pressed='true'] ~ div {
+	.toggle-sidebar[aria-pressed='true'] ~ section {
 		transform: translateX(0);
 		visibility: visible;
 		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.57);
@@ -214,9 +257,16 @@
 		transform: rotate(90deg) translateX($hamburger-gap);
 	}
 
+	@media (hover: hover) {
+		.border:hover,
+		.resizing .border {
+			background-color: darken($c-blue-1, 10%);
+		}
+	}
+
 	@media screen and (min-width: $size-1) {
-		div,
-		.toggle-sidebar[aria-pressed='true'] ~ div {
+		section,
+		.toggle-sidebar[aria-pressed='true'] ~ section {
 			position: static;
 			transform: translateX(0);
 			box-shadow: none;
@@ -228,6 +278,10 @@
 			opacity: 0;
 			visibility: hidden;
 			pointer-events: none;
+		}
+
+		section {
+			max-width: 80vw;
 		}
 	}
 </style>

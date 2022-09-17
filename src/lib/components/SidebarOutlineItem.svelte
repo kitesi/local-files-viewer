@@ -29,16 +29,15 @@
 	{#if item.children.length > 0}
 		<div>
 			<button on:click={collapseParent}>
-				<Icon name="hash" />
+				<Icon name={collapse ? 'chevron-down' : 'chevron-right'} />
 			</button>
-			<a href="#{item.id}">{item.name}</a>
+			<a href="#{item.id}"><span>{item.name}</span></a>
 		</div>
 	{:else}
 		<a href="#{item.id}">
 			<Icon name="hash" />
 			<span>{item.name}</span>
 		</a>
-		<!-- <slot name="child" /> -->
 	{/if}
 
 	{#if item.children}
@@ -58,17 +57,17 @@
 
 	div {
 		display: flex;
-		gap: 10px;
+		align-items: center;
+		gap: 5px;
 	}
 
 	li {
 		/* uses collapsing margins */
 		margin: 5px;
-		max-width: 400px;
 	}
 
-	a,
-	button {
+	button,
+	a {
 		color: inherit;
 		display: flex;
 		gap: 8px;
@@ -90,7 +89,8 @@
 		color: white;
 	}
 
-	span {
+	span,
+	a {
 		overflow: hidden;
 		text-overflow: '..';
 		white-space: nowrap;

@@ -20,14 +20,10 @@
 
 	export let data: PageData;
 
-	let error = data.error;
-	let files = data.files;
-	let html = data.html;
-	let content = data.content;
-	let mimeType = data.mimeType;
+	let { error, files, html, content, mimeType, isOnlyCodeBlock } = data;
 
 	$: {
-		({ files, html, content, mimeType, error } = data);
+		({ files, html, content, mimeType, error, isOnlyCodeBlock } = data);
 		stores.baseDirectory.set(data.baseDirectory);
 	}
 
@@ -148,9 +144,13 @@
 		{#if error}
 			<h1>{error}</h1>
 		{:else if html}
-			<div class="markdown-content">
+			{#if isOnlyCodeBlock}
 				{@html html}
-			</div>
+			{:else}
+				<div class="markdown-content">
+					{@html html}
+				</div>
+			{/if}
 
 			{#if mimeType?.specific === 'html'}
 				<iframe title="" src={'/serve/' + $page.params.file} frameborder="0" />
@@ -235,13 +235,10 @@
 	}
 
 	.markdown-content {
-		max-width: 90ch;
+		--max-width: 90ch;
+		max-width: var(--max-width);
 		margin-inline: auto;
-		padding-block: min(100px, calc((100% - 90ch) / 2));
-	}
-
-	:global(.content h1) {
-		font-size: clamp(2rem, 3vw + 1rem, 6rem);
+		padding-block: min(100px, calc((100% - var(--max-width)) / 2));
 	}
 
 	.center {
@@ -253,7 +250,8 @@
 
 	@media screen and (min-width: $size-1) {
 		main {
-			display: flex;
+			display: grid;
+			grid-template-columns: auto 1fr;
 		}
 
 		:global(pre code) {

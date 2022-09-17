@@ -133,6 +133,7 @@
 		if ($modalState === 'choose-directory') {
 			flattenedResults = [];
 			filteredResults = [];
+			setFilteredDirectoryResults().catch(console.error);
 		}
 	});
 
@@ -187,11 +188,12 @@
 				const completion = filteredResults[0].name;
 
 				if (!query.includes('/')) {
-					query = completion;
+					query = completion + '/';
 				} else {
-					query = query.replace(/\/[^/]*$/, '/' + completion);
+					query = query.replace(/\/[^/]*$/, '/' + completion) + '/';
 				}
 
+				setFilteredDirectoryResults().catch(console.error);
 				return;
 			}
 		}
@@ -250,7 +252,7 @@
 
 	async function handleInput() {
 		if ($modalState === 'choose-directory') {
-			return setFilteredDirectoryResults().catch((err) => console.error(err));
+			return setFilteredDirectoryResults().catch(console.error);
 		}
 
 		if (!query) {

@@ -969,3 +969,7 @@
 	position: absolute;
 	background-color: skyblue;
 }
+
+.markdown-content h1 {
+	font-size: clamp(2rem, 3vw + 1rem, 6rem);
+}

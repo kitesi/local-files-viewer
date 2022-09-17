@@ -18,6 +18,7 @@ interface BodyReturn {
 	content?: string;
 	html?: string;
 	error?: string;
+	isOnlyCodeBlock?: boolean;
 	[k: string]: any;
 }
 
@@ -109,15 +110,18 @@ export const load: PageServerLoad = async function ({ params }) {
 			case 'javascript':
 			case 'json':
 				body.html = highlighterWrapper(content, mimeType.specific);
+				body.isOnlyCodeBlock = true;
 				break;
 			case 'x-scss':
 				body.html = highlighterWrapper(content, 'sass');
+				body.isOnlyCodeBlock = true;
 				break;
 			case 'plain':
 				body.content = content;
 				break;
 			case 'plain-code':
 				body.html = `<pre><code>${escapeSvelte(content)}</code></pre>`;
+				body.isOnlyCodeBlock = true;
 				break;
 			default:
 				if (mimeType.genre === 'application') {
@@ -127,6 +131,7 @@ export const load: PageServerLoad = async function ({ params }) {
 				}
 
 				body.html = highlighterWrapper(content, mimeType.specific);
+				body.isOnlyCodeBlock = true;
 
 				break;
 		}
