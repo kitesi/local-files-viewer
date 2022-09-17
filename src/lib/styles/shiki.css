@@ -327,3 +327,7 @@ pre .logger.log-log svg {
 	margin-left: 6px;
 	margin-right: 9px;
 }
+
+pre .code-container:not(:has(code div)) {
+	padding: 2em;
+}

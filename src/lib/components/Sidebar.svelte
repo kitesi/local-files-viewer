@@ -102,8 +102,6 @@
 	<span />
 </button>
 
-<svelte:body class:resizing={isResizing} />
-
 <section bind:this={sidebarElement} class:resizing={isResizing}>
 	<div>
 		<div
@@ -145,18 +143,20 @@
 	section > div {
 		display: flow-root;
 		position: relative;
+		overflow: auto;
 		height: 100%;
+		scrollbar-width: none;
 	}
 
 	.border {
-		position: absolute;
+		position: fixed;
 		top: 0;
 		right: 0;
-		width: 0.3em;
 		bottom: 0;
-		// background-color: $c-black-4;
+		width: 0.3em;
+		background-color: transparent;
 		border-inline: 0.1em solid $c-black-4;
-		border-left-color: transparent;
+		border-inline-start-color: transparent;
 		cursor: ew-resize;
 	}
 
@@ -171,16 +171,16 @@
 		color: #858383;
 		top: 0;
 		left: 0;
-		// width: 100%;
-		max-width: 22rem;
+		max-width: 80vw;
+		width: 280px;
 		min-width: 280px;
 		height: 100%;
 		transform: translateX(-100%);
 		transition: 100ms linear;
 		z-index: 2;
-		overflow: auto;
 		scrollbar-width: none;
-		flex-grow: 1;
+		overflow: auto;
+		padding-right: 5px;
 	}
 
 	ul {
@@ -278,10 +278,6 @@
 			opacity: 0;
 			visibility: hidden;
 			pointer-events: none;
-		}
-
-		section {
-			max-width: 80vw;
 		}
 	}
 </style>

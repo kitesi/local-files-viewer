@@ -156,7 +156,7 @@
 				<iframe title="" src={'/serve/' + $page.params.file} frameborder="0" />
 			{/if}
 		{:else if mimeType?.genre === 'font'}
-			<div class="font-container center">
+			<div class="font-container">
 				{#each fontCharacters as char}
 					<p>{char}</p>
 				{/each}
@@ -186,13 +186,14 @@
 
 <style lang="scss">
 	@use '../../../lib/styles/variables.scss' as *;
-
 	.font-container {
 		display: flex;
-		font-family: 'placeholder', Arial;
-		align-items: flex-start;
-		align-content: flex-start;
 		flex-wrap: wrap;
+		font-family: 'placeholder', Arial;
+		align-content: center;
+		height: 100%;
+		max-width: 60ch;
+		margin: auto;
 	}
 
 	.font-container p {
@@ -211,10 +212,6 @@
 		font-size: 1.1rem;
 		margin-inline: auto;
 		padding-block: min(100px, calc((100% - 80ch) / 2));
-	}
-
-	main {
-		height: 100%;
 	}
 
 	iframe {
@@ -244,7 +241,7 @@
 	.center {
 		display: grid;
 		place-items: center;
-		min-height: 100%;
+		height: 100%;
 		overflow: auto;
 	}
 
