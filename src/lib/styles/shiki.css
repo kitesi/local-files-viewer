@@ -24,7 +24,7 @@ pre {
 }
 
 pre.shiki {
-	padding: 16px 0;
+	padding: 16px 0 16px 16px;
 	overflow-x: auto;
 }
 
@@ -52,7 +52,7 @@ pre.shiki div.highlight {
 
 pre.shiki div.line {
 	min-height: 1rem;
-	padding-left: 16px;
+	/* padding-left: 16px; */
 }
 
 /** Don't show the language identifiers */
@@ -329,5 +329,5 @@ pre .logger.log-log svg {
 }
 
 pre .code-container:not(:has(code div)) {
-	padding: 2em;
+	padding: 0.5em;
 }

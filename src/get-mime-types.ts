@@ -24,6 +24,10 @@ export function getMimeType(file: string): MimeType {
 		return { genre: 'text', specific: 'typescript', full: 'text/typescript' };
 	}
 
+	if (file.endsWith('.py')) {
+		return { genre: 'text', specific: 'python', full: 'text/python' };
+	}
+
 	if (file.endsWith('.svelte')) {
 		return { genre: 'text', specific: 'svelte', full: 'text/svelte' };
 	}

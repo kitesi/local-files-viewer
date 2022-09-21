@@ -5,12 +5,14 @@
 	import * as stores from '../../../stores';
 	import * as mappings from '../../../key-mappings';
 	import { getWalkdirItem } from '../../../get-walkdir-item';
+	import { formatBytes } from '../../../format-bytes';
+
+	import { afterUpdate } from 'svelte';
+	import { get } from 'svelte/store';
+
+	import { dev } from '$app/env';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-
-	import { get } from 'svelte/store';
-	import { afterUpdate, onMount } from 'svelte';
-	import { dev } from '$app/env';
 
 	import '$lib/styles/github-doc.scss';
 	import '$lib/styles/shiki.css';
@@ -20,10 +22,12 @@
 
 	export let data: PageData;
 
-	let { error, files, html, content, mimeType, isOnlyCodeBlock } = data;
+	let { error, files, html, content, mimeType, maximizeCodeBlockWidth, stats } =
+		data;
 
 	$: {
-		({ files, html, content, mimeType, error, isOnlyCodeBlock } = data);
+		({ files, html, content, mimeType, error, maximizeCodeBlockWidth, stats } =
+			data);
 		stores.baseDirectory.set(data.baseDirectory);
 	}
 
@@ -139,12 +143,15 @@
 </svelte:head>
 
 <main>
-	<Sidebar {outlineHeadings} />
+	<Sidebar {outlineHeadings} {stats} />
 	<section class="markdown-body">
 		{#if error}
 			<h1>{error}</h1>
+			{#if stats.size}
+				<h2>Size: {formatBytes(stats.size)}</h2>
+			{/if}
 		{:else if html}
-			{#if isOnlyCodeBlock}
+			{#if maximizeCodeBlockWidth}
 				{@html html}
 			{:else}
 				<div class="markdown-content">

@@ -1,13 +1,17 @@
 <script lang="ts">
-	import SidebarFileItem from './SidebarFileItem.svelte';
 	import CollapsableSidebarSection from './CollapsableSidebarSection.svelte';
+	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
+	import SidebarFileItem from './SidebarFileItem.svelte';
+	import { formatBytes } from '../../format-bytes';
 	import { baseDirectory, files, isSidebarOpen } from '../../stores';
 
-	import type { OutlineItem } from './outline-item';
-	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
 	import { browser } from '$app/env';
 
+	import type { OutlineItem } from './outline-item';
+	import type { PageData } from '../../routes/preview/[...file]/$types';
+
 	export let outlineHeadings: NodeListOf<Element> | null;
+	export let stats: PageData['stats'];
 
 	function getLastDirectory(dir: string) {
 		const paths = dir.split('/');
@@ -125,12 +129,22 @@
 
 		<CollapsableSidebarSection name="outline" open={false}>
 			<ul style="margin-bottom: 20px;">
+				{#if stats.size}
+					<li>Size: {formatBytes(stats.size)}</li>
+				{/if}
+				{#if stats.chars}
+					<li>Characters: {stats.chars}</li>
+				{/if}
+				{#if stats.words}
+					<li>Words: {stats.words}</li>
+				{/if}
+				{#if stats.lines}
+					<li>Lines: {stats.lines}</li>
+				{/if}
 				{#if outlineHeadings && outlineHeadings.length !== 0}
 					{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
 						<SidebarOutlineItem item={heading} />
 					{/each}
-				{:else}
-					<p><b>No outline</b></p>
 				{/if}
 			</ul>
 		</CollapsableSidebarSection>
@@ -165,6 +179,14 @@
 		margin: 5px 0;
 	}
 
+	li {
+		padding-left: 5px;
+	}
+
+	li:first-of-type {
+		margin-top: 10px;
+	}
+
 	section {
 		position: absolute;
 		background-color: $c-black-5;
@@ -172,8 +194,8 @@
 		top: 0;
 		left: 0;
 		max-width: 80vw;
-		width: 280px;
-		min-width: 280px;
+		min-width: 220px;
+		width: 80vw;
 		height: 100%;
 		transform: translateX(-100%);
 		transition: 100ms linear;
@@ -272,6 +294,7 @@
 			box-shadow: none;
 			-webkit-box-shadow: none;
 			-moz-box-shadow: none;
+			width: min(30vw, 300px);
 		}
 
 		.toggle-sidebar {

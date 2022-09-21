@@ -20,7 +20,13 @@ interface BodyReturn {
 	content?: string;
 	html?: string;
 	error?: string;
-	isOnlyCodeBlock?: boolean;
+	maximizeCodeBlockWidth?: boolean;
+	stats: {
+		size: number;
+		lines?: number;
+		chars?: number;
+		words?: number;
+	};
 	[k: string]: any;
 }
 
@@ -28,11 +34,12 @@ export const load: PageServerLoad = async function ({ params }) {
 	const filePath = path.join(getBaseDirectory(), params.file);
 	const files = await walkdir(getBaseDirectory(), INITIAL_FOLDER_LOAD_DEPTH);
 
-	function generateErrorResponse(error: string) {
+	function generateErrorResponse(error: string, stats?: Stats) {
 		return {
 			files: files,
 			error: error,
-			baseDirectory: getBaseDirectory()
+			baseDirectory: getBaseDirectory(),
+			stats: { size: stats?.size || 0 }
 		} as BodyReturn;
 	}
 
@@ -54,7 +61,8 @@ export const load: PageServerLoad = async function ({ params }) {
 
 	if (stats.size / 1_000_000 > MAX_FILE_SIZE_MEGABYTES) {
 		return generateErrorResponse(
-			'File exceeds max size of: ' + MAX_FILE_SIZE_MEGABYTES + ' MB.'
+			'File exceeds max size of: ' + MAX_FILE_SIZE_MEGABYTES + ' MB.',
+			stats
 		);
 	}
 
@@ -62,7 +70,10 @@ export const load: PageServerLoad = async function ({ params }) {
 	const body: BodyReturn = {
 		files: files,
 		mimeType,
-		baseDirectory: getBaseDirectory()
+		baseDirectory: getBaseDirectory(),
+		stats: {
+			size: stats.size
+		}
 	};
 
 	if (
@@ -80,6 +91,9 @@ export const load: PageServerLoad = async function ({ params }) {
 
 	if (mimeType.genre === 'text' || mimeType.genre === 'application') {
 		const content = await readFile(filePath, 'utf-8');
+		body.stats.lines = content.match(/\n/g)?.length || 0;
+		body.stats.words = content.match(/[^\s]+/g)?.length || 0;
+		body.stats.chars = content.match(/[^\s]/g)?.length || 0;
 
 		switch (mimeType.specific) {
 			case 'markdown':
@@ -104,7 +118,7 @@ export const load: PageServerLoad = async function ({ params }) {
 						});
 				} catch (err) {
 					// @ts-ignore
-					return generateErrorResponse(err?.message);
+					return generateErrorResponse(err?.message, stats);
 				}
 
 				break;
@@ -112,28 +126,29 @@ export const load: PageServerLoad = async function ({ params }) {
 			case 'javascript':
 			case 'json':
 				body.html = highlighterWrapper(content, mimeType.specific);
-				body.isOnlyCodeBlock = true;
+				body.maximizeCodeBlockWidth = true;
 				break;
 			case 'x-scss':
 				body.html = highlighterWrapper(content, 'sass');
-				body.isOnlyCodeBlock = true;
+				body.maximizeCodeBlockWidth = true;
 				break;
 			case 'plain':
 				body.content = content;
 				break;
 			case 'plain-code':
 				body.html = `<pre><code>${escapeSvelte(content)}</code></pre>`;
-				body.isOnlyCodeBlock = true;
+				body.maximizeCodeBlockWidth = true;
 				break;
 			default:
 				if (mimeType.genre === 'application') {
 					return generateErrorResponse(
-						'Could not handle mime type of: ' + mimeType.full
+						'Could not handle mime type of: ' + mimeType.full,
+						stats
 					);
 				}
 
 				body.html = highlighterWrapper(content, mimeType.specific);
-				body.isOnlyCodeBlock = true;
+				body.maximizeCodeBlockWidth = true;
 
 				break;
 		}
@@ -142,6 +157,7 @@ export const load: PageServerLoad = async function ({ params }) {
 	}
 
 	return generateErrorResponse(
-		'Could not handle mime type of: ' + mimeType.full
+		'Could not handle mime type of: ' + mimeType.full,
+		stats
 	);
 };
