@@ -57,7 +57,7 @@
 	async function setFilteredDirectoryResults() {
 		const res = await fetch(
 			// vite has some weird thing where if a query=../.. it will try to parse it ig
-			`/info?action=new-base-dir-search&query=` + query.replaceAll('/', '\\')
+			`/info?action=new-base-dir-search&query=` + encodeURIComponent(query)
 		);
 
 		const json = (await res.json()) as { files: string[]; homedir: string };

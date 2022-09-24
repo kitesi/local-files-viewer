@@ -7,10 +7,9 @@
 	import { getWalkdirItem } from '../../../get-walkdir-item';
 	import { formatBytes } from '../../../format-bytes';
 
-	import { afterUpdate } from 'svelte';
-	import { get } from 'svelte/store';
+	import { get as getStore } from 'svelte/store';
 
-	import { dev } from '$app/env';
+	import { browser, dev } from '$app/env';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
@@ -19,19 +18,149 @@
 	import '$lib/styles/doc.scss';
 
 	import type { PageData } from './$types';
+	import type { BodyReturn as GetFileContentBodyReturn } from '../../info/get-file-contents';
 
 	export let data: PageData;
 
-	let { error, files, html, content, mimeType, maximizeCodeBlockWidth, stats } =
-		data;
+	const fontCharacters =
+		'abcdefghijklmnoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789()-_=+~`!@#$%^&*[]{}\\|;:\'",.<>/?'.split(
+			''
+		);
+
+	let { error, files, mimeType } = data;
+	let servePath = '';
+	let html: string | undefined = '';
+	let content: string | undefined = '';
+	let maximizeCodeBlockWidth: boolean | undefined = false;
+
+	let outlineHeadings: NodeListOf<Element> | null;
+	let stats: GetFileContentBodyReturn['stats'] & { size: number } = {
+		size: data.size
+	};
+
+	let prevFileParam = $page.params.file;
+
+	$: servePath = '/serve/' + $page.params.file;
 
 	$: {
-		({ files, html, content, mimeType, error, maximizeCodeBlockWidth, stats } =
-			data);
+		({ files, mimeType, error } = data);
 		stores.baseDirectory.set(data.baseDirectory);
 	}
 
+	if (browser) {
+		fetchContent().then(
+			() =>
+				(outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+		);
+	}
+
+	page.subscribe(async () => {
+		if ($page.params.file === '' || $page.params.file === prevFileParam) {
+			return;
+		}
+
+		prevFileParam = $page.params.file;
+
+		html = '';
+		content = '';
+		maximizeCodeBlockWidth = false;
+		stats = { size: data.size };
+
+		if (!browser) {
+			return;
+		}
+
+		await fetchContent().catch(console.error);
+		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+		// sveltekit has hot refresh development, although
+		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
+		// and you save some changes, the website is reloaded without
+		// taking the hash into consideration. This scrolls it back
+		// to the right position, but the element does not get the :target attribute
+		if (dev) {
+			const hash = window.location.hash;
+			const el = hash && document.getElementById(hash.slice(1));
+
+			if (el) {
+				el.scrollIntoView();
+			}
+		}
+	});
+
 	stores.files.set(files);
+
+	async function fetchContent() {
+		if (
+			error ||
+			mimeType?.genre === 'audio' ||
+			mimeType?.genre === 'video' ||
+			mimeType?.genre === 'image' ||
+			mimeType?.genre === 'font'
+		) {
+			return;
+		}
+
+		stores.abortController.set(new AbortController());
+
+		try {
+			const fileContentRes = await fetch(
+				'/info?action=file-content&file=' +
+					encodeURIComponent($page.params.file)
+			);
+
+			const fileContent =
+				(await fileContentRes.json()) as GetFileContentBodyReturn;
+
+			if (fileContent.error) {
+				stores.addToastError(fileContent.error, 2000);
+			}
+
+			stats.chars = fileContent.stats?.chars;
+			stats.lines = fileContent.stats?.lines;
+			stats.words = fileContent.stats?.words;
+
+			content = fileContent.content;
+			maximizeCodeBlockWidth = fileContent.maximizeCodeBlockWidth;
+
+			if (!fileContent.needsHighlighting) {
+				html = fileContent.html;
+				return;
+			}
+
+			const syntaxHighlightingRequest = fetch(
+				'/info?action=syntax-highlighting&file=' +
+					encodeURIComponent($page.params.file),
+				{ signal: getStore(stores.abortController).signal }
+			)
+				.then((res) => res.text())
+				.then((text) => (html = text))
+				// usually an aborted operation
+				.catch((err) => {
+					if (err.name === 'AbortError') {
+						return;
+					}
+
+					stores.addToastError(err.message, 2000);
+				});
+
+			Promise.race([
+				syntaxHighlightingRequest,
+				new Promise((res) => {
+					// possible memory loss?
+					setTimeout(() => res(''), 200);
+				}) as Promise<string>
+			]).then((value) => {
+				if (!html) {
+					html = value || fileContent.html;
+				}
+			});
+		} catch (err: any) {
+			if (err.message) {
+				stores.addToastError(err.message, 2000);
+			}
+		}
+	}
 
 	function handleKey(ev: KeyboardEvent) {
 		if (ev.key === 'p' && ev.ctrlKey) {
@@ -61,7 +190,7 @@
 
 		const itemChildren = getWalkdirItem(
 			paths,
-			get(stores.files)
+			getStore(stores.files)
 		).children?.filter((e) => !e.isDirectory);
 
 		if (!itemChildren) {
@@ -103,31 +232,6 @@
 
 		goto(path);
 	}
-
-	const fontCharacters =
-		'abcdefghijklmnoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789()-_=+~`!@#$%^&*[]{}\\|;:\'",.<>/?'.split(
-			''
-		);
-
-	let outlineHeadings: NodeListOf<Element> | null;
-
-	afterUpdate(() => {
-		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-
-		// sveltekit has hot refresh development, although
-		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
-		// and you save some changes, the website is reloaded without
-		// taking the hash into consideration. This scrolls it back
-		// to the right position, but the element does not get the :target attribute
-		if (dev) {
-			const hash = window.location.hash;
-			const el = hash && document.getElementById(hash.slice(1));
-
-			if (el) {
-				el.scrollIntoView();
-			}
-		}
-	});
 </script>
 
 <svelte:window on:keydown={handleKey} />
@@ -158,10 +262,6 @@
 					{@html html}
 				</div>
 			{/if}
-
-			{#if mimeType?.specific === 'html'}
-				<iframe title="" src={'/serve/' + $page.params.file} frameborder="0" />
-			{/if}
 		{:else if mimeType?.genre === 'font'}
 			<div class="font-container">
 				{#each fontCharacters as char}
@@ -170,21 +270,29 @@
 			</div>
 		{:else if mimeType?.genre === 'image'}
 			<div class="center">
-				<img src={content} alt="" />
+				<img src={servePath} alt="" />
 			</div>
 		{:else if mimeType?.genre === 'audio'}
 			<audio controls>
-				<source src={content} />
+				<source src={servePath} />
 				Your browser does not support the audio element.
 			</audio>
 		{:else if mimeType?.genre === 'video'}
 			<video controls>
-				<source src={content} />
+				<source src={servePath} />
 				<track kind="captions" />
 				Your browser does not support the audio element. track
 			</video>
 		{:else if content !== undefined}
 			<p>{content}</p>
+		{/if}
+		{#if mimeType?.specific === 'html'}
+			<iframe
+				title=""
+				src={'/serve/' + $page.params.file}
+				frameborder="0"
+				sandbox=""
+			/>
 		{/if}
 	</section>
 </main>

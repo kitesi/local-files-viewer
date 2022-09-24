@@ -39,11 +39,13 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
+	import { files, isSidebarOpen, abortController } from '../../stores';
+
 	import { page } from '$app/stores';
-	import { files, isSidebarOpen } from '../../stores';
 
 	import { getWalkdirItem } from '../../get-walkdir-item';
 	import type { WalkDirItem } from '../../mem-fs';
+	import { goto } from '$app/navigation';
 
 	export let item: WalkDirItem;
 	export let parentPath: string;
@@ -105,7 +107,14 @@
 			<span>{item.name}</span>
 		</button>
 	{:else}
-		<a on:click={switchActive} class:active={isActive} href={'/preview' + href}>
+		<a
+			on:click={(ev) => {
+				$abortController.abort();
+				switchActive(ev);
+			}}
+			class:active={isActive}
+			href={'/preview' + href}
+		>
 			<FileIcon fileName={item.name} size="20px" />
 			<span>{item.name}</span>
 		</a>

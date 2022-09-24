@@ -3,6 +3,8 @@ import os from 'os';
 import { existsSync } from 'fs';
 import { walkdirBase, readdir, stat } from '../../mem-fs';
 import { getBaseDirectory, setBaseDirectory } from '../../base-directory';
+import { getFileContents } from './get-file-contents';
+import { getSyntaxHighlighting } from './get-syntax-highlighting';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -31,9 +33,10 @@ async function completeSearch(url: URL) {
 
 async function oneLevelDirSearch(url: URL) {
 	const homedir = os.homedir();
-	const query = (url.searchParams?.get('query') || '')
-		.replaceAll('\\', '/')
-		.replace(/(?<!\\)~/, homedir);
+	const query = (url.searchParams?.get('query') || '').replace(
+		/(?<!\\)~/,
+		homedir
+	);
 
 	let dir = query;
 
@@ -107,7 +110,9 @@ export const GET: RequestHandler = async function ({ url }) {
 	const actions = [
 		'new-base-dir-search',
 		'complete-search',
-		'get-font-stylesheet'
+		'get-font-stylesheet',
+		'syntax-highlighting',
+		'file-content'
 	] as const;
 
 	const action = url.searchParams?.get('action') as
@@ -128,6 +133,14 @@ export const GET: RequestHandler = async function ({ url }) {
 
 	if (action === 'new-base-dir-search') {
 		return await oneLevelDirSearch(url);
+	}
+
+	if (action === 'file-content') {
+		return await getFileContents(url);
+	}
+
+	if (action === 'syntax-highlighting') {
+		return await getSyntaxHighlighting(url);
 	}
 
 	return getFontStyleSheet(url);
