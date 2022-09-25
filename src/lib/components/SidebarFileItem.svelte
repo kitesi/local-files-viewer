@@ -18,16 +18,16 @@
 		}
 
 		if (!activeTag) {
-			activeTag = document.getElementsByClassName('active')[0] as
+			activeTag = document.getElementById('active') as
 				| HTMLAnchorElement
 				| undefined;
 		}
 
 		if (activeTag) {
-			activeTag.classList.remove('active');
+			activeTag.id = '';
 		}
 
-		a.classList.add('active');
+		a.id = 'active';
 		activeTag = a;
 	}
 
@@ -45,7 +45,6 @@
 
 	import { getWalkdirItem } from '../../get-walkdir-item';
 	import type { WalkDirItem } from '../../mem-fs';
-	import { goto } from '$app/navigation';
 
 	export let item: WalkDirItem;
 	export let parentPath: string;
@@ -107,12 +106,13 @@
 			<span>{item.name}</span>
 		</button>
 	{:else}
+		<!-- could have id set to the actual expression in isAsctive and remove switchActive(ev), not sure which is move preformant -->
 		<a
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);
 			}}
-			class:active={isActive}
+			id={isActive ? 'active' : null}
 			href={'/preview' + href}
 		>
 			<FileIcon fileName={item.name} size="20px" />
@@ -128,7 +128,8 @@
 	{/if}
 </li>
 
-<style>
+<style lang="scss">
+	@use '../styles/variables.scss' as *;
 	ul {
 		margin-left: 10px;
 		list-style-type: none;
@@ -159,9 +160,13 @@
 		text-decoration: underline;
 	}
 
+	#active {
+		color: $sidebar-active-text-color;
+	}
+
 	a:hover,
 	button:hover {
-		color: white;
+		color: $sidebar-hover-text-color;
 	}
 
 	span {

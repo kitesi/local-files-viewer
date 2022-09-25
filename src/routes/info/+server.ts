@@ -83,7 +83,11 @@ function getFontStyleSheet(url: URL) {
 	const file = url.searchParams?.get('file');
 
 	if (!file) {
-		return error(400, 'No file provided');
+		return new Response('', {
+			headers: {
+				'Content-Type': 'text/css'
+			}
+		});
 	}
 
 	let format = 'truetype';

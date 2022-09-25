@@ -49,7 +49,9 @@
 	{/if}
 </li>
 
-<style>
+<style lang="scss">
+	@use '../styles/variables.scss' as *;
+
 	ul {
 		margin-left: 10px;
 		list-style-type: none;
@@ -86,7 +88,7 @@
 
 	a:hover,
 	button:hover {
-		color: white;
+		color: $sidebar-hover-text-color;
 	}
 
 	span,

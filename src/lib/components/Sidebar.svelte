@@ -109,7 +109,7 @@
 <section bind:this={sidebarElement} class:resizing={isResizing}>
 	<div>
 		<div
-			class="border"
+			class="resizer"
 			on:mousedown|preventDefault={() => (isResizing = true)}
 		/>
 		<CollapsableSidebarSection
@@ -162,14 +162,14 @@
 		scrollbar-width: none;
 	}
 
-	.border {
+	.resizer {
 		position: fixed;
 		top: 0;
 		right: 0;
 		bottom: 0;
 		width: 0.3em;
 		background-color: transparent;
-		border-inline: 0.1em solid $c-black-4;
+		border-inline: 0.1em solid $sidebar-resizer-border-color;
 		border-inline-start-color: transparent;
 		cursor: ew-resize;
 	}
@@ -189,12 +189,11 @@
 
 	section {
 		position: absolute;
-		background-color: $c-black-5;
-		color: #858383;
+		background-color: $sidebar-bg;
+		color: $sidebar-inactive-text-color;
 		top: 0;
 		left: 0;
 		max-width: 80vw;
-		min-width: 220px;
 		width: 80vw;
 		height: 100%;
 		transform: translateX(-100%);
@@ -202,7 +201,6 @@
 		z-index: 2;
 		scrollbar-width: none;
 		overflow: auto;
-		padding-right: 5px;
 	}
 
 	ul {
@@ -211,10 +209,6 @@
 	}
 
 	section:global {
-		.active {
-			color: $c-yellow-1;
-		}
-
 		li:not(.collapse) > ul {
 			display: none;
 		}
@@ -280,9 +274,10 @@
 	}
 
 	@media (hover: hover) {
-		.border:hover,
-		.resizing .border {
+		.resizer:hover,
+		.resizing .resizer {
 			background-color: darken($c-blue-1, 10%);
+			border-inline-color: darken($c-blue-1, 10%);
 		}
 	}
 
@@ -294,7 +289,8 @@
 			box-shadow: none;
 			-webkit-box-shadow: none;
 			-moz-box-shadow: none;
-			width: min(30vw, 300px);
+			width: $sidebar-static-width;
+			min-width: $sidebar-min-width;
 		}
 
 		.toggle-sidebar {

@@ -113,7 +113,7 @@
 				(await fileContentRes.json()) as GetFileContentBodyReturn;
 
 			if (fileContent.error) {
-				stores.addToastError(fileContent.error, 2000);
+				stores.addToastError(fileContent.error);
 			}
 
 			stats.chars = fileContent.stats?.chars;
@@ -141,7 +141,7 @@
 						return;
 					}
 
-					stores.addToastError(err.message, 2000);
+					stores.addToastError(err.message);
 				});
 
 			Promise.race([
@@ -157,7 +157,7 @@
 			});
 		} catch (err: any) {
 			if (err.message) {
-				stores.addToastError(err.message, 2000);
+				stores.addToastError(err.message);
 			}
 		}
 	}
@@ -339,6 +339,8 @@
 	}
 
 	section {
+		background-color: $main-content-bg;
+		color: $main-content-text-color;
 		padding: 20px;
 		height: 100%;
 		width: 100%;

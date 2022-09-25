@@ -3,8 +3,8 @@
 	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
 	import Fuse from 'fuse.js';
-	import { modalState, files, addToastError } from '../../stores';
 	import * as mappings from '../../key-mappings';
+	import { modalState, files, addToastError } from '../../stores';
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 
@@ -84,7 +84,13 @@
 
 				return { name, parents: paths.join('/') };
 			})
-			.filter((e) => e.name.startsWith(normalizedQuery));
+			.filter((e) => {
+				if (normalizedQuery.toLowerCase() === normalizedQuery) {
+					return e.name.toLowerCase().startsWith(normalizedQuery);
+				}
+
+				return e.name.startsWith(normalizedQuery);
+			});
 
 		return;
 	}
@@ -214,7 +220,7 @@
 		if ($modalState === 'choose-file') {
 			goto('/preview/' + href).catch((err) => {
 				if (err.message) {
-					addToastError(err.message, 2000);
+					addToastError(err.message);
 				}
 			});
 		} else {
@@ -228,7 +234,7 @@
 				.then((res) => res.json())
 				.then((json) => {
 					if (json.error) {
-						addToastError(json.error, 2000);
+						addToastError(json.error + ` (${query})`);
 					} else {
 						window.location.href = '/preview';
 					}
@@ -312,8 +318,9 @@
 	}
 
 	form {
-		background-color: lighten($c-black-3, 1%);
-		border: 2px solid $c-black-4;
+		background-color: $file-pallete-bg;
+		color: $file-pallete-text-color;
+		border: 2px solid $file-pallete-border-color;
 		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
 		margin: 10px auto;
 		width: 800px;
@@ -333,12 +340,12 @@
 	.input-container div {
 		display: flex;
 		align-items: center;
-		background-color: darken($c-black-2, 2%);
+		background-color: $file-pallete-input-bg;
 		padding-left: 5px;
 	}
 
 	.input-container div:focus-within {
-		outline: 2px solid $c-blue-2;
+		outline: 2px solid $file-pallete-input-focus-outline-color;
 	}
 
 	input {
@@ -346,7 +353,7 @@
 		padding: 5px;
 		width: 100%;
 		border: none;
-		color: white;
+		color: $file-pallete-input-text-color;
 		background-color: transparent;
 		font-size: 0.8rem;
 	}
@@ -361,8 +368,8 @@
 		gap: 5px;
 		width: 100%;
 		text-align: start;
-		background-color: transparent;
-		color: white;
+		background-color: $file-pallete-item-bg;
+		color: $file-pallete-item-text-color;
 		padding: 2px 10px;
 		border: none;
 		font-size: 1rem;
@@ -381,14 +388,16 @@
 
 	.selected {
 		outline: none;
-		background-color: $c-black-2;
+		background-color: $file-pallete-item-selected-bg;
+		color: $file-pallete-item-selected-text-color;
 	}
 
 	button:hover {
-		background-color: darken($c-black-2, 5%);
+		background-color: $file-pallete-item-hover-bg;
+		color: $file-pallete-item-hover-text-color;
 	}
 
 	.parent {
-		color: rgb(180, 180, 180);
+		color: $file-pallete-sub-text-color;
 	}
 </style>
