@@ -1,6 +1,4 @@
 <script context="module" lang="ts">
-	let activeTag: HTMLAnchorElement | undefined;
-
 	// todo: prob better ways to do these two functions
 	function switchActive(ev: Event) {
 		closeSidebar();
@@ -17,11 +15,9 @@
 			return ev.preventDefault();
 		}
 
-		if (!activeTag) {
-			activeTag = document.getElementById('active') as
-				| HTMLAnchorElement
-				| undefined;
-		}
+		let activeTag = document.getElementById('active') as
+			| HTMLAnchorElement
+			| undefined;
 
 		if (activeTag) {
 			activeTag.id = '';

@@ -273,16 +273,20 @@
 				<img src={servePath} alt="" />
 			</div>
 		{:else if mimeType?.genre === 'audio'}
-			<audio controls>
-				<source src={servePath} />
-				Your browser does not support the audio element.
-			</audio>
+			{#key servePath}
+				<audio controls>
+					<source src={servePath} />
+					Your browser does not support the audio element.
+				</audio>
+			{/key}
 		{:else if mimeType?.genre === 'video'}
-			<video controls>
-				<source src={servePath} />
-				<track kind="captions" />
-				Your browser does not support the audio element. track
-			</video>
+			{#key servePath}
+				<video controls>
+					<source src={servePath} />
+					<track kind="captions" />
+					Your browser does not support the audio element. track
+				</video>
+			{/key}
 		{:else if content !== undefined}
 			<p>{content}</p>
 		{/if}

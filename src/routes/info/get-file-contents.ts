@@ -59,7 +59,9 @@ export async function getFileContents(url: URL) {
 							return m;
 						}
 
-						const dirname = src.startsWith('/') ? '' : path.dirname(filePath);
+						const dirname = src.startsWith('/')
+							? ''
+							: path.dirname(filePathParam);
 
 						if (dirname === '.') {
 							return `<img src="/serve/${src}"`;
