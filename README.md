@@ -2,14 +2,6 @@
 
 Simple program to view files in your browser. Text files, markdown, html, images, videos, audios, and fonts all work.
 
-## Installation
-
-```
-git clone https://github.com/sixskys/local-files-viewer.git
-cd local-files-viewer
-npm i
-```
-
 ## Previews
 
 Markdown:
@@ -18,29 +10,33 @@ Markdown:
 
 For more previews, visit [previews.md](previews.md)
 
+## Installation
+
+For now you need to clone the repo and run it yourself, in the future I might make it an npm
+package.
+
+```
+git clone https://github.com/sixskys/local-files-viewer.git
+cd local-files-viewer
+npm i
+```
+
 ## Usage
 
 This program currently works by opening up a folder: your env variable of `LFV_DEFAULT_FOLDER`.
+I understand it is a bit counterintuitive, but at the time I couldn't find a way to pass
+in arguments to the sveltekit program.
+
+Opening up just a single file might be supported in the future but for now you just have to
+open their parent.
+
 You can use this program two ways:
 
 a. going to this project directory changing your env variable and running `npm run dev`: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
-b. Use the helper script below, usage: `lfv <folder>`
+b. Use the helper script in `./lfv`, usage: `lfv <folder>`
 
-```sh
-#!/bin/sh
-
-if [ ! "$1" = "" ]; then
-    OLD_LFV=$LFV_DEFAULT_FOLDER
-    LFV_DEFAULT_FOLDER="$(cd "$1" && pwd -P)"
-fi
-
-echo $LFV_DEFAULT_FOLDER
-
-cd ~/code/local-files-viewer/
-npm run dev
-
-LFV_DEFAULT_FOLDER=$OLD_LFV
-```
+The helper script does assume the project directory is at `~/code/local-files-viewer`, so
+if it's not, you will need to change it.
 
 ## Keybindings
 
@@ -77,7 +73,7 @@ pallete mode:
   how they handle line highlights
 - Took some inspiration from vscode ui
 - Icons
-  - [feather](https://feathericons.com/), only used `hash`, `file`, and `folder`
+  - [feather](https://feathericons.com/), only used `hash`, `file`, and `folder`, `arrow-[right|down]`, and `chevron-[right|down]`
   - [simple-icons](https://simpleicons.org/), used for language file icons
 
 ## Future
