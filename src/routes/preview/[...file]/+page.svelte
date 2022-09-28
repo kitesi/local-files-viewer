@@ -6,6 +6,7 @@
 	import * as mappings from '../../../key-mappings';
 	import { getWalkdirItem } from '../../../get-walkdir-item';
 	import { formatBytes } from '../../../format-bytes';
+	import { HTML_SANDBOX_ATTR, PDF_SANDBOX_ATTR } from '../../../config';
 
 	import { get as getStore } from 'svelte/store';
 
@@ -287,15 +288,17 @@
 					Your browser does not support the audio element. track
 				</video>
 			{/key}
-		{:else if content !== undefined}
+		{:else if content}
 			<p>{content}</p>
 		{/if}
-		{#if mimeType?.specific === 'html'}
+		{#if mimeType?.specific === 'html' || mimeType?.specific === 'pdf'}
 			<iframe
 				title=""
-				src={'/serve/' + $page.params.file}
+				src={servePath}
 				frameborder="0"
-				sandbox=""
+				sandbox={mimeType?.specific === 'html'
+					? HTML_SANDBOX_ATTR
+					: PDF_SANDBOX_ATTR}
 			/>
 		{/if}
 	</section>

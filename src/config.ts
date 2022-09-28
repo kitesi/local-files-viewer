@@ -7,3 +7,11 @@ export const INITIAL_FOLDER_LOAD_DEPTH = 5;
 export const MAX_FILE_SIZE_MEGABYTES = 10;
 
 export const DEFAULT_ERROR_MESSAGE_TIMEOUT = 2000;
+
+// iframe sandbox attributes to use
+export const HTML_SANDBOX_ATTR = '';
+
+// iframe sandbox attributes to use, if null, there is no sandbox
+export const PDF_SANDBOX_ATTR = null;
+
+export const OUTLINE_OPEN_DEFAULT_STATUS = true;

@@ -27,6 +27,7 @@
 
 	section {
 		display: flex;
+		color: white;
 		flex-direction: column;
 		justify-content: center;
 		height: 100%;

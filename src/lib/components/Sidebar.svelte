@@ -4,6 +4,7 @@
 	import SidebarFileItem from './SidebarFileItem.svelte';
 	import { formatBytes } from '../../format-bytes';
 	import { baseDirectory, files, isSidebarOpen } from '../../stores';
+	import { OUTLINE_OPEN_DEFAULT_STATUS } from '../../config';
 
 	import { browser } from '$app/env';
 
@@ -127,7 +128,10 @@
 			</ul>
 		</CollapsableSidebarSection>
 
-		<CollapsableSidebarSection name="outline" open={false}>
+		<CollapsableSidebarSection
+			name="outline"
+			open={OUTLINE_OPEN_DEFAULT_STATUS}
+		>
 			<ul style="margin-bottom: 20px;">
 				{#if stats.size}
 					<li>Size: {formatBytes(stats.size)}</li>

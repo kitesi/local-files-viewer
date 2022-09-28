@@ -1,6 +1,6 @@
 # Local Files Viewer
 
-Simple program to view files in your browser. Text files, markdown, html, images, videos, audios, and fonts all work.
+Simple program to view files in your browser. Text files, markdown, html, pdfs, images, videos, audios, and fonts all work.
 
 ## Previews
 
@@ -9,6 +9,13 @@ Markdown:
 ![markdown](assets/markdown.png)
 
 For more previews, visit [previews.md](previews.md)
+
+### Security Note
+
+I don't believe this program exposes any additional security threat but in the instances of one, I am not responsible for any damages.
+
+It uses the web brower's provided API for images, videos, audios, fonts, and iframes to display html & pdf content.
+For reading of the content, it uses node's `fs.readFile`.
 
 ## Installation
 

@@ -77,6 +77,9 @@ export async function getFileContents(url: URL) {
 		case 'plain':
 			body.content = content;
 			break;
+		case 'pdf':
+			body.content = ``;
+			break;
 		case 'typescript':
 		case 'javascript':
 		case 'json':
