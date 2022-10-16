@@ -39,7 +39,7 @@
 		"rehype-slug": "^5.0.1",
 		"shiki": "^0.11.1",
 		"shiki-twoslash": "^3.1.0",
-		"simple-icons": "^7.9.0",
+		"simple-icons": "^7.13.0",
 		"uuid": "^8.3.2"
 	}
 }
