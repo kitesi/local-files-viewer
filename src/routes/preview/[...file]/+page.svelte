@@ -114,7 +114,8 @@
 				(await fileContentRes.json()) as GetFileContentBodyReturn;
 
 			if (fileContent.error) {
-				stores.addToastError(fileContent.error);
+				error = fileContent.error;
+				return;
 			}
 
 			stats.chars = fileContent.stats?.chars;
@@ -158,7 +159,7 @@
 			});
 		} catch (err: any) {
 			if (err.message) {
-				stores.addToastError(err.message);
+				error = err.essage;
 			}
 		}
 	}

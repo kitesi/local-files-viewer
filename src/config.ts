@@ -12,6 +12,6 @@ export const DEFAULT_ERROR_MESSAGE_TIMEOUT = 2000;
 export const HTML_SANDBOX_ATTR = '';
 
 // iframe sandbox attributes to use, if null, there is no sandbox
-export const PDF_SANDBOX_ATTR = null;
+export const PDF_SANDBOX_ATTR = 'allow-scripts';
 
 export const OUTLINE_OPEN_DEFAULT_STATUS = true;

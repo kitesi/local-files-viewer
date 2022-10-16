@@ -1,6 +1,7 @@
 # Local Files Viewer
 
-Simple program to view files in your browser. Text files, markdown, html, pdfs, images, videos, audios, and fonts all work.
+Simple program to view files in your browser. Text files, markdown, html, pdfs,
+images, videos, audios, and fonts all work.
 
 ## Previews
 
@@ -12,15 +13,17 @@ For more previews, visit [previews.md](previews.md)
 
 ### Security Note
 
-I don't believe this program exposes any additional security threat but in the instances of one, I am not responsible for any damages.
+I don't believe this program exposes any additional security threat but in the
+instances of one, I am not responsible for any damages.
 
-It uses the web brower's provided API for images, videos, audios, fonts, and iframes to display html & pdf content.
-For reading of the content, it uses node's `fs.readFile`.
+It uses the web brower's provided API for images, videos, audios, fonts, and
+iframes to display html & pdf content. For reading of the content, it uses
+node's `fs.readFile`.
 
 ## Installation
 
-For now you need to clone the repo and run it yourself, in the future I might make it an npm
-package.
+For now you need to clone the repo and run it yourself, in the future I might
+make it an npm package.
 
 ```
 git clone https://github.com/sixskys/local-files-viewer.git
@@ -30,20 +33,20 @@ npm i
 
 ## Usage
 
-This program currently works by opening up a folder: your env variable of `LFV_DEFAULT_FOLDER`.
-I understand it is a bit counterintuitive, but at the time I couldn't find a way to pass
-in arguments to the sveltekit program.
+This program currently works by opening up a folder: your env variable of
+`LFV_DEFAULT_FOLDER`. I understand it is a bit counterintuitive, but at the
+time I couldn't find a way to pass in arguments to the sveltekit program.
 
-Opening up just a single file might be supported in the future but for now you just have to
-open their parent.
+Opening up just a single file might be supported in the future but for now you
+just have to open their parent folder.
 
 You can use this program two ways:
 
-a. going to this project directory changing your env variable and running `npm run dev`: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
-b. Use the helper script in `./lfv`, usage: `lfv <folder>`
+a. going to this project directory changing your env variable and running `npm run dev`: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev` b. Use the helper script
+in `./lfv`, usage: `lfv <folder>`
 
-The helper script does assume the project directory is at `~/code/local-files-viewer`, so
-if it's not, you will need to change it.
+The helper script does assume the project directory is at
+`~/code/local-files-viewer`, so if it's not, you will need to change it.
 
 ## Keybindings
 
