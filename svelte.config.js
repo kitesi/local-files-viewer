@@ -1,10 +1,6 @@
 // @ts-check
 import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
-import rehypeSlug from 'rehype-slug';
-import remarkGemoji from 'remark-gemoji';
-import { mdsvex } from 'mdsvex';
-import { highlighterWrapper } from './highlight.js';
 
 /**
  * @typedef {import('mdast').Root} Root
@@ -64,18 +60,8 @@ function remarkEscapedBreaks() {
 const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
-	extensions: ['.svelte', '.md'],
-	preprocess: [
-		preprocess(),
-		mdsvex({
-			extensions: ['.md'],
-			remarkPlugins: [remarkEscapedBreaks, remarkGemoji],
-			rehypePlugins: [rehypeSlug],
-			highlight: {
-				highlighter: highlighterWrapper
-			}
-		})
-	],
+	extensions: ['.svelte'],
+	preprocess: [preprocess()],
 	kit: {
 		adapter: adapter()
 	}

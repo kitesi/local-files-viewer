@@ -2,6 +2,18 @@ import { readFile } from '../../mem-fs';
 import { json } from '@sveltejs/kit';
 import { getMimeType } from '../../get-mime-types';
 import { getBaseDirectory } from '../../base-directory';
+import { highlighterWrapper } from '../../../highlight';
+
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkGemoji from 'remark-gemoji';
+import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeStringify from 'rehype-stringify';
+import rehypeRaw from 'rehype-raw';
+import rehypeSlug from 'rehype-slug';
+import { visit } from 'unist-util-visit';
+
 import { escape as escapeHtml } from 'html-escaper';
 
 import path from 'path';
@@ -51,10 +63,32 @@ export async function getFileContents(url: URL) {
 	switch (mimeType.specific) {
 		case 'markdown':
 			try {
-				const post = await import(filePath);
-				body.html = post.default
-					.render()
-					.html.replace(/<img src="([^"]*)"/g, (m: string, src: string) => {
+				const vfile = await unified()
+					.use(remarkParse)
+					.use(remarkGemoji)
+					.use(remarkGfm)
+					.use(function () {
+						return (tree) => {
+							visit(tree, 'code', (node) => {
+								// @ts-ignore
+								node.type = 'html';
+								node.value = highlighterWrapper(
+									node.value,
+									node.lang || undefined,
+									node.meta || ''
+								);
+							});
+						};
+					})
+					.use(remarkRehype, { allowDangerousHtml: true })
+					.use(rehypeRaw)
+					.use(rehypeSlug)
+					.use(rehypeStringify)
+					.process(await readFile(filePath, 'utf-8'));
+
+				body.html = String(vfile).replace(
+					/<img src="([^"]*)"/g,
+					(m: string, src: string) => {
 						if (src.startsWith('http')) {
 							return m;
 						}
@@ -68,7 +102,8 @@ export async function getFileContents(url: URL) {
 						}
 
 						return `<img src="/serve/${path.join(dirname, src)}"`;
-					});
+					}
+				);
 			} catch (err: any) {
 				return error(500, err?.message || '');
 			}

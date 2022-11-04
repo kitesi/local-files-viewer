@@ -63,7 +63,7 @@
 		}
 	}
 
-	async function collapseDirectory(ev: Event) {
+	async function collapseDirectory() {
 		liElement.classList.toggle('collapse');
 
 		const dataHref = liElement.getAttribute('data-href');

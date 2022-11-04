@@ -1,6 +1,6 @@
 // @ts-check
 import { createShikiHighlighter, renderCodeToHTML } from 'shiki-twoslash';
-import { escapeSvelte } from 'mdsvex';
+import { escape } from 'html-escaper';
 
 const highlighter = await createShikiHighlighter({
 	theme: 'github-dark'
@@ -40,5 +40,5 @@ export function highlighterWrapper(code, lang = '', meta) {
 		highlighter
 	);
 
-	return escapeSvelte(html);
+	return escape(html);
 }
