@@ -5,7 +5,7 @@
 	import Fuse from 'fuse.js';
 	import * as mappings from '../../key-mappings';
 	import { modalState, files, addToastError } from '../../stores';
-	import { browser } from '$app/env';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 
 	import type { WalkDirItem } from '../../mem-fs';

@@ -6,7 +6,7 @@
 	import { baseDirectory, files, isSidebarOpen } from '../../stores';
 	import { OUTLINE_OPEN_DEFAULT_STATUS } from '../../config';
 
-	import { browser } from '$app/env';
+	import { browser } from '$app/environment';
 
 	import type { OutlineItem } from './outline-item';
 	import type { PageData } from '../../routes/preview/[...file]/$types';

@@ -10,7 +10,7 @@
 
 	import { get as getStore } from 'svelte/store';
 
-	import { browser, dev } from '$app/env';
+	import { browser, dev } from '$app/environment';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
