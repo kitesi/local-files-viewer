@@ -1,4 +1,4 @@
-<!-- inspired by vscode's file/command pallete -->
+<!-- inspired by vscode's file/command palette -->
 <script lang="ts">
 	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
@@ -318,9 +318,9 @@
 	}
 
 	form {
-		background-color: $file-pallete-bg;
-		color: $file-pallete-text-color;
-		border: 2px solid $file-pallete-border-color;
+		background-color: $file-palette-bg;
+		color: $file-palette-text-color;
+		border: 2px solid $file-palette-border-color;
 		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
 		margin: 10px auto;
 		width: 800px;
@@ -340,12 +340,12 @@
 	.input-container div {
 		display: flex;
 		align-items: center;
-		background-color: $file-pallete-input-bg;
+		background-color: $file-palette-input-bg;
 		padding-left: 5px;
 	}
 
 	.input-container div:focus-within {
-		outline: 2px solid $file-pallete-input-focus-outline-color;
+		outline: 2px solid $file-palette-input-focus-outline-color;
 	}
 
 	input {
@@ -353,7 +353,7 @@
 		padding: 5px;
 		width: 100%;
 		border: none;
-		color: $file-pallete-input-text-color;
+		color: $file-palette-input-text-color;
 		background-color: transparent;
 		font-size: 0.8rem;
 	}
@@ -368,8 +368,8 @@
 		gap: 5px;
 		width: 100%;
 		text-align: start;
-		background-color: $file-pallete-item-bg;
-		color: $file-pallete-item-text-color;
+		background-color: $file-palette-item-bg;
+		color: $file-palette-item-text-color;
 		padding: 2px 10px;
 		border: none;
 		font-size: 1rem;
@@ -388,16 +388,16 @@
 
 	.selected {
 		outline: none;
-		background-color: $file-pallete-item-selected-bg;
-		color: $file-pallete-item-selected-text-color;
+		background-color: $file-palette-item-selected-bg;
+		color: $file-palette-item-selected-text-color;
 	}
 
 	button:hover {
-		background-color: $file-pallete-item-hover-bg;
-		color: $file-pallete-item-hover-text-color;
+		background-color: $file-palette-item-hover-bg;
+		color: $file-palette-item-hover-text-color;
 	}
 
 	.parent {
-		color: $file-pallete-sub-text-color;
+		color: $file-palette-sub-text-color;
 	}
 </style>

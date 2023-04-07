@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	import FilePallete from '$lib/components/FilePallete.svelte';
+	import FilePalette from '$lib/components/FilePalette.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
 	import * as stores from '../../../stores';
 	import * as mappings from '../../../key-mappings';
@@ -238,7 +238,7 @@
 
 <svelte:window on:keydown={handleKey} />
 
-<FilePallete />
+<FilePalette />
 
 <svelte:head>
 	<link
