@@ -3,6 +3,9 @@
 Simple program to view files in your browser including text files, markdown,
 HTML, PDFs, images, videos, audio, and fonts.
 
+Check out [filebrowser](https://filebrowser.org/installation), which might better
+suit your needs.
+
 ## Previews
 
 Markdown:
