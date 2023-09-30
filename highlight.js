@@ -1,6 +1,6 @@
 // @ts-check
 import { createShikiHighlighter, renderCodeToHTML } from 'shiki-twoslash';
-import { escape } from 'html-escaper';
+// import { escape } from 'html-escaper';
 
 const highlighter = await createShikiHighlighter({
 	theme: 'github-dark'
@@ -40,5 +40,10 @@ export function highlighterWrapper(code, lang = '', meta) {
 		highlighter
 	);
 
-	return escape(html);
+	console.log(html);
+
+	// originally had to escape it, but now we don't, and escaping it creates a bug; not sure tbh, keeping it here in case
+	// i missed something
+	// return escape(html);
+	return html;
 }

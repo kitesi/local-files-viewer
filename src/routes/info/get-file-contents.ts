@@ -18,6 +18,13 @@ import { escape as escapeHtml } from 'html-escaper';
 
 import path from 'path';
 
+interface UnistNode {
+	type: string;
+	value: string;
+	lang?: string;
+	meta?: string;
+}
+
 export interface BodyReturn {
 	content?: string;
 	html?: string;
@@ -69,7 +76,7 @@ export async function getFileContents(url: URL) {
 					.use(remarkGfm)
 					.use(function () {
 						return (tree) => {
-							visit(tree, 'code', (node) => {
+							visit(tree, 'code', (node: UnistNode) => {
 								// @ts-ignore
 								node.type = 'html';
 								node.value = highlighterWrapper(

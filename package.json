@@ -17,6 +17,7 @@
 		"@sveltejs/kit": "^1.25.1",
 		"@types/html-escaper": "^3.0.0",
 		"@types/mime-types": "^2.1.2",
+		"@types/node": "^20.8.0",
 		"@types/prismjs": "^1.26.1",
 		"feather-icons": "^4.29.1",
 		"html-escaper": "^3.0.3",

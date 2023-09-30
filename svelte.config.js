@@ -12,7 +12,7 @@ import { visit } from 'unist-util-visit';
 const find = /\\\n/g;
 
 /**
- * remark has escaped breaks built into change to <br>, but mdsvex is using an older version I belive
+ * remark has escaped breaks built into change to <br>, but mdsvex is using an older version I believe
  * temp solution for now, stolen from: https://github.com/remarkjs/remark-breaks
  */
 /**
