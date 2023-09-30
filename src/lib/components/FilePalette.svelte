@@ -111,6 +111,7 @@
 		query = '';
 
 		if ($modalState === 'choose-file') {
+			$files.name = '.';
 			flattenedResults = addToFlattenedArr($files, '', [])
 				.filter((e) => !e.isDirectory)
 				.map(({ name, parents }) => {
@@ -284,7 +285,7 @@
 
 		<div class="button-container" tabindex="-1">
 			{#if filteredResults.length > 0}
-				{#each filteredResults as file, i (file.parents + file.name)}
+				{#each filteredResults as file, i (file.parents + '/' + file.name)}
 					<button
 						data-href={file.parents + '/' + file.name}
 						class:selected={$modalState === 'choose-file' && i === 0}
