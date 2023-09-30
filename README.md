@@ -30,8 +30,8 @@ make it a NPM package.
 
 ```shell
 git clone https://github.com/sixskys/local-files-viewer.git
-cd
-local-files-viewer npm i
+cd local-files-viewer
+npm i
 ```
 
 ## Usage
