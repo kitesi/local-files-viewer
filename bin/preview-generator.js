@@ -50,21 +50,21 @@ function sleep(ms) {
 	);
 	await outlineButton.click();
 
-	await page.screenshot({ path: `assets/markdown.png` });
+	await page.screenshot({ path: `../assets/markdown.png` });
 
 	console.log('Getting javascript.png');
 	await page.goto(`${previewPath}/previews.js`);
 	await sleep(1000);
-	await page.screenshot({ path: `assets/javascript.png` });
+	await page.screenshot({ path: `../assets/javascript.png` });
 
 	console.log('Getting plain-image-file.png');
-	await page.goto(`${previewPath}/vscode/assets/command-preview.gif`);
-	await page.screenshot({ path: `assets/plain-image-file.png` });
+	await page.goto(`${previewPath}/vscode/../assets/command-preview.gif`);
+	await page.screenshot({ path: `../assets/plain-image-file.png` });
 
 	console.log('getting folder-picker.png');
 	await page.keyboard.press('Control+o');
 	const form = await page.locator('form');
-	await form.screenshot({ path: 'assets/folder-picker.png' });
+	await form.screenshot({ path: '../assets/folder-picker.png' });
 
 	console.log('getting font.png');
 	await newBaseDirectory('/' + path.join('usr', 'share', 'fonts', 'truetype'));
@@ -74,7 +74,7 @@ function sleep(ms) {
 	});
 	await page.goto(`${previewPath}/CascadiaCode/CascadiaCode.ttf`);
 	await page.screenshot({
-		path: 'assets/font.png'
+		path: '../assets/font.png'
 	});
 
 	console.log('Getting html.png');
@@ -86,7 +86,7 @@ function sleep(ms) {
 	await page.goto(`${previewPath}/index.html`);
 	await sleep(1000);
 	await page.screenshot({
-		path: 'assets/html.png'
+		path: '../assets/html.png'
 	});
 
 	await browser.close();

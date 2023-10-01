@@ -2,6 +2,9 @@
 	"name": "local-files-viewer",
 	"version": "0.0.1",
 	"private": true,
+	"bin": {
+		"lfv": "./bin/preview-generator"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -10,7 +13,8 @@
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check --plugin-search-dir=. .",
-		"format": "prettier --write --plugin-search-dir=. ."
+		"format": "prettier --write --plugin-search-dir=. .",
+		"postinstall": "vite build"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.1.0",

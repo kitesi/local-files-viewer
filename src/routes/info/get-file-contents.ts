@@ -2,7 +2,7 @@ import { readFile } from '../../mem-fs';
 import { json } from '@sveltejs/kit';
 import { getMimeType } from '../../get-mime-types';
 import { getBaseDirectory } from '../../base-directory';
-import { highlighterWrapper } from '../../../highlight';
+import { highlighterWrapper } from './highlight';
 
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
