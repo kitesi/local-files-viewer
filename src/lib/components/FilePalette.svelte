@@ -193,12 +193,16 @@
 			}
 		}
 
-		if (isNormalTab || (ev.ctrlKey && ev.key === 'j')) {
+		if (
+			isNormalTab ||
+			ev.key === 'ArrowDown' ||
+			(ev.ctrlKey && ev.key === 'j')
+		) {
 			const nextElement = currentSelected?.nextElementSibling;
 			return changeSelected(nextElement);
 		}
 
-		if (isShiftTab || (ev.ctrlKey && ev.key === 'k')) {
+		if (isShiftTab || ev.key === 'ArrowUp' || (ev.ctrlKey && ev.key === 'k')) {
 			const prevElement = currentSelected?.previousElementSibling;
 			return changeSelected(prevElement);
 		}
