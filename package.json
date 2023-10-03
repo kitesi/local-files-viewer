@@ -1,9 +1,17 @@
 {
 	"name": "local-files-viewer",
-	"version": "0.0.1",
-	"private": true,
+	"version": "2.0.1",
 	"bin": {
-		"lfv": "./bin/preview-generator"
+		"lfv": "bin/lfv.js"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/kitesi/local-files-viewer",
+	"repository": {
+        "type": "git",
+        "url": "https://github.com/kitesi/local-files-viewer"
+    },
+	"bugs":{ 
+		"url": "https://github.com/kitesi/local-files-viewer/issues"
 	},
 	"scripts": {
 		"dev": "vite dev",
@@ -13,35 +21,37 @@
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check --plugin-search-dir=. .",
-		"format": "prettier --write --plugin-search-dir=. .",
-		"postinstall": "vite build"
+		"format": "prettier --write --plugin-search-dir=. ."
 	},
+	"files": [
+		".svelte-kit"
+	],
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^2.1.0",
-		"@sveltejs/kit": "^1.25.1",
 		"@types/html-escaper": "^3.0.0",
 		"@types/mime-types": "^2.1.2",
 		"@types/node": "^20.8.0",
 		"@types/prismjs": "^1.26.1",
-		"feather-icons": "^4.29.1",
-		"html-escaper": "^3.0.3",
-		"mime-types": "^2.1.35",
+		"@types/uuid": "^9.0.4",
 		"playwright": "^1.38.1",
 		"prettier": "^3.0.3",
 		"prettier-plugin-svelte": "^3.0.3",
-		"rehype-raw": "^7.0.0",
-		"rehype-slug": "^6.0.0",
 		"sass": "^1.68.0",
 		"svelte": "^4.2.1",
 		"svelte-check": "^3.5.2",
-		"svelte-preprocess": "^5.0.4",
 		"tslib": "^2.6.2",
-		"typescript": "^5.2.2",
-		"vite": "^4.4.9"
+		"typescript": "^5.2.2"
 	},
 	"type": "module",
 	"dependencies": {
-		"@types/uuid": "^9.0.4",
+		"@sveltejs/adapter-auto": "^2.1.0",
+		"@sveltejs/kit": "^1.25.1",
+		"mime-types": "^2.1.35",
+		"rehype-raw": "^7.0.0",
+		"rehype-slug": "^6.0.0",
+		"feather-icons": "^4.29.1",
+		"html-escaper": "^3.0.3",
+		"svelte-preprocess": "^5.0.4",
+		"vite": "^4.4.9",
 		"fuse.js": "^6.6.2",
 		"rehype-stringify": "^10.0.0",
 		"remark-gemoji": "^8.0.0",

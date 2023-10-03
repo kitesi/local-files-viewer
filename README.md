@@ -25,30 +25,24 @@ file contents.
 
 ## Installation
 
-For now, you need to clone the repo and run it yourself. In the future I might
-make it a NPM package.
+```shell
+npm i -g local-files-viewer
+```
+
+Or install yourself:
 
 ```shell
-git clone https://github.com/sixskys/local-files-viewer.git
+git clone https://github.com/kitesi/local-files-viewer.git
 cd local-files-viewer
-npm i
+npm install
+npm run build
+npm install -g
 ```
 
 ## Usage
 
-This program currently works by opening up a folder: your env variable of
-`LFV_DEFAULT_FOLDER`. I understand it is a bit counterintuitive, but at the time
-I couldn't find a way to pass in arguments to the SvelteKit program.
-
-Opening up just a single file might be supported in the future but for now you
-just have to open their parent folder.
-
-You can use this program two ways:
-
-1. going to this project directory changing your env variable and running `npm run dev`: `LFV_DEFAULT_FOLDER=~/Downloads/ npm run dev`
-2. Use the helper script in `./lfv`, usage: `lfv <folder>`
-
-The helper script does assume the project directory is at `~/code/local-files-viewer`, so if it's not, you will need to change it.
+Once you have ths package installed you can just call `lfv [folder]`.
+If no folder is provided, it will default to your env variable of `LFV_DEFAULT_FOLDER`.
 
 ## Keybindings
 
@@ -77,11 +71,7 @@ palette mode:
 ## Technologies / Attribution
 
 - SvelteKit, typescript, scss, etc..
-- mdsvex: used to render markdown, might
-  be a bit overkill since I don't use any special features mdsvex provides, might
-  just switch to `markdown-it` or `micromark`. Although, I might add a feature to
-  render markdown files that include svelte components, but I don't know how
-  likely that is.
+- remark: used to render markdown
 - shiki: used for syntax highlighting, mdsvex includes prismjs
   by default, but I don't like how they handle line highlights
 - Took some inspiration from vscode ui
