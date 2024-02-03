@@ -41,7 +41,7 @@ npm install -g
 
 ## Usage
 
-Once you have ths package installed you can just call `lfv [folder]`.
+Once you have this package installed you can just call `lfv [folder]`.
 If no folder is provided, it will default to your env variable of `LFV_DEFAULT_FOLDER`.
 
 ## Keybindings
@@ -70,7 +70,7 @@ palette mode:
 
 ## Technologies / Attribution
 
-- SvelteKit, typescript, scss, etc..
+- SvelteKit, typescript, SCSS, etc..
 - remark: used to render markdown
 - shiki: used for syntax highlighting, mdsvex includes prismjs
   by default, but I don't like how they handle line highlights
