@@ -3,7 +3,7 @@ import { createShikiHighlighter, renderCodeToHTML } from 'shiki-twoslash';
 // import { escape } from 'html-escaper';
 
 const highlighter = await createShikiHighlighter({
-	theme: 'github-dark'
+	theme: 'nord'
 });
 
 /**

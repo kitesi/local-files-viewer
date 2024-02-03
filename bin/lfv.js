@@ -14,7 +14,6 @@ if (folder) {
 console.log('Previewing Folder: ' + process.env.LFV_DEFAULT_FOLDER);
 
 const projectDirectory = join(dirname(fileURLToPath(import.meta.url)), '..');
-
 const child = spawn('npm', ['run', 'preview'], { cwd: projectDirectory });
 
 child.stderr.on('data', (b) => console.log(b + ''));
