@@ -5,7 +5,11 @@ import {
 	readdir as fsReaddir
 } from 'fs/promises';
 
+import { watch } from 'fs';
+
 import type { Stats } from 'fs';
+import { fileChanged as fileChangedStore } from './stores';
+
 export interface WalkDirItem {
 	name: string;
 	isDirectory: boolean;
@@ -66,7 +70,11 @@ export async function walkdirBase(
 
 				if (level <= depth) {
 					recursivePromises.push(
-						recurse(path.join(dir, currentFile), item.children, level + 1)
+						recurse(
+							path.join(dir, currentFile),
+							item.children,
+							level + 1
+						)
 					);
 				}
 			} else {
@@ -125,10 +133,18 @@ export async function readFile(
 	const key = [filePath, encoding].toString();
 
 	if (!cached.readFile.has(key)) {
-		cached.readFile.set(key, await fsReadFile(filePath, encoding));
+		// so we don't make multiple watch callbacks
+		cached.readFile.set(key, '');
+		const signal = new AbortController().signal;
+
+		watch(filePath, { signal }, (event) => {
+			console.log(event, Math.random());
+			// hacky implementation to get the page to reload when file reloads
+			fileChangedStore.set(Math.random());
+		});
 	}
 
-	return cached.readFile.get(key)!;
+	return await fsReadFile(filePath, encoding);
 }
 
 export async function stat(filePath: string) {

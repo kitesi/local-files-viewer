@@ -38,4 +38,7 @@ export const toasts = writable([] as ToastError[]);
 export const baseDirectory = writable('');
 export const isSidebarOpen = writable(false);
 
+// hacky implementation to get the page to reload when file reloads
+export const fileChanged = writable(0);
+
 export const abortController = writable(new AbortController());

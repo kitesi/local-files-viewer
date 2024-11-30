@@ -20,6 +20,7 @@
 
 	import type { PageData } from './$types';
 	import type { BodyReturn as GetFileContentBodyReturn } from '../../info/get-file-contents';
+	import { onMount } from 'svelte';
 
 	export let data: PageData;
 
@@ -48,6 +49,7 @@
 		stores.baseDirectory.set(data.baseDirectory);
 	}
 
+	// initial load
 	if (browser) {
 		fetchContent().then(
 			() =>
@@ -55,6 +57,21 @@
 		);
 	}
 
+	stores.fileChanged.subscribe(() => {
+		if (!browser || $page.params.file === '') {
+			return;
+		}
+
+		html = '';
+		content = '';
+		maximizeCodeBlockWidth = false;
+		stats = { size: data.size };
+
+		fetchContent(window.location.host).catch(console.error);
+	});
+
+	// need this for when changing files, bc for some reason the onMount event does
+	// not reoccur when changing files (ig because of its a glob [...file])
 	page.subscribe(async () => {
 		if ($page.params.file === '' || $page.params.file === prevFileParam) {
 			return;
@@ -91,7 +108,7 @@
 
 	stores.files.set(files);
 
-	async function fetchContent() {
+	async function fetchContent(urlPrefix = '') {
 		if (
 			error ||
 			mimeType?.genre === 'audio' ||
@@ -106,7 +123,8 @@
 
 		try {
 			const fileContentRes = await fetch(
-				'/info?action=file-content&file=' +
+				urlPrefix +
+					'/info?action=file-content&file=' +
 					encodeURIComponent($page.params.file)
 			);
 
@@ -125,13 +143,16 @@
 			content = fileContent.content;
 			maximizeCodeBlockWidth = fileContent.maximizeCodeBlockWidth;
 
+			console.log(content);
+
 			if (!fileContent.needsHighlighting) {
 				html = fileContent.html;
 				return;
 			}
 
 			const syntaxHighlightingRequest = fetch(
-				'/info?action=syntax-highlighting&file=' +
+				urlPrefix +
+					'/info?action=syntax-highlighting&file=' +
 					encodeURIComponent($page.params.file),
 				{ signal: getStore(stores.abortController).signal }
 			)
@@ -158,6 +179,8 @@
 				}
 			});
 		} catch (err: any) {
+			console.error(err);
+
 			if (err.message) {
 				error = err.essage;
 			}

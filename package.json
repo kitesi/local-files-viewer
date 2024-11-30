@@ -7,10 +7,10 @@
 	"license": "MIT",
 	"homepage": "https://github.com/kitesi/local-files-viewer",
 	"repository": {
-        "type": "git",
-        "url": "https://github.com/kitesi/local-files-viewer"
-    },
-	"bugs":{ 
+		"type": "git",
+		"url": "https://github.com/kitesi/local-files-viewer"
+	},
+	"bugs": {
 		"url": "https://github.com/kitesi/local-files-viewer/issues"
 	},
 	"scripts": {
@@ -24,7 +24,8 @@
 		"format": "prettier --write --plugin-search-dir=. ."
 	},
 	"files": [
-		".svelte-kit"
+		".svelte-kit",
+		"vite.config.js"
 	],
 	"devDependencies": {
 		"@types/html-escaper": "^3.0.0",

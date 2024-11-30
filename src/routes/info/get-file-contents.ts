@@ -132,7 +132,10 @@ export async function getFileContents(url: URL) {
 			break;
 		default:
 			if (mimeType.genre === 'application') {
-				return error(500, 'Could not handle mime type of: ' + mimeType.full);
+				return error(
+					500,
+					'Could not handle mime type of: ' + mimeType.full
+				);
 			}
 
 			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
