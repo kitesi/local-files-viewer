@@ -2,9 +2,9 @@
 	import CollapsableSidebarSection from './CollapsableSidebarSection.svelte';
 	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
 	import SidebarFileItem from './SidebarFileItem.svelte';
-	import { formatBytes } from '../../format-bytes';
-	import { baseDirectory, files, isSidebarOpen, theme } from '../../stores';
-	import { OUTLINE_OPEN_DEFAULT_STATUS } from '../../config';
+	import { formatBytes } from '$lib/client-utils/format-bytes';
+	import { baseDirectory, files, isSidebarOpen, theme } from '$lib/stores/index';
+	import { OUTLINE_OPEN_DEFAULT_STATUS } from '../config';
 	import { Sun, Moon } from '@lucide/svelte';
 
 	import { browser } from '$app/environment';

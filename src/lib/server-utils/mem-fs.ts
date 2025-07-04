@@ -8,7 +8,7 @@ import {
 import { watch } from 'fs';
 
 import type { Stats } from 'fs';
-import { fileChanged as fileChangedStore } from './stores';
+import { fileChanged as fileChangedStore } from '../stores';
 
 export interface WalkDirItem {
 	name: string;
@@ -70,11 +70,7 @@ export async function walkdirBase(
 
 				if (level <= depth) {
 					recursivePromises.push(
-						recurse(
-							path.join(dir, currentFile),
-							item.children,
-							level + 1
-						)
+						recurse(path.join(dir, currentFile), item.children, level + 1)
 					);
 				}
 			} else {

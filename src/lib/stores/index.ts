@@ -1,9 +1,9 @@
-import { DEFAULT_ERROR_MESSAGE_TIMEOUT } from './config';
+import { DEFAULT_ERROR_MESSAGE_TIMEOUT } from '../config';
 import { writable } from 'svelte/store';
 import { v4 as uuid } from 'uuid';
 import { browser } from '$app/environment';
 
-import type { WalkDirItem } from './mem-fs';
+import type { WalkDirItem } from '../server-utils/mem-fs';
 
 interface ToastError {
 	id: string;

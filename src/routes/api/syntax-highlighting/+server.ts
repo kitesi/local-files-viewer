@@ -1,9 +1,9 @@
 import path from 'path';
-import { readFile } from '../../mem-fs';
-import { getBaseDirectory } from '../../base-directory';
-import { getMimeType } from '../../get-mime-types';
+import { readFile } from '$lib/server-utils/mem-fs';
+import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getMimeType } from '$lib/server-utils/get-mime-types';
 
-import { json } from '@sveltejs/kit';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import { getHighlighter, BUNDLED_LANGUAGES } from 'shiki';
 
 const cache: Map<string, string> = new Map();
@@ -16,7 +16,7 @@ function error(status: number, msg: string) {
 	return json({ status, error: msg });
 }
 
-export async function getSyntaxHighlighting(url: URL): Promise<Response> {
+async function getSyntaxHighlighting(url: URL): Promise<Response> {
 	const filePathParam = url.searchParams.get('file');
 
 	if (!filePathParam) {
@@ -50,3 +50,7 @@ export async function getSyntaxHighlighting(url: URL): Promise<Response> {
 
 	return new Response(cache.get(content));
 }
+
+export const GET: RequestHandler = async function ({ url }) {
+	return await getSyntaxHighlighting(url);
+};

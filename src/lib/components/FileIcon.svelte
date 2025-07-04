@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getFileIcon } from '../../get-file-icon';
+	import { getFileIcon } from '$lib/client-utils/get-file-icon';
 	import { File } from '@lucide/svelte';
 
 	export let fileName: string;

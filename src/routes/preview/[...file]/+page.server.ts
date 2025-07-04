@@ -1,11 +1,18 @@
 import path from 'path';
-import { stat, walkdir, type WalkDirItem } from '../../../mem-fs';
-import { getMimeType, type MimeType } from '../../../get-mime-types';
-import { getBaseDirectory } from '../../../base-directory';
+import {
+	stat,
+	walkdir,
+	type WalkDirItem
+} from '../../../lib/server-utils/mem-fs';
+import {
+	getMimeType,
+	type MimeType
+} from '../../../lib/server-utils/get-mime-types';
+import { getBaseDirectory } from '../../../lib/server-utils/base-directory';
 import {
 	INITIAL_FOLDER_LOAD_DEPTH,
 	MAX_FILE_SIZE_MEGABYTES
-} from '../../../config';
+} from '../../../lib/config';
 
 import { existsSync } from 'fs';
 import type { Stats } from 'fs';

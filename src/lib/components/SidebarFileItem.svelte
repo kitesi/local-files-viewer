@@ -35,18 +35,19 @@
 <script lang="ts">
 	import FileIcon from './FileIcon.svelte';
 	import { Folder } from '@lucide/svelte';
-	import { files, isSidebarOpen, abortController } from '../../stores';
+	import { files, isSidebarOpen, abortController } from '$lib/stores/index';
 
 	import { page } from '$app/stores';
 
-	import { getWalkdirItem } from '../../get-walkdir-item';
-	import type { WalkDirItem } from '../../mem-fs';
+	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
+	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
+	import { cn } from '$lib/utils';
 
 	export let item: WalkDirItem;
 	export let parentPath: string;
 
 	const href = parentPath + '/' + item.name;
-	const isActive = '/' + $page.params.file === href;
+	$: isActive = '/' + $page.params.file === href;
 
 	let shouldCollapse = true;
 	let liElement: HTMLLIElement;
@@ -73,7 +74,7 @@
 		}
 
 		const res = await fetch(
-			`/info?dir=${dataHref}/&depth=1&action=complete-search`
+			`/api/complete-search?dir=${dataHref}/&depth=1`
 		);
 		const json = await res.json();
 
@@ -91,25 +92,30 @@
 
 <li
 	bind:this={liElement}
-	class="px-1.5 my-2.5"
+	class={cn("px-1.5 my-2.5", isActive && "bg-sidebar-accent")}
 	class:is-collapsed={shouldCollapse}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
 		: null}
+
 >
 	{#if item.isDirectory}
 		<button 
-			class="bg-transparent w-full border-none text-base hover:underline hover:text-sidebar-accent-foreground flex gap-2 items-center"
+			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center"
 			on:click={collapseDirectory}
 		>
 			<Folder />
 			<span class="overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>
 		</button>
 	{:else}
-		<!-- could have id set to the actual expression in isAsctive and remove switchActive(ev), not sure which is move preformant -->
+		<!-- could have id set to the actual expression in isActive and remove switchActive(ev), not sure which is move preformant -->
 		<a
-			class="text-inherit flex gap-2 items-center hover:text-sidebar-accent-foreground overflow-hidden text-ellipsis whitespace-nowrap"
-			class:text-yellow-1={isActive}
+			class={
+				cn(
+					"text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap",
+					isActive && "text-blue-800 dark:text-blue-400"
+				)
+			}
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);

@@ -1,5 +1,9 @@
 import { existsSync } from 'fs';
-import { setBaseDirectory, getBaseDirectory } from '../../../base-directory';
+import {
+	setBaseDirectory,
+	getBaseDirectory
+} from '$lib/server-utils/base-directory';
+
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import path from 'path';
 import os from 'os';

@@ -8,7 +8,7 @@
 	when retrieving files
 -->
 <script lang="ts">
-	import { OUTLINE_HEADING_LEVEL_AUTO_COLLAPSE } from '../../config';
+	import { OUTLINE_HEADING_LEVEL_AUTO_COLLAPSE } from '$lib/config';
 	import type { OutlineItem } from './outline-item';
 	import { ChevronDown, ChevronRight, Hash } from '@lucide/svelte';
 

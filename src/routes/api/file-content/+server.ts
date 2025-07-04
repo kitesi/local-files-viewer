@@ -1,8 +1,9 @@
-import { readFile } from '../../mem-fs';
+import { readFile } from '$lib/server-utils/mem-fs';
+import { getMimeType } from '$lib/server-utils/get-mime-types';
+import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { highlighterWrapper } from '$lib/server-utils/highlight';
 import { json } from '@sveltejs/kit';
-import { getMimeType } from '../../get-mime-types';
-import { getBaseDirectory } from '../../base-directory';
-import { highlighterWrapper } from './highlight';
+import type { RequestHandler } from '@sveltejs/kit';
 
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
@@ -43,7 +44,7 @@ function error(status: number, msg: string) {
 	return json({ status, error: msg });
 }
 
-export async function getFileContents(url: URL) {
+async function getFileContents(url: URL) {
 	const filePathParam = url.searchParams?.get('file');
 
 	if (!filePathParam) {
@@ -132,10 +133,7 @@ export async function getFileContents(url: URL) {
 			break;
 		default:
 			if (mimeType.genre === 'application') {
-				return error(
-					500,
-					'Could not handle mime type of: ' + mimeType.full
-				);
+				return error(500, 'Could not handle mime type of: ' + mimeType.full);
 			}
 
 			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
@@ -147,3 +145,7 @@ export async function getFileContents(url: URL) {
 
 	return json(body);
 }
+
+export const GET: RequestHandler = async function ({ url }) {
+	return await getFileContents(url);
+};

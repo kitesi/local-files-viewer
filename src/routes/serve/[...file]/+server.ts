@@ -1,8 +1,8 @@
 import path from 'path';
 
-import { readFile } from '../../../mem-fs';
-import { getMimeType } from '../../../get-mime-types';
-import { getBaseDirectory } from '../../../base-directory';
+import { readFile } from '../../../lib/server-utils/mem-fs';
+import { getMimeType } from '../../../lib/server-utils/get-mime-types';
+import { getBaseDirectory } from '../../../lib/server-utils/base-directory';
 
 export const GET = async function ({ params }: { params: any }) {
 	const filePath = path.join(getBaseDirectory(), params.file);

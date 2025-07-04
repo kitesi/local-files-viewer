@@ -2,11 +2,11 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import FilePalette from '$lib/components/FilePalette.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
-	import * as stores from '../../../stores';
-	import * as mappings from '../../../key-mappings';
-	import { getWalkdirItem } from '../../../get-walkdir-item';
-	import { formatBytes } from '../../../format-bytes';
-	import { HTML_SANDBOX_ATTR, PDF_SANDBOX_ATTR } from '../../../config';
+	import * as stores from '$lib/stores/index';
+	import * as mappings from '$lib/client-utils/key-mappings';
+	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
+	import { formatBytes } from '$lib/client-utils/format-bytes';
+	import { HTML_SANDBOX_ATTR, PDF_SANDBOX_ATTR } from '$lib/config';
 
 	import { get as getStore } from 'svelte/store';
 
@@ -19,8 +19,7 @@
 	import '$lib/styles/doc.css';
 
 	import type { PageData } from './$types';
-	import type { BodyReturn as GetFileContentBodyReturn } from '../../info/get-file-contents';
-	import { onMount } from 'svelte';
+	import type { BodyReturn as GetFileContentBodyReturn } from '../../api/file-content/+server';
 
 	export let data: PageData;
 
@@ -124,7 +123,7 @@
 		try {
 			const fileContentRes = await fetch(
 				urlPrefix +
-					'/info?action=file-content&file=' +
+					'/api/file-content?file=' +
 					encodeURIComponent($page.params.file)
 			);
 
@@ -150,7 +149,7 @@
 
 			const syntaxHighlightingRequest = fetch(
 				urlPrefix +
-					'/info?action=syntax-highlighting&file=' +
+					'/api/syntax-highlighting?file=' +
 					encodeURIComponent($page.params.file),
 				{ signal: getStore(stores.abortController).signal }
 			)
@@ -258,7 +257,7 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href={'/info?action=get-font-stylesheet&file=' + $page.params.file}
+		href={'/api/font-stylesheet?file=' + $page.params.file}
 		type="text/css"
 	/>
 </svelte:head>

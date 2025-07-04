@@ -3,15 +3,15 @@
 <script lang="ts">
 	import FileIcon from './FileIcon.svelte';
 	import Fuse from 'fuse.js';
-	import * as mappings from '../../key-mappings';
-	import { modalState, files, addToastError } from '../../stores';
+	import * as mappings from '$lib/client-utils/key-mappings';
+	import { modalState, files, addToastError } from '$lib/stores/index';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { Dialog, DialogContent, DialogOverlay } from './ui/dialog';
-	import { Button } from './ui/button';
+	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
+	import { Button } from '$lib/components/ui/button';
 	import { Search, X, Folder } from '@lucide/svelte';
 
-	import type { WalkDirItem } from '../../mem-fs';
+	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
 	import { cn } from '$lib/utils';
 	interface File {
 		parents: string;
@@ -60,7 +60,7 @@
 	async function setFilteredDirectoryResults() {
 		const res = await fetch(
 			// vite has some weird thing where if a query=../.. it will try to parse it ig
-			`/info?action=new-base-dir-search&query=` + encodeURIComponent(query)
+			`/api/new-base-dir-search?query=` + encodeURIComponent(query)
 		);
 
 		const json = (await res.json()) as { files: string[]; homedir: string };
