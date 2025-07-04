@@ -64,7 +64,7 @@
 	}
 
 	async function collapseDirectory() {
-		liElement.classList.toggle('collapse');
+		liElement.classList.toggle('is-collapsed');
 
 		const dataHref = liElement.getAttribute('data-href');
 
@@ -91,19 +91,25 @@
 
 <li
 	bind:this={liElement}
-	class:collapse={shouldCollapse}
+	class="px-1.5 my-2.5"
+	class:is-collapsed={shouldCollapse}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
 		: null}
 >
 	{#if item.isDirectory}
-		<button on:click={collapseDirectory}>
+		<button 
+			class="bg-transparent w-full border-none text-base hover:underline hover:text-white flex gap-2 items-center"
+			on:click={collapseDirectory}
+		>
 			<Icon name="folder" />
-			<span>{item.name}</span>
+			<span class="overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>
 		</button>
 	{:else}
 		<!-- could have id set to the actual expression in isAsctive and remove switchActive(ev), not sure which is move preformant -->
 		<a
+			class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
+			class:text-yellow-1={isActive}
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);
@@ -116,58 +122,10 @@
 		</a>
 	{/if}
 	{#if item.children}
-		<ul>
+		<ul class="ml-2.5 list-none">
 			{#each item.children as child (child.name)}
 				<svelte:self item={child} parentPath={href} />
 			{/each}
 		</ul>
 	{/if}
 </li>
-
-<style lang="scss">
-	@use '../styles/variables.scss' as *;
-	ul {
-		margin-left: 10px;
-		list-style-type: none;
-	}
-
-	li {
-		padding-inline: 5px;
-		/* use collapsing margins */
-		margin-block: 10px;
-	}
-
-	a,
-	button {
-		color: inherit;
-		display: flex;
-		gap: 8px;
-		align-items: center;
-	}
-
-	button {
-		background-color: transparent;
-		width: 100%;
-		border: none;
-		font-size: inherit;
-	}
-
-	button:hover {
-		text-decoration: underline;
-	}
-
-	#active {
-		color: $sidebar-active-text-color;
-	}
-
-	a:hover,
-	button:hover {
-		color: $sidebar-hover-text-color;
-	}
-
-	span {
-		overflow: hidden;
-		text-overflow: '..';
-		white-space: nowrap;
-	}
-</style>

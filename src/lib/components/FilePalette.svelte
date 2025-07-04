@@ -266,10 +266,18 @@
 	}
 </script>
 
-<dialog open={!!$modalState} on:click|self={() => modalState.set('')}>
-	<form on:submit|preventDefault={handleSubmit}>
-		<div class="input-container">
-			<div>
+<dialog 
+	class="absolute bg-transparent h-full w-full border-none z-30" 
+	open={!!$modalState} 
+	on:click|self={() => modalState.set('')}
+	on:keydown={(e) => e.key === 'Escape' && modalState.set('')}
+>
+	<form 
+		class="bg-black-3 text-white border-2 border-black-4 shadow-[0_0_0_100vmax_rgba(0,0,0,0.4)] mx-auto my-2.5 w-[800px] max-w-[90%]"
+		on:submit|preventDefault={handleSubmit}
+	>
+		<div class="p-1.5 text-white">
+			<div class="flex items-center bg-black-2 pl-1.5 focus-within:outline-2 focus-within:outline-blue-2">
 				<label for="query"
 					>{$modalState === 'choose-directory' ? 'Folder:' : 'File:'}</label
 				>
@@ -279,6 +287,7 @@
 					autocomplete="off"
 					autocapitalize="off"
 					autocorrect="off"
+					class="h-full p-1.5 w-full border-none text-white bg-transparent text-sm focus:outline-none"
 					bind:this={input}
 					bind:value={query}
 					on:keydown={handleKeydown}
@@ -287,11 +296,12 @@
 			</div>
 		</div>
 
-		<div class="button-container" tabindex="-1">
+		<div class="max-h-[60vh] overflow-auto" tabindex="-1">
 			{#if filteredResults.length > 0}
 				{#each filteredResults as file, i (file.parents + '/' + file.name)}
 					<button
 						data-href={file.parents + '/' + file.name}
+						class="flex items-center gap-1.5 w-full text-left bg-transparent text-white p-0.5 px-2.5 border-none text-base hover:bg-black-2 hover:text-white"
 						class:selected={$modalState === 'choose-file' && i === 0}
 					>
 						{#if $modalState === 'choose-file'}
@@ -299,110 +309,22 @@
 						{:else}
 							<Icon name="folder" />
 						{/if}
-						<span class="specific">{file.name}</span>
-						<span class="parent">{file.parents}</span>
+						<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
+						<span class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-300">{file.parents}</span>
 					</button>
 				{/each}
 			{:else}
-				<p>No matching results.</p>
+				<p class="text-white p-1.5 px-2.5">No matching results.</p>
 			{/if}
 		</div>
 	</form>
 </dialog>
 
-<style lang="scss">
-	@use '../styles/variables.scss' as *;
-
-	dialog {
-		position: absolute;
-		background-color: transparent;
-		height: 100%;
-		width: 100%;
-		border: none;
-		z-index: 3;
-	}
-
-	form {
-		background-color: $file-palette-bg;
-		color: $file-palette-text-color;
-		border: 2px solid $file-palette-border-color;
-		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
-		margin: 10px auto;
-		width: 800px;
-		max-width: 90%;
-	}
-
-	.button-container {
-		max-height: 60vh;
-		overflow: auto;
-	}
-
-	.input-container {
-		padding: 5px;
-		color: white;
-	}
-
-	.input-container div {
-		display: flex;
-		align-items: center;
-		background-color: $file-palette-input-bg;
-		padding-left: 5px;
-	}
-
-	.input-container div:focus-within {
-		outline: 2px solid $file-palette-input-focus-outline-color;
-	}
-
-	input {
-		height: 100%;
-		padding: 5px;
-		width: 100%;
-		border: none;
-		color: $file-palette-input-text-color;
-		background-color: transparent;
-		font-size: 0.8rem;
-	}
-
-	input:focus {
-		outline: none;
-	}
-
-	button {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		width: 100%;
-		text-align: start;
-		background-color: $file-palette-item-bg;
-		color: $file-palette-item-text-color;
-		padding: 2px 10px;
-		border: none;
-		font-size: 1rem;
-	}
-
-	span {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	p {
-		color: white;
-		padding: 5px 10px;
-	}
-
+<style>
+	/* Custom styles for selected state */
 	.selected {
 		outline: none;
-		background-color: $file-palette-item-selected-bg;
-		color: $file-palette-item-selected-text-color;
-	}
-
-	button:hover {
-		background-color: $file-palette-item-hover-bg;
-		color: $file-palette-item-hover-text-color;
-	}
-
-	.parent {
-		color: $file-palette-sub-text-color;
+		background-color: #1e2328;
+		color: white;
 	}
 </style>

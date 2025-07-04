@@ -25,23 +25,38 @@
 	}
 </script>
 
-<li class:collapse class:has-children={item.children.length > 0}>
+<li 
+	class="m-1.5"
+	class:collapse={collapse}
+	class:has-children={item.children.length > 0}
+>
 	{#if item.children.length > 0}
-		<div>
-			<button on:click={collapseParent}>
+		<div class="flex items-center gap-1.5">
+			<button 
+				class="bg-transparent border-none text-inherit text-base hover:underline hover:text-white"
+				on:click={collapseParent}
+			>
 				<Icon name={collapse ? 'chevron-down' : 'chevron-right'} />
 			</button>
-			<a href="#{item.id}"><span>{item.name}</span></a>
+			<a 
+				href="#{item.id}"
+				class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
+			>
+				<span>{item.name}</span>
+			</a>
 		</div>
 	{:else}
-		<a href="#{item.id}">
+		<a 
+			href="#{item.id}"
+			class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
+		>
 			<Icon name="hash" />
 			<span>{item.name}</span>
 		</a>
 	{/if}
 
 	{#if item.children}
-		<ul>
+		<ul class="ml-2.5 list-none">
 			{#each item.children as child (child.name)}
 				<svelte:self item={child} />
 			{/each}
@@ -49,52 +64,4 @@
 	{/if}
 </li>
 
-<style lang="scss">
-	@use '../styles/variables.scss' as *;
 
-	ul {
-		margin-left: 10px;
-		list-style-type: none;
-	}
-
-	div {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-	}
-
-	li {
-		/* uses collapsing margins */
-		margin: 5px;
-	}
-
-	button,
-	a {
-		color: inherit;
-		display: flex;
-		gap: 8px;
-		align-items: center;
-	}
-
-	button {
-		background-color: transparent;
-		border: none;
-		font-size: inherit;
-	}
-
-	button:hover {
-		text-decoration: underline;
-	}
-
-	a:hover,
-	button:hover {
-		color: $sidebar-hover-text-color;
-	}
-
-	span,
-	a {
-		overflow: hidden;
-		text-overflow: '..';
-		white-space: nowrap;
-	}
-</style>

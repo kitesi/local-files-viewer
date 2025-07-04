@@ -13,15 +13,16 @@
 
 	$: icon = feather.icons[name];
 	$: rotation = directions.indexOf(direction) * 45;
-	$: if (icon) {
-		if (stroke) icon.attrs['stroke'] = stroke;
-		if (strokeWidth) icon.attrs['stroke-width'] = strokeWidth;
-	}
+	$: iconAttrs = icon ? {
+		...icon.attrs,
+		stroke: stroke,
+		'stroke-width': strokeWidth
+	} : {};
 </script>
 
 {#if icon}
 	<svg
-		{...icon.attrs}
+		{...iconAttrs}
 		style="width: {width}; height: {height}; transform: rotate({rotation}deg);"
 	>
 		<g>

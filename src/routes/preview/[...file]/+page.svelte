@@ -14,9 +14,9 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
-	import '$lib/styles/github-doc.scss';
+	import '$lib/styles/github-doc.css';
 	import '$lib/styles/shiki.css';
-	import '$lib/styles/doc.scss';
+	import '$lib/styles/doc.css';
 
 	import type { PageData } from './$types';
 	import type { BodyReturn as GetFileContentBodyReturn } from '../../info/get-file-contents';
@@ -271,9 +271,9 @@
 	/>
 </svelte:head>
 
-<main>
+<main class="h-full w-full csmall:grid csmall:grid-cols-[auto_1fr]">
 	<Sidebar {outlineHeadings} {stats} />
-	<section class="markdown-body">
+	<section class="bg-transparent text-gray-200 p-5 h-full w-full overflow-auto scroll-smooth markdown-body">
 		{#if error}
 			<h1>{error}</h1>
 			{#if stats.size}
@@ -283,128 +283,63 @@
 			{#if maximizeCodeBlockWidth}
 				{@html html}
 			{:else}
-				<div class="markdown-content">
+				<div class="max-w-[90ch] mx-auto py-[min(100px,calc((100%-90ch)/2))]">
 					{@html html}
 				</div>
 			{/if}
 		{:else if mimeType?.genre === 'font'}
-			<div class="font-container">
+			<div class="flex flex-wrap font-['placeholder',Arial] content-center h-full max-w-[60ch] mx-auto">
 				{#each fontCharacters as char}
-					<p>{char}</p>
+					<p class="p-1.5 text-3xl">{char}</p>
 				{/each}
 			</div>
 		{:else if mimeType?.genre === 'image'}
-			<div class="center">
+			<div class="grid place-items-center h-full overflow-auto">
 				<img src={servePath} alt="" />
 			</div>
 		{:else if mimeType?.genre === 'audio'}
 			{#key servePath}
-				<audio controls>
+				<audio controls class="w-full">
 					<source src={servePath} />
 					Your browser does not support the audio element.
 				</audio>
 			{/key}
 		{:else if mimeType?.genre === 'video'}
 			{#key servePath}
-				<video controls>
+				<video controls class="w-full">
 					<source src={servePath} />
 					<track kind="captions" />
 					Your browser does not support the audio element. track
 				</video>
 			{/key}
 		{:else if content}
-			<p>{content}</p>
+			<p class="whitespace-pre-wrap max-w-[80ch] text-lg mx-auto py-[min(100px,calc((100%-80ch)/2))]">{content}</p>
 		{/if}
 		{#if mimeType?.specific === 'html' || mimeType?.specific === 'pdf'}
 			<iframe
 				title=""
 				src={servePath}
 				frameborder="0"
+				class="w-full h-full"
 				sandbox={mimeType?.specific === 'html'
 					? HTML_SANDBOX_ATTR
 					: PDF_SANDBOX_ATTR}
-			/>
+			></iframe>
 		{/if}
 	</section>
 </main>
 
 <ErrorTray />
 
-<style lang="scss">
-	@use '../../../lib/styles/variables.scss' as *;
-	.font-container {
-		display: flex;
-		flex-wrap: wrap;
-		font-family: 'placeholder', Arial;
-		align-content: center;
-		height: 100%;
-		max-width: 60ch;
-		margin: auto;
-	}
-
-	.font-container p {
-		padding: 5px;
-		font-size: 2rem;
-	}
-
-	main {
-		height: 100%;
-		width: 100%;
-	}
-
-	p {
-		white-space: pre-wrap;
-		max-width: 80ch;
-		font-size: 1.1rem;
-		margin-inline: auto;
-		padding-block: min(100px, calc((100% - 80ch) / 2));
-	}
-
-	iframe {
-		width: 100%;
-		height: 100%;
-	}
-
-	audio {
-		width: 100%;
-	}
-
-	section {
-		background-color: $main-content-bg;
-		color: $main-content-text-color;
-		padding: 20px;
-		height: 100%;
-		width: 100%;
-		overflow: auto;
-		scroll-behavior: smooth;
-	}
-
-	.markdown-content {
-		--max-width: 90ch;
-		max-width: var(--max-width);
-		margin-inline: auto;
-		padding-block: min(100px, calc((100% - var(--max-width)) / 2));
-	}
-
-	.center {
-		display: grid;
-		place-items: center;
-		height: 100%;
-		overflow: auto;
-	}
-
-	@media screen and (min-width: $size-1) {
-		main {
-			display: grid;
-			grid-template-columns: auto 1fr;
-		}
-
+<style>
+	/* Global styles for code blocks and root font size */
+	@media screen and (min-width: 800px) {
 		:global(pre code) {
 			font-size: 1.1rem;
 		}
 	}
 
-	@media screen and (min-width: $size-2) {
+	@media screen and (min-width: 1100px) {
 		:root {
 			font-size: 18px;
 		}

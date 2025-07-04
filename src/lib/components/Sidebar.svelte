@@ -102,28 +102,38 @@
 	on:click={() => isSidebarOpen.set(!$isSidebarOpen)}
 	aria-pressed={$isSidebarOpen}
 	aria-label="toggle sidebar"
-	class="toggle-sidebar"
+	class="toggle-sidebar absolute bg-transparent border-none p-4 z-30 md:opacity-0 md:invisible md:pointer-events-none"
+	style="inset: 7px 0 auto auto;"
 >
-	<span />
+	<span class="block relative w-8 h-0.5 bg-white transition-all duration-150 ease-in-out before:content-[''] before:absolute before:left-0 before:w-8 before:h-0.5 before:bg-white before:transition-all before:duration-200 before:linear before:top-2 after:content-[''] after:absolute after:left-0 after:w-8 after:h-0.5 after:bg-white after:transition-all after:duration-200 after:linear after:bottom-2"></span>
 </button>
 
-<section bind:this={sidebarElement} class:resizing={isResizing}>
-	<div>
+<section 
+	bind:this={sidebarElement} 
+	class="absolute bg-gray-800 text-gray-400 top-0 left-0 max-w-[80vw] w-[80vw] h-full -translate-x-full transition-transform duration-100 linear z-20 overflow-auto md:static md:translate-x-0 md:shadow-none md:w-[300px] md:min-w-[250px]"
+	id="sidebar"
+	class:resizing={isResizing}
+>
+	<div class="flow-root relative overflow-auto h-full scrollbar-none">
+		<!-- TODO: fix this -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="resizer"
+			class="resizer fixed top-0 right-0 bottom-0 w-[0.3em] bg-transparent border-l border-r border-gray-700 border-l-transparent cursor-ew-resize hover:bg-blue-600 hover:border-blue-600"
 			on:mousedown|preventDefault={() => (isResizing = true)}
-		/>
+			aria-label="resize sidebar"
+		>
+		</div>
 		<CollapsableSidebarSection
 			name={getLastDirectory($baseDirectory)}
 			open={true}
 		>
-			<ul>
+			<ul class="ml-4 list-none">
 				{#if $files.children && $files.children.length > 0}
 					{#each $files.children as child (child.name)}
 						<SidebarFileItem item={child} parentPath="" />
 					{/each}
 				{:else}
-					<p class="no-files"><b>No files</b></p>
+					<p class="pl-1.5 my-1.5"><b>No files</b></p>
 				{/if}
 			</ul>
 		</CollapsableSidebarSection>
@@ -132,18 +142,18 @@
 			name="outline"
 			open={OUTLINE_OPEN_DEFAULT_STATUS}
 		>
-			<ul style="margin-bottom: 20px;">
+			<ul class="ml-4 list-none mb-5">
 				{#if stats.size}
-					<li>Size: {formatBytes(stats.size)}</li>
+					<li class="pl-1.5 first:mt-2.5">Size: {formatBytes(stats.size)}</li>
 				{/if}
 				{#if stats.chars}
-					<li>Characters: {stats.chars}</li>
+					<li class="pl-1.5 first:mt-2.5">Characters: {stats.chars}</li>
 				{/if}
 				{#if stats.words}
-					<li>Words: {stats.words}</li>
+					<li class="pl-1.5 first:mt-2.5">Words: {stats.words}</li>
 				{/if}
 				{#if stats.lines}
-					<li>Lines: {stats.lines}</li>
+					<li class="pl-1.5 first:mt-2.5">Lines: {stats.lines}</li>
 				{/if}
 				{#if outlineHeadings && outlineHeadings.length !== 0}
 					{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
@@ -155,108 +165,8 @@
 	</div>
 </section>
 
-<style lang="scss">
-	@use '../../lib/styles/variables.scss' as *;
-
-	section > div {
-		display: flow-root;
-		position: relative;
-		overflow: auto;
-		height: 100%;
-		scrollbar-width: none;
-	}
-
-	.resizer {
-		position: fixed;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		width: 0.3em;
-		background-color: transparent;
-		border-inline: 0.1em solid $sidebar-resizer-border-color;
-		border-inline-start-color: transparent;
-		cursor: ew-resize;
-	}
-
-	p {
-		padding-left: 5px;
-		margin: 5px 0;
-	}
-
-	li {
-		padding-left: 5px;
-	}
-
-	li:first-of-type {
-		margin-top: 10px;
-	}
-
-	section {
-		position: absolute;
-		background-color: $sidebar-bg;
-		color: $sidebar-inactive-text-color;
-		top: 0;
-		left: 0;
-		max-width: 80vw;
-		width: 80vw;
-		height: 100%;
-		transform: translateX(-100%);
-		transition: 100ms linear;
-		z-index: 2;
-		scrollbar-width: none;
-		overflow: auto;
-	}
-
-	ul {
-		margin-left: 15px;
-		list-style-type: none;
-	}
-
-	section:global {
-		li:not(.collapse) > ul {
-			display: none;
-		}
-	}
-
-	$hamburger-gap: 7px;
-	.toggle-sidebar {
-		position: absolute;
-		background-color: transparent;
-		inset: $hamburger-gap 0 auto auto;
-		border: none;
-		padding: 15px;
-		z-index: 3;
-	}
-
-	span {
-		display: block;
-		position: relative;
-	}
-
-	span,
-	span::before,
-	span::after {
-		width: 2em;
-		height: 3px;
-		background-color: white;
-		transition: transform 150ms ease-in-out, opacity 200ms linear;
-	}
-
-	span::before,
-	span::after {
-		content: '';
-		position: absolute;
-		left: 0;
-	}
-
-	span::before {
-		top: $hamburger-gap;
-	}
-
-	span::after {
-		bottom: $hamburger-gap;
-	}
-
+<style>
+	/* Custom styles that can't be easily converted to Tailwind */
 	.toggle-sidebar[aria-pressed='true'] ~ section {
 		transform: translateX(0);
 		visibility: visible;
@@ -274,18 +184,44 @@
 	}
 
 	.toggle-sidebar[aria-pressed='true'] > span::after {
-		transform: rotate(90deg) translateX($hamburger-gap);
+		transform: rotate(90deg) translateX(7px);
 	}
 
+	/* Hamburger menu styles */
+	.toggle-sidebar span,
+	.toggle-sidebar span::before,
+	.toggle-sidebar span::after {
+		width: 2em;
+		height: 3px;
+		background-color: white;
+		transition: transform 150ms ease-in-out, opacity 200ms linear;
+	}
+
+	.toggle-sidebar span::before,
+	.toggle-sidebar span::after {
+		content: '';
+		position: absolute;
+		left: 0;
+	}
+
+	.toggle-sidebar span::before {
+		top: 7px;
+	}
+
+	.toggle-sidebar span::after {
+		bottom: 7px;
+	}
+
+	/* Hover effects for resizer */
 	@media (hover: hover) {
-		.resizer:hover,
 		.resizing .resizer {
-			background-color: darken($c-blue-1, 10%);
-			border-inline-color: darken($c-blue-1, 10%);
+			background-color: #0080d9;
+			border-inline-color: #0080d9;
 		}
 	}
 
-	@media screen and (min-width: $size-1) {
+	/* Desktop responsive behavior */
+	@media screen and (min-width: 800px) {
 		section,
 		.toggle-sidebar[aria-pressed='true'] ~ section {
 			position: static;
@@ -293,8 +229,8 @@
 			box-shadow: none;
 			-webkit-box-shadow: none;
 			-moz-box-shadow: none;
-			width: $sidebar-static-width;
-			min-width: $sidebar-min-width;
+			width: 300px;
+			min-width: 250px;
 		}
 
 		.toggle-sidebar {
@@ -302,5 +238,19 @@
 			visibility: hidden;
 			pointer-events: none;
 		}
+	}
+
+	#sidebar:global li:not(.is-collapsed) > ul {
+		display: none;
+	}
+
+	/* Hide scrollbars */
+	.scrollbar-none {
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	.scrollbar-none::-webkit-scrollbar {
+		display: none;
 	}
 </style>
