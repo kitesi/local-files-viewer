@@ -1,7 +1,6 @@
 <!-- inspired by vscode's file/command palette -->
 <!-- TODO: after it reaches half way, the view is always at the middle as you go down. this is not intended-->
 <script lang="ts">
-	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
 	import Fuse from 'fuse.js';
 	import * as mappings from '../../key-mappings';
@@ -10,7 +9,7 @@
 	import { goto } from '$app/navigation';
 	import { Dialog, DialogContent, DialogOverlay } from './ui/dialog';
 	import { Button } from './ui/button';
-	import { Search, X } from '@lucide/svelte';
+	import { Search, X, Folder } from '@lucide/svelte';
 
 	import type { WalkDirItem } from '../../mem-fs';
 	import { cn } from '$lib/utils';
@@ -317,7 +316,7 @@
 							{#if $modalState === 'choose-file'}
 								<FileIcon fileName={file.name} size="20px" />
 							{:else}
-								<Icon name="folder" />
+								<Folder />
 							{/if}
 							<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
 							<span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{file.parents}</span>
@@ -332,9 +331,9 @@
 </Dialog>
 
 <style>
-	/* Custom styles for selected state */
 	.selected {
 		outline: none;
-		background-color: rgb(210, 213, 216);
+		background-color: var(--accent);
+		color: var(--accent-foreground);
 	}
 </style>

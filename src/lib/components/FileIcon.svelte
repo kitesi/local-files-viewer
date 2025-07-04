@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getFileIcon } from '../../get-file-icon';
-	import Icon from './Icon.svelte';
+	import { File } from '@lucide/svelte';
 
 	export let fileName: string;
 	export let size: string;
@@ -9,24 +9,20 @@
 </script>
 
 {#if fileIconContents}
-	{#if typeof fileIconContents === 'string'}
-		<Icon name={fileIconContents} />
-	{:else}
-		<svg
-			role="img"
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 24 24"
-			width={size}
-			height={size}
-			fill={fileIconContents.styles.fill}
-			style="width: {size}; height: {size}"
-		>
-			<title>{fileIconContents.simpleIcon.title}</title>
-			<path d={fileIconContents.simpleIcon.path} />
-		</svg>
-	{/if}
+	<svg
+		role="img"
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		width={size}
+		height={size}
+		fill={fileIconContents.styles.fill}
+		style="width: {size}; height: {size}"
+	>
+		<title>{fileIconContents.simpleIcon.title}</title>
+		<path d={fileIconContents.simpleIcon.path} />
+	</svg>
 {:else}
-	<Icon name="file" />
+	<File size={size} />
 {/if}
 
 <style>

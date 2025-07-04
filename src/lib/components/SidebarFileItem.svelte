@@ -33,8 +33,8 @@
 </script>
 
 <script lang="ts">
-	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
+	import { Folder } from '@lucide/svelte';
 	import { files, isSidebarOpen, abortController } from '../../stores';
 
 	import { page } from '$app/stores';
@@ -102,7 +102,7 @@
 			class="bg-transparent w-full border-none text-base hover:underline hover:text-sidebar-accent-foreground flex gap-2 items-center"
 			on:click={collapseDirectory}
 		>
-			<Icon name="folder" />
+			<Folder />
 			<span class="overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>
 		</button>
 	{:else}

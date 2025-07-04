@@ -9,8 +9,8 @@
 -->
 <script lang="ts">
 	import { OUTLINE_HEADING_LEVEL_AUTO_COLLAPSE } from '../../config';
-	import Icon from './Icon.svelte';
 	import type { OutlineItem } from './outline-item';
+	import { ChevronDown, ChevronRight, Hash } from '@lucide/svelte';
 
 	export let item: OutlineItem;
 
@@ -36,7 +36,11 @@
 				class="bg-transparent border-none text-inherit text-base hover:underline hover:text-white"
 				on:click={collapseParent}
 			>
-				<Icon name={collapse ? 'chevron-down' : 'chevron-right'} />
+				{#if collapse}
+					<ChevronDown />
+				{:else}
+					<ChevronRight />
+				{/if}
 			</button>
 			<a 
 				href="#{item.id}"
@@ -50,7 +54,7 @@
 			href="#{item.id}"
 			class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
 		>
-			<Icon name="hash" />
+			<Hash />
 			<span>{item.name}</span>
 		</a>
 	{/if}
