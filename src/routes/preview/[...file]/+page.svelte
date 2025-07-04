@@ -143,8 +143,6 @@
 			content = fileContent.content;
 			maximizeCodeBlockWidth = fileContent.maximizeCodeBlockWidth;
 
-			console.log(content);
-
 			if (!fileContent.needsHighlighting) {
 				html = fileContent.html;
 				return;
@@ -190,19 +188,13 @@
 	function handleKey(ev: KeyboardEvent) {
 		if (ev.key === 'p' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.update((u) =>
-				u !== 'choose-file' ? 'choose-file' : ''
-			);
-
+			stores.modalState.set(getStore(stores.modalState) === 'choose-file' ? '' : 'choose-file');
 			return;
 		}
 
 		if (ev.key === 'o' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.update((u) =>
-				u !== 'choose-directory' ? 'choose-directory' : ''
-			);
-
+			stores.modalState.set(getStore(stores.modalState) === 'choose-directory' ? '' : 'choose-directory');
 			return;
 		}
 
@@ -271,9 +263,9 @@
 	/>
 </svelte:head>
 
-<main class="h-full w-full csmall:grid csmall:grid-cols-[auto_1fr]">
+<main class="h-full w-full csmall:grid csmall:grid-cols-[auto_1fr] bg-background text-foreground">
 	<Sidebar {outlineHeadings} {stats} />
-	<section class="bg-transparent text-gray-200 p-5 h-full w-full overflow-auto scroll-smooth markdown-body">
+	<section class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body">
 		{#if error}
 			<h1>{error}</h1>
 			{#if stats.size}

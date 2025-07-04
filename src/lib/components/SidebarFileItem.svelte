@@ -99,7 +99,7 @@
 >
 	{#if item.isDirectory}
 		<button 
-			class="bg-transparent w-full border-none text-base hover:underline hover:text-white flex gap-2 items-center"
+			class="bg-transparent w-full border-none text-base hover:underline hover:text-sidebar-accent-foreground flex gap-2 items-center"
 			on:click={collapseDirectory}
 		>
 			<Icon name="folder" />
@@ -108,7 +108,7 @@
 	{:else}
 		<!-- could have id set to the actual expression in isAsctive and remove switchActive(ev), not sure which is move preformant -->
 		<a
-			class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
+			class="text-inherit flex gap-2 items-center hover:text-sidebar-accent-foreground overflow-hidden text-ellipsis whitespace-nowrap"
 			class:text-yellow-1={isActive}
 			on:click={(ev) => {
 				$abortController.abort();

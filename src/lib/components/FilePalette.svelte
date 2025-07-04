@@ -1,4 +1,5 @@
 <!-- inspired by vscode's file/command palette -->
+<!-- TODO: after it reaches half way, the view is always at the middle as you go down. this is not intended-->
 <script lang="ts">
 	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
@@ -7,6 +8,9 @@
 	import { modalState, files, addToastError } from '../../stores';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { Dialog, DialogContent, DialogOverlay } from './ui/dialog';
+	import { Button } from './ui/button';
+	import { Search, X } from '@lucide/svelte';
 
 	import type { WalkDirItem } from '../../mem-fs';
 	interface File {
@@ -95,17 +99,11 @@
 		return;
 	}
 
-	modalState.subscribe(async () => {
-		if (!browser) {
-			return;
-		}
-
-		if ($modalState === '') {
-			return;
-		}
-
+	// Reactive statement that runs immediately when modalState changes
+	$: if ($modalState && browser) {
+		// Focus input immediately when modal opens
 		if (input) {
-			setTimeout(() => input.focus(), 100);
+			input.focus();
 		}
 
 		query = '';
@@ -130,7 +128,7 @@
 			filteredResults = [];
 			setFilteredDirectoryResults().catch(console.error);
 		}
-	});
+	}
 
 	function changeSelected(newSelected?: Element | null) {
 		if (newSelected) {
@@ -223,6 +221,7 @@
 		}
 
 		if ($modalState === 'choose-file') {
+			modalState.set('');
 			goto('/preview/' + href).catch((err) => {
 				if (err.message) {
 					addToastError(err.message);
@@ -266,59 +265,60 @@
 	}
 </script>
 
-<dialog 
-	class="absolute bg-transparent h-full w-full border-none z-30" 
-	open={!!$modalState} 
-	on:click|self={() => modalState.set('')}
-	on:keydown={(e) => e.key === 'Escape' && modalState.set('')}
->
-	<form 
-		class="bg-black-3 text-white border-2 border-black-4 shadow-[0_0_0_100vmax_rgba(0,0,0,0.4)] mx-auto my-2.5 w-[800px] max-w-[90%]"
-		on:submit|preventDefault={handleSubmit}
-	>
-		<div class="p-1.5 text-white">
-			<div class="flex items-center bg-black-2 pl-1.5 focus-within:outline-2 focus-within:outline-blue-2">
-				<label for="query"
-					>{$modalState === 'choose-directory' ? 'Folder:' : 'File:'}</label
-				>
-				<input
-					type="text"
-					id="query"
-					autocomplete="off"
-					autocapitalize="off"
-					autocorrect="off"
-					class="h-full p-1.5 w-full border-none text-white bg-transparent text-sm focus:outline-none"
-					bind:this={input}
-					bind:value={query}
-					on:keydown={handleKeydown}
-					on:input={handleInput}
-				/>
+<Dialog open={!!$modalState}>
+	<!-- <DialogOverlay /> -->
+	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0">
+		<form 
+			class="w-full"
+			on:submit|preventDefault={handleSubmit}
+		>
+			<div class="p-1.5 text-popover-foreground">
+				<div class="flex items-center bg-popover pl-1.5">
+					<label for="palette-search" class="sr-only">Search files</label>
+					<Search class="w-5 h-5 text-muted-foreground mr-2" />
+					<input
+						id="palette-search"
+						class="flex-1 bg-transparent outline-none border-none text-base placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+						type="text"
+						placeholder="Type to search..."
+						bind:value={query}
+						autocomplete="off"
+						autocapitalize="off"
+						autocorrect="off"
+						bind:this={input}
+						on:keydown={handleKeydown}
+						on:input={handleInput}
+					/>
+					<Button type="button" variant="ghost" size="icon" onclick={() => modalState.set('')}
+						class="ml-2">
+						<X class="w-5 h-5" />
+					</Button>
+				</div>
 			</div>
-		</div>
-
-		<div class="max-h-[60vh] overflow-auto" tabindex="-1">
-			{#if filteredResults.length > 0}
-				{#each filteredResults as file, i (file.parents + '/' + file.name)}
-					<button
-						data-href={file.parents + '/' + file.name}
-						class="flex items-center gap-1.5 w-full text-left bg-transparent text-white p-0.5 px-2.5 border-none text-base hover:bg-black-2 hover:text-white"
-						class:selected={$modalState === 'choose-file' && i === 0}
-					>
-						{#if $modalState === 'choose-file'}
-							<FileIcon fileName={file.name} size="20px" />
-						{:else}
-							<Icon name="folder" />
-						{/if}
-						<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
-						<span class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-300">{file.parents}</span>
-					</button>
-				{/each}
-			{:else}
-				<p class="text-white p-1.5 px-2.5">No matching results.</p>
-			{/if}
-		</div>
-	</form>
-</dialog>
+			<div class="max-h-[60vh] overflow-auto" tabindex="-1">
+				{#if filteredResults.length > 0}
+					{#each filteredResults as file, i (file.parents + '/' + file.name)}
+						<button
+							data-href={file.parents + '/' + file.name}
+							class="flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground"
+							class:selected={$modalState === 'choose-file' && i === 0}
+						>
+							{#if $modalState === 'choose-file'}
+								<FileIcon fileName={file.name} size="20px" />
+							{:else}
+								<Icon name="folder" />
+							{/if}
+							<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
+							<span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{file.parents}</span>
+						</button>
+					{/each}
+				{:else}
+					<p class="text-popover-foreground p-1.5 px-2.5">No matching results.</p>
+				{/if}
+			</div>
+		</form>
+	</DialogContent>
+</Dialog>
 
 <style>
 	/* Custom styles for selected state */

@@ -102,15 +102,17 @@
 	on:click={() => isSidebarOpen.set(!$isSidebarOpen)}
 	aria-pressed={$isSidebarOpen}
 	aria-label="toggle sidebar"
-	class="toggle-sidebar absolute bg-transparent border-none p-4 z-30 md:opacity-0 md:invisible md:pointer-events-none"
+	class="toggle-sidebar absolute border-none p-4 z-30 md:opacity-0 md:invisible md:pointer-events-none"
 	style="inset: 7px 0 auto auto;"
 >
-	<span class="block relative w-8 h-0.5 bg-white transition-all duration-150 ease-in-out before:content-[''] before:absolute before:left-0 before:w-8 before:h-0.5 before:bg-white before:transition-all before:duration-200 before:linear before:top-2 after:content-[''] after:absolute after:left-0 after:w-8 after:h-0.5 after:bg-white after:transition-all after:duration-200 after:linear after:bottom-2"></span>
+	<ui-button variant="ghost" size="icon">
+		<span class="block relative w-8 h-0.5 bg-sidebar-foreground transition-all duration-150 ease-in-out before:content-[''] before:absolute before:left-0 before:w-8 before:h-0.5 before:bg-sidebar-foreground before:transition-all before:duration-200 before:linear before:top-2 after:content-[''] after:absolute after:left-0 after:w-8 after:h-0.5 after:bg-sidebar-foreground after:transition-all after:duration-200 after:linear after:bottom-2"></span>
+	</ui-button>
 </button>
 
 <section 
 	bind:this={sidebarElement} 
-	class="absolute bg-gray-800 text-gray-400 top-0 left-0 max-w-[80vw] w-[80vw] h-full -translate-x-full transition-transform duration-100 linear z-20 overflow-auto md:static md:translate-x-0 md:shadow-none md:w-[300px] md:min-w-[250px]"
+	class="absolute bg-sidebar text-sidebar-foreground top-0 left-0 max-w-[80vw] w-[80vw] h-full -translate-x-full transition-transform duration-100 linear z-20 overflow-auto md:static md:translate-x-0 md:shadow-none md:w-[300px] md:min-w-[250px]"
 	id="sidebar"
 	class:resizing={isResizing}
 >
@@ -118,7 +120,7 @@
 		<!-- TODO: fix this -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="resizer fixed top-0 right-0 bottom-0 w-[0.3em] bg-transparent border-l border-r border-gray-700 border-l-transparent cursor-ew-resize hover:bg-blue-600 hover:border-blue-600"
+			class="resizer fixed top-0 right-0 bottom-0 w-[0.3em] bg-transparent border-l border-r border-sidebar-border border-l-transparent cursor-ew-resize hover:bg-sidebar-accent hover:border-sidebar-accent"
 			on:mousedown|preventDefault={() => (isResizing = true)}
 			aria-label="resize sidebar"
 		>
@@ -126,6 +128,7 @@
 		<CollapsableSidebarSection
 			name={getLastDirectory($baseDirectory)}
 			open={true}
+			icon="folder"
 		>
 			<ul class="ml-4 list-none">
 				{#if $files.children && $files.children.length > 0}
@@ -141,6 +144,7 @@
 		<CollapsableSidebarSection
 			name="outline"
 			open={OUTLINE_OPEN_DEFAULT_STATUS}
+			icon="outline"
 		>
 			<ul class="ml-4 list-none mb-5">
 				{#if stats.size}
