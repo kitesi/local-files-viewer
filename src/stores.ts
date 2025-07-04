@@ -1,6 +1,7 @@
 import { DEFAULT_ERROR_MESSAGE_TIMEOUT } from './config';
 import { writable } from 'svelte/store';
 import { v4 as uuid } from 'uuid';
+import { browser } from '$app/environment';
 
 import type { WalkDirItem } from './mem-fs';
 
@@ -9,6 +10,53 @@ interface ToastError {
 	msg: string;
 	timeout: number;
 }
+
+// Theme store with localStorage persistence
+function createThemeStore() {
+	const { subscribe, set, update } = writable<'light' | 'dark'>('light');
+
+	// Initialize from localStorage if available
+	if (browser) {
+		const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+		if (savedTheme) {
+			set(savedTheme);
+			document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+		} else {
+			// Check system preference
+			const prefersDark = window.matchMedia(
+				'(prefers-color-scheme: dark)'
+			).matches;
+			set(prefersDark ? 'dark' : 'light');
+			document.documentElement.classList.toggle('dark', prefersDark);
+		}
+	}
+
+	return {
+		subscribe,
+		toggle: () => {
+			update((current) => {
+				const newTheme = current === 'light' ? 'dark' : 'light';
+				if (browser) {
+					localStorage.setItem('theme', newTheme);
+					document.documentElement.classList.toggle(
+						'dark',
+						newTheme === 'dark'
+					);
+				}
+				return newTheme;
+			});
+		},
+		set: (theme: 'light' | 'dark') => {
+			set(theme);
+			if (browser) {
+				localStorage.setItem('theme', theme);
+				document.documentElement.classList.toggle('dark', theme === 'dark');
+			}
+		}
+	};
+}
+
+export const theme = createThemeStore();
 
 export function removeToastError(id: string) {
 	toasts.update((all) => all.filter((t) => t.id !== id));

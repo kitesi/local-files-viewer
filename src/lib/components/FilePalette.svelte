@@ -13,6 +13,7 @@
 	import { Search, X } from '@lucide/svelte';
 
 	import type { WalkDirItem } from '../../mem-fs';
+	import { cn } from '$lib/utils';
 	interface File {
 		parents: string;
 		name: string;
@@ -27,7 +28,6 @@
 	let fuse: Fuse<string>;
 	let query = '';
 	let input: HTMLInputElement;
-	let currentSelected: Element | null;
 
 	function addToFlattenedArr(
 		item: WalkDirItem,
@@ -130,12 +130,14 @@
 		}
 	}
 
-	function changeSelected(newSelected?: Element | null) {
-		if (newSelected) {
-			currentSelected?.classList.remove('selected');
-			newSelected?.classList.add('selected');
-			currentSelected = newSelected;
-			newSelected.scrollIntoView({ block: 'center' });
+	function changeSelected(direction: 'next' | 'prev') {
+		const currentSelected = document.querySelector('button.selected');
+		const nextElement = direction === 'next' ? currentSelected?.nextElementSibling : currentSelected?.previousElementSibling;
+		
+		if (currentSelected && nextElement) {
+			currentSelected.classList.remove('selected');
+			nextElement.classList.add('selected');
+			nextElement.scrollIntoView({ block: 'center' });
 		}
 	}
 
@@ -150,19 +152,17 @@
 			ev.preventDefault();
 		}
 
-		if (!currentSelected) {
-			currentSelected = document.querySelector('.selected');
-		}
 
 		if (
 			ev.key === 'Escape' ||
 			(ev.ctrlKey && (ev.key === 'p' || ev.key === 'o' || ev.key === '['))
 		) {
 			modalState.set('');
+			return;
 		}
 
 		if (ev.key === 'm' && ev.ctrlKey) {
-			handleSubmit();
+			handleSubmit(ev);
 		}
 
 		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
@@ -187,34 +187,32 @@
 				}
 
 				setFilteredDirectoryResults().catch(console.error);
-				return;
 			}
+
+				return;
 		}
+
 
 		if (
 			isNormalTab ||
 			ev.key === 'ArrowDown' ||
 			(ev.ctrlKey && ev.key === 'j')
 		) {
-			const nextElement = currentSelected?.nextElementSibling;
-			return changeSelected(nextElement);
+			return changeSelected('next');
 		}
 
 		if (isShiftTab || ev.key === 'ArrowUp' || (ev.ctrlKey && ev.key === 'k')) {
-			const prevElement = currentSelected?.previousElementSibling;
-			return changeSelected(prevElement);
+			return changeSelected('prev');
 		}
 	}
 
-	function handleSubmit() {
-		if (!currentSelected) {
-			currentSelected = document.querySelector('.selected');
-		}
+	function handleSubmit(ev: Event) {
+		ev.preventDefault();
 
-		const href =
+		let href =
 			$modalState === 'choose-directory'
 				? query
-				: currentSelected?.getAttribute('data-href');
+				: document.querySelector('button.selected')?.getAttribute('data-href');
 
 		if (!href) {
 			return;
@@ -222,7 +220,7 @@
 
 		if ($modalState === 'choose-file') {
 			modalState.set('');
-			goto('/preview/' + href).catch((err) => {
+			goto(href).catch((err) => {
 				if (err.message) {
 					addToastError(err.message);
 				}
@@ -244,11 +242,9 @@
 					}
 				});
 		}
-
-		modalState.set('');
 	}
 
-	async function handleInput() {
+	async function handleInput(ev: Event) {
 		if ($modalState === 'choose-directory') {
 			return setFilteredDirectoryResults().catch(console.error);
 		}
@@ -260,17 +256,19 @@
 				return flattenedResults![e.refIndex];
 			});
 		}
+	}
 
-		currentSelected = document.querySelector('.selected');
+	function getPreviewPath(path: string) {
+		return '/preview/' + path.replace(/^\.\//, '');
 	}
 </script>
 
-<Dialog open={!!$modalState}>
+	<Dialog open={!!$modalState}>
 	<!-- <DialogOverlay /> -->
-	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0">
+	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0" onkeydown={handleKeydown} oninput={handleInput}>
 		<form 
 			class="w-full"
-			on:submit|preventDefault={handleSubmit}
+			onsubmit={(ev) => handleSubmit(ev)}
 		>
 			<div class="p-1.5 text-popover-foreground">
 				<div class="flex items-center bg-popover pl-1.5">
@@ -285,9 +283,9 @@
 						autocomplete="off"
 						autocapitalize="off"
 						autocorrect="off"
+						onkeydown={handleKeydown}
+						oninput={handleInput}
 						bind:this={input}
-						on:keydown={handleKeydown}
-						on:input={handleInput}
 					/>
 					<Button type="button" variant="ghost" size="icon" onclick={() => modalState.set('')}
 						class="ml-2">
@@ -299,8 +297,12 @@
 				{#if filteredResults.length > 0}
 					{#each filteredResults as file, i (file.parents + '/' + file.name)}
 						<button
-							data-href={file.parents + '/' + file.name}
-							class="flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground"
+							data-href={getPreviewPath(file.parents + '/' + file.name)}
+							class={
+							cn(
+								"flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground",
+								i == filteredResults.length - 1 && 'rounded-sm'
+							)}
 							class:selected={$modalState === 'choose-file' && i === 0}
 						>
 							{#if $modalState === 'choose-file'}

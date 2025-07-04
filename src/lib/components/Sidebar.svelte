@@ -3,8 +3,9 @@
 	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
 	import SidebarFileItem from './SidebarFileItem.svelte';
 	import { formatBytes } from '../../format-bytes';
-	import { baseDirectory, files, isSidebarOpen } from '../../stores';
+	import { baseDirectory, files, isSidebarOpen, theme } from '../../stores';
 	import { OUTLINE_OPEN_DEFAULT_STATUS } from '../../config';
+	import { Sun, Moon } from '@lucide/svelte';
 
 	import { browser } from '$app/environment';
 
@@ -116,7 +117,8 @@
 	id="sidebar"
 	class:resizing={isResizing}
 >
-	<div class="flow-root relative overflow-auto h-full scrollbar-none">
+	<div class="flex flex-col h-full">
+		<div class="flow-root relative overflow-auto flex-1 scrollbar-none">
 		<!-- TODO: fix this -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -166,6 +168,28 @@
 				{/if}
 			</ul>
 		</CollapsableSidebarSection>
+		</div>
+
+		<!-- Theme Toggle Button -->
+		<div class="mt-auto p-0 border-t border-sidebar-border h-12 w-full">
+			<button
+				on:click={() => theme.toggle()}
+				class="w-full h-full flex items-center justify-center rounded-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors relative"
+				aria-label="Toggle theme"
+			>
+				<span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex">
+					<Sun 
+						size={20} 
+						class="h-5 w-5 transition-all duration-200 dark:-rotate-90 dark:scale-0 rotate-0 scale-100" 
+					/>
+					<Moon 
+						size={20} 
+						class="h-5 w-5 transition-all duration-200 dark:rotate-0 dark:scale-100 rotate-90 scale-0" 
+					/>
+				</span>
+				<span class="sr-only">Toggle theme</span>
+			</button>
+		</div>
 	</div>
 </section>
 
