@@ -249,12 +249,6 @@
 
 		goto(path);
 	}
-
-	if (browser) {
-		setTimeout(() => {
-			goto('/preview/concepts/codenames.txt');
-		}, 2000);
-	}
 </script>
 
 <svelte:window on:keydown={handleKey} />

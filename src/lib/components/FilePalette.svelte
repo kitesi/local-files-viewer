@@ -161,14 +161,24 @@
 			return;
 		}
 
-		if (ev.key === 'm' && ev.ctrlKey) {
-			handleSubmit(ev);
+		if (ev.key === "Enter" || (ev.key === 'm' && ev.ctrlKey )) {
+			handleItemSubmission(document.querySelector('button.selected')?.getAttribute('data-href') || '');
 		}
 
 		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
 		const isShiftTab = ev.key === 'Tab' && ev.shiftKey;
 
 		if ($modalState === 'choose-directory') {
+			if (ev.key === 'ArrowDown' || (ev.key === 'j' && ev.ctrlKey)) {
+				changeSelected('next');
+				return;
+			}
+
+			if (ev.key === 'ArrowUp' || (ev.key === 'k' && ev.ctrlKey)) {
+				changeSelected('prev');
+				return;
+			}
+
 			if (isShiftTab) {
 				return;
 			}
@@ -189,7 +199,7 @@
 				setFilteredDirectoryResults().catch(console.error);
 			}
 
-				return;
+			return;
 		}
 
 
@@ -206,14 +216,7 @@
 		}
 	}
 
-	function handleSubmit(ev: Event) {
-		ev.preventDefault();
-
-		let href =
-			$modalState === 'choose-directory'
-				? query
-				: document.querySelector('button.selected')?.getAttribute('data-href');
-
+	function handleItemSubmission(href: string) {
 		if (!href) {
 			return;
 		}
@@ -226,9 +229,9 @@
 				}
 			});
 		} else {
-			fetch('/info', {
+			fetch('/api/new-base-dir', {
 				method: 'POST',
-				body: JSON.stringify({ action: 'new-base-dir', dir: href }),
+				body: JSON.stringify({ dir: href }),
 				headers: {
 					'Content-Type': 'application/json'
 				}
@@ -244,7 +247,7 @@
 		}
 	}
 
-	async function handleInput(ev: Event) {
+	async function handleInput(_: Event) {
 		if ($modalState === 'choose-directory') {
 			return setFilteredDirectoryResults().catch(console.error);
 		}
@@ -259,16 +262,19 @@
 	}
 
 	function getPreviewPath(path: string) {
-		return '/preview/' + path.replace(/^\.\//, '');
+		if ($modalState === 'choose-file') {
+			return '/preview/' + path.replace(/^\.?\//, '').replace(/\\/g, '/');
+		}
+
+		return path;
 	}
 </script>
 
 	<Dialog open={!!$modalState}>
 	<!-- <DialogOverlay /> -->
 	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0" onkeydown={handleKeydown} oninput={handleInput}>
-		<form 
+		<div 
 			class="w-full"
-			onsubmit={(ev) => handleSubmit(ev)}
 		>
 			<div class="p-1.5 text-popover-foreground">
 				<div class="flex items-center bg-popover pl-1.5">
@@ -296,14 +302,17 @@
 			<div class="max-h-[60vh] overflow-auto" tabindex="-1">
 				{#if filteredResults.length > 0}
 					{#each filteredResults as file, i (file.parents + '/' + file.name)}
+					{@const href = getPreviewPath(file.parents + '/' + file.name)}
 						<button
-							data-href={getPreviewPath(file.parents + '/' + file.name)}
+							type="button"
+							data-href={href}
 							class={
 							cn(
 								"flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground",
 								i == filteredResults.length - 1 && 'rounded-sm'
 							)}
-							class:selected={$modalState === 'choose-file' && i === 0}
+							class:selected={i === 0}
+							onclick={() => handleItemSubmission(href)}
 						>
 							{#if $modalState === 'choose-file'}
 								<FileIcon fileName={file.name} size="20px" />
@@ -318,7 +327,7 @@
 					<p class="text-popover-foreground p-1.5 px-2.5">No matching results.</p>
 				{/if}
 			</div>
-		</form>
+		</div>
 	</DialogContent>
 </Dialog>
 
@@ -326,7 +335,6 @@
 	/* Custom styles for selected state */
 	.selected {
 		outline: none;
-		background-color: #1e2328;
-		color: white;
+		background-color: rgb(210, 213, 216);
 	}
 </style>

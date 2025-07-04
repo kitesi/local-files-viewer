@@ -2,7 +2,7 @@ import path from 'path';
 import os from 'os';
 import { existsSync } from 'fs';
 import { walkdirBase, readdir, stat } from '../../mem-fs';
-import { getBaseDirectory, setBaseDirectory } from '../../base-directory';
+import { getBaseDirectory } from '../../base-directory';
 import { getFileContents } from './get-file-contents';
 import { getSyntaxHighlighting } from './get-syntax-highlighting';
 import { json } from '@sveltejs/kit';
@@ -120,7 +120,7 @@ export const GET: RequestHandler = async function ({ url }) {
 	] as const;
 
 	const action = url.searchParams?.get('action') as
-		| typeof actions[number]
+		| (typeof actions)[number]
 		| null;
 
 	if (!action) {
@@ -148,33 +148,4 @@ export const GET: RequestHandler = async function ({ url }) {
 	}
 
 	return getFontStyleSheet(url);
-};
-
-export const POST: RequestHandler = async function ({ request }) {
-	let { action, dir } = await request.json();
-
-	if (!action) {
-		return error(400, 'No action provided');
-	}
-
-	if (!dir) {
-		return error(400, 'No directory provided');
-	}
-
-	if (action !== 'new-base-dir') {
-		return error(400, 'The only action allowed is: new-base-dir');
-	}
-
-	dir = dir.replace(/(?<!\\)~/, os.homedir());
-
-	if (!path.isAbsolute(dir)) {
-		dir = path.resolve(getBaseDirectory(), dir);
-	}
-
-	if (!existsSync(dir)) {
-		return error(400, 'No such directory');
-	}
-
-	setBaseDirectory(dir);
-	return json({ status: '200' });
 };
