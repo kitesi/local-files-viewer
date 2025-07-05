@@ -117,15 +117,6 @@
 	--breakpoint-cxlarge: 1750px;
 }
 
-@layer base {
-	* {
-		@apply border-border outline-ring/50;
-	}
-	body {
-		@apply bg-background text-foreground;
-	}
-}
-
 @font-face {
 	font-family: 'Roboto';
 	src: url('/fonts/roboto-regular.woff') format('woff');

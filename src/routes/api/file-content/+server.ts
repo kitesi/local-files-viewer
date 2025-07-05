@@ -2,7 +2,7 @@ import { readFile } from '$lib/server-utils/mem-fs';
 import { getMimeType } from '$lib/server-utils/get-mime-types';
 import { getBaseDirectory } from '$lib/server-utils/base-directory';
 import { highlighterWrapper } from '$lib/server-utils/highlight';
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
 import { unified } from 'unified';
@@ -40,15 +40,11 @@ export interface BodyReturn {
 	[k: string]: any;
 }
 
-function error(status: number, msg: string) {
-	return json({ status, error: msg });
-}
-
 async function getFileContents(url: URL) {
 	const filePathParam = url.searchParams?.get('file');
 
 	if (!filePathParam) {
-		return error(400, 'Did not recieve a file path');
+		error(400, 'Did not recieve a file path');
 	}
 
 	const filePath = path.join(getBaseDirectory(), filePathParam);
@@ -113,7 +109,7 @@ async function getFileContents(url: URL) {
 					}
 				);
 			} catch (err: any) {
-				return error(500, err?.message || '');
+				error(500, err?.message || 'Internal server error');
 			}
 
 			break;
@@ -133,7 +129,7 @@ async function getFileContents(url: URL) {
 			break;
 		default:
 			if (mimeType.genre === 'application') {
-				return error(500, 'Could not handle mime type of: ' + mimeType.full);
+				error(400, 'Could not handle mime type of: ' + mimeType.full);
 			}
 
 			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;

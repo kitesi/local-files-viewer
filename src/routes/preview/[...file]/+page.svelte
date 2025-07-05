@@ -5,13 +5,14 @@
 	import * as stores from '$lib/stores/index';
 	import * as mappings from '$lib/client-utils/key-mappings';
 	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
+	import { apiClient } from '$lib/client-utils/api-client';
 	import { formatBytes } from '$lib/client-utils/format-bytes';
 	import { HTML_SANDBOX_ATTR, PDF_SANDBOX_ATTR } from '$lib/config';
 
 	import { get as getStore } from 'svelte/store';
 
 	import { browser, dev } from '$app/environment';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 
 	import '$lib/styles/github-doc.css';
@@ -20,44 +21,41 @@
 
 	import type { PageData } from './$types';
 	import type { BodyReturn as GetFileContentBodyReturn } from '../../api/file-content/+server';
+	import { onMount } from 'svelte';
 
-	export let data: PageData;
+	const { data } = $props<{ data: PageData }>();
 
 	const fontCharacters =
 		'abcdefghijklmnoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789()-_=+~`!@#$%^&*[]{}\\|;:\'",.<>/?'.split(
 			''
 		);
 
-	let { error, files, mimeType } = data;
-	let servePath = '';
-	let html: string | undefined = '';
-	let content: string | undefined = '';
-	let maximizeCodeBlockWidth: boolean | undefined = false;
+	let { files, mimeType } = data;
+	let error = $state(data.error);
 
-	let outlineHeadings: NodeListOf<Element> | null;
-	let stats: GetFileContentBodyReturn['stats'] & { size: number } = {
+	let html = $state<string | undefined>('');
+	let content = $state<string | undefined>('');
+	let maximizeCodeBlockWidth = $state<boolean | undefined>(false);
+	let outlineHeadings = $state<NodeListOf<Element> | null>(null);
+	let stats = $state<GetFileContentBodyReturn['stats'] & { size: number }>({
 		size: data.size
-	};
+	});
 
-	let prevFileParam = $page.params.file;
+	let prevFileParam = page.params.file;
 
-	$: servePath = '/serve/' + $page.params.file;
+	const servePath = $derived('/serve/' + page.params.file);
 
-	$: {
-		({ files, mimeType, error } = data);
+	$effect(() => {
 		stores.baseDirectory.set(data.baseDirectory);
-	}
+	});
 
-	// initial load
-	if (browser) {
-		fetchContent().then(
-			() =>
-				(outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-		);
-	}
+	onMount(async () => {
+		await fetchContent();
+		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+	});
 
 	stores.fileChanged.subscribe(() => {
-		if (!browser || $page.params.file === '') {
+		if (!browser || page.params.file === '') {
 			return;
 		}
 
@@ -66,18 +64,19 @@
 		maximizeCodeBlockWidth = false;
 		stats = { size: data.size };
 
-		fetchContent(window.location.host).catch(console.error);
+		fetchContent();
 	});
 
 	// need this for when changing files, bc for some reason the onMount event does
 	// not reoccur when changing files (ig because of its a glob [...file])
-	page.subscribe(async () => {
-		if ($page.params.file === '' || $page.params.file === prevFileParam) {
+	$effect(() => {
+		if (page.params.file === '' || page.params.file === prevFileParam) {
 			return;
 		}
 
-		prevFileParam = $page.params.file;
+		prevFileParam = page.params.file;
 
+		error = '';
 		html = '';
 		content = '';
 		maximizeCodeBlockWidth = false;
@@ -87,8 +86,9 @@
 			return;
 		}
 
-		await fetchContent().catch(console.error);
-		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		fetchContent().then(() => {
+			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		})
 
 		// sveltekit has hot refresh development, although
 		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
@@ -121,14 +121,7 @@
 		stores.abortController.set(new AbortController());
 
 		try {
-			const fileContentRes = await fetch(
-				urlPrefix +
-					'/api/file-content?file=' +
-					encodeURIComponent($page.params.file)
-			);
-
-			const fileContent =
-				(await fileContentRes.json()) as GetFileContentBodyReturn;
+			const fileContent = await apiClient.getFileContents(page.params.file);
 
 			if (fileContent.error) {
 				error = fileContent.error;
@@ -141,46 +134,23 @@
 
 			content = fileContent.content;
 			maximizeCodeBlockWidth = fileContent.maximizeCodeBlockWidth;
+			html = fileContent.html;
 
 			if (!fileContent.needsHighlighting) {
-				html = fileContent.html;
 				return;
 			}
 
-			const syntaxHighlightingRequest = fetch(
-				urlPrefix +
-					'/api/syntax-highlighting?file=' +
-					encodeURIComponent($page.params.file),
-				{ signal: getStore(stores.abortController).signal }
-			)
-				.then((res) => res.text())
-				.then((text) => (html = text))
-				// usually an aborted operation
-				.catch((err) => {
-					if (err.name === 'AbortError') {
-						return;
-					}
-
-					stores.addToastError(err.message);
-				});
-
-			Promise.race([
-				syntaxHighlightingRequest,
-				new Promise((res) => {
-					// possible memory loss?
-					setTimeout(() => res(''), 200);
-				}) as Promise<string>
-			]).then((value) => {
-				if (!html) {
-					html = value || fileContent.html;
-				}
-			});
-		} catch (err: any) {
-			console.error(err);
-
-			if (err.message) {
-				error = err.essage;
+			const syntaxHighlighting = await apiClient.getSyntaxHighlighting(page.params.file, getStore(stores.abortController).signal);
+			if (syntaxHighlighting) {
+				html = syntaxHighlighting;
 			}
+		} catch (err) {
+			// if aborted, skip
+			if (err instanceof Error && err.name === 'AbortError') {
+				return;
+			}
+
+			error = err instanceof Error ? err.message : 'Error: Internal server error';
 		}
 	}
 
@@ -201,7 +171,7 @@
 			return;
 		}
 
-		const paths = $page.params.file.split('/');
+		const paths = page.params.file.split('/');
 		const file = paths.pop();
 
 		const itemChildren = getWalkdirItem(
@@ -257,7 +227,7 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href={'/api/font-stylesheet?file=' + $page.params.file}
+		href={'/api/font-stylesheet?file=' + page.params.file}
 		type="text/css"
 	/>
 </svelte:head>
@@ -274,7 +244,7 @@
 			{#if maximizeCodeBlockWidth}
 				{@html html}
 			{:else}
-				<div class="max-w-[90ch] mx-auto py-[min(100px,calc((100%-90ch)/2))]">
+				<div class="max-w-[90ch] mx-auto py-[min(100px,calc((100%-90ch)/2))] markdown-body" >
 					{@html html}
 				</div>
 			{/if}
