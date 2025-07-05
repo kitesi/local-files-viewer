@@ -19,7 +19,7 @@
 		children: Snippet;
 		showCloseButton?: boolean;
 		position?: "default" | "top" | "bottom-left" | "bottom-center" | "bottom-right";
-		size?: "default" | "sm" | "md" | "lg" | "xl" | "fullscreen";
+		size?: "default" | "sm" | "md" | "lg" | "xl" | "fullscreen" | "none";
 	} = $props();
 
 	function dialogVariants(position: string, size: string) {
@@ -37,7 +37,8 @@
 			md: "max-w-lg", 
 			lg: "max-w-xl",
 			xl: "max-w-2xl",
-			fullscreen: "w-screen h-screen"
+			fullscreen: "w-screen h-screen",
+			none: ""
 		};
 
 		return cn(

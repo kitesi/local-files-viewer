@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import FilePalette from '$lib/components/FilePalette.svelte';
+	import SearchPalette from '$lib/components/SearchPalette.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
 	import * as stores from '$lib/stores/index';
 	import * as mappings from '$lib/client-utils/key-mappings';
@@ -17,7 +18,6 @@
 
 	import '$lib/styles/github-doc.css';
 	import '$lib/styles/shiki.css';
-	import '$lib/styles/doc.css';
 
 	import type { PageData } from './$types';
 	import type { BodyReturn as GetFileContentBodyReturn } from '../../api/file-content/+server';
@@ -134,16 +134,14 @@
 
 			content = fileContent.content;
 			maximizeCodeBlockWidth = fileContent.maximizeCodeBlockWidth;
-			html = fileContent.html;
 
 			if (!fileContent.needsHighlighting) {
+				html = fileContent.html;
 				return;
 			}
 
 			const syntaxHighlighting = await apiClient.getSyntaxHighlighting(page.params.file, getStore(stores.abortController).signal);
-			if (syntaxHighlighting) {
-				html = syntaxHighlighting;
-			}
+			html = syntaxHighlighting || fileContent.html;
 		} catch (err) {
 			// if aborted, skip
 			if (err instanceof Error && err.name === 'AbortError') {
@@ -164,6 +162,12 @@
 		if (ev.key === 'o' && ev.ctrlKey) {
 			ev.preventDefault();
 			stores.modalState.set(getStore(stores.modalState) === 'choose-directory' ? '' : 'choose-directory');
+			return;
+		}
+
+		if (ev.key === 'y' && ev.ctrlKey) {
+			ev.preventDefault();
+			stores.modalState.set(getStore(stores.modalState) === 'search' ? '' : 'search');
 			return;
 		}
 
@@ -223,6 +227,7 @@
 <svelte:window on:keydown={handleKey} />
 
 <FilePalette />
+<SearchPalette />
 
 <svelte:head>
 	<link

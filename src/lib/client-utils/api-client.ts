@@ -30,6 +30,14 @@ export interface NewBaseDirResponse {
 	success?: boolean;
 }
 
+export interface SearchResponse {
+	results: Array<{
+		file: string;
+		line: number;
+		text: string;
+	}>;
+}
+
 // Helper function to extract error message from response
 async function extractErrorMessage(
 	response: Response,
@@ -159,6 +167,22 @@ export class ApiClient {
 			`${this.baseUrl}/api/font-stylesheet?file=${encodeURIComponent(file)}`,
 			'Error: unable to get font stylesheet',
 			{ responseType: 'text' }
+		);
+	}
+
+	/**
+	 * Search through files using ripgrep
+	 */
+	async searchFiles(query: string, dir?: string): Promise<SearchResponse> {
+		const params = new URLSearchParams({ q: query });
+		if (dir) {
+			params.append('dir', dir);
+		}
+
+		return await fetchWithErrorHandling<SearchResponse>(
+			`${this.baseUrl}/api/grep?${params.toString()}`,
+			'Error: unable to search files',
+			{ responseType: 'json' }
 		);
 	}
 }

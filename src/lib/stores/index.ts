@@ -80,7 +80,7 @@ export function addToastError(
 
 export const files = writable({} as WalkDirItem);
 export const modalState = writable(
-	'' as '' | 'choose-file' | 'choose-directory'
+	'' as '' | 'choose-file' | 'choose-directory' | 'search'
 );
 export const toasts = writable([] as ToastError[]);
 export const baseDirectory = writable('');

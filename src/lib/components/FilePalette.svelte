@@ -269,7 +269,7 @@
 	}
 </script>
 
-	<Dialog open={!!$modalState}>
+<Dialog open={$modalState === 'choose-file' || $modalState === 'choose-directory'}>
 	<!-- <DialogOverlay /> -->
 	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0" onkeydown={handleKeydown} oninput={handleInput}>
 		<div 
