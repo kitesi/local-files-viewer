@@ -49,22 +49,32 @@
 		stores.baseDirectory.set(data.baseDirectory);
 	});
 
-	onMount(async () => {
-		await fetchContent();
-		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-	});
+	onMount(() => {
+		fetchContent().then(() => {
+			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		});
 
-	stores.fileChanged.subscribe(() => {
-		if (!browser || page.params.file === '') {
-			return;
+		// Set up SSE connection for file watching
+		if (browser) {
+			const eventSource = new EventSource('/api/file-watcher');
+			
+			eventSource.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				if (data.type === 'file-changed') {
+					stats = { size: data.size };
+					fetchContent();
+				}
+			};
+
+			eventSource.onerror = (error) => {
+				console.error('SSE connection error:', error);
+			};
+
+			// Clean up on component unmount
+			return () => {
+				eventSource.close();
+			};
 		}
-
-		html = '';
-		content = '';
-		maximizeCodeBlockWidth = false;
-		stats = { size: data.size };
-
-		fetchContent();
 	});
 
 	// need this for when changing files, bc for some reason the onMount event does

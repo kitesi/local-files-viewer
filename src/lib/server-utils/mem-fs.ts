@@ -8,7 +8,7 @@ import {
 import { watch } from 'fs';
 
 import type { Stats } from 'fs';
-import { fileChanged as fileChangedStore } from '../stores';
+import { _notifyFileChanged } from '../../routes/api/file-watcher/+server';
 
 export interface WalkDirItem {
 	name: string;
@@ -134,9 +134,7 @@ export async function readFile(
 		const signal = new AbortController().signal;
 
 		watch(filePath, { signal }, (event) => {
-			console.log(event, Math.random());
-			// hacky implementation to get the page to reload when file reloads
-			fileChangedStore.set(Math.random());
+			_notifyFileChanged();
 		});
 	}
 
