@@ -1,84 +1,92 @@
 <script lang="ts">
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import FilePalette from '$lib/components/FilePalette.svelte';
+	import SearchPalette from '$lib/components/SearchPalette.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
-	import * as stores from '../../../stores';
-	import * as mappings from '../../../key-mappings';
-	import { getWalkdirItem } from '../../../get-walkdir-item';
-	import { formatBytes } from '../../../format-bytes';
-	import { HTML_SANDBOX_ATTR, PDF_SANDBOX_ATTR } from '../../../config';
+	import * as stores from '$lib/stores/index';
+	import * as mappings from '$lib/client-utils/key-mappings';
+	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
+	import { apiClient } from '$lib/client-utils/api-client';
+	import { formatBytes } from '$lib/client-utils/format-bytes';
+	import { HTML_SANDBOX_ATTR, PDF_SANDBOX_ATTR } from '$lib/config';
 
 	import { get as getStore } from 'svelte/store';
 
 	import { browser, dev } from '$app/environment';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 
-	import '$lib/styles/github-doc.scss';
+	import '$lib/styles/github-doc.css';
 	import '$lib/styles/shiki.css';
-	import '$lib/styles/doc.scss';
 
 	import type { PageData } from './$types';
-	import type { BodyReturn as GetFileContentBodyReturn } from '../../info/get-file-contents';
+	import type { BodyReturn as GetFileContentBodyReturn } from '../../api/file-content/+server';
 	import { onMount } from 'svelte';
 
-	export let data: PageData;
+	const { data } = $props<{ data: PageData }>();
 
 	const fontCharacters =
 		'abcdefghijklmnoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789()-_=+~`!@#$%^&*[]{}\\|;:\'",.<>/?'.split(
 			''
 		);
 
-	let { error, files, mimeType } = data;
-	let servePath = '';
-	let html: string | undefined = '';
-	let content: string | undefined = '';
-	let maximizeCodeBlockWidth: boolean | undefined = false;
+	let { files, mimeType } = data;
+	let error = $state(data.error);
 
-	let outlineHeadings: NodeListOf<Element> | null;
-	let stats: GetFileContentBodyReturn['stats'] & { size: number } = {
+	let html = $state<string | undefined>('');
+	let content = $state<string | undefined>('');
+	let maximizeCodeBlockWidth = $state<boolean | undefined>(false);
+	let outlineHeadings = $state<NodeListOf<Element> | null>(null);
+	let stats = $state<GetFileContentBodyReturn['stats'] & { size: number }>({
 		size: data.size
-	};
+	});
 
-	let prevFileParam = $page.params.file;
+	let prevFileParam = page.params.file;
 
-	$: servePath = '/serve/' + $page.params.file;
+	const servePath = $derived('/serve/' + page.params.file);
 
-	$: {
-		({ files, mimeType, error } = data);
+	$effect(() => {
 		stores.baseDirectory.set(data.baseDirectory);
-	}
+	});
 
-	// initial load
-	if (browser) {
-		fetchContent().then(
-			() =>
-				(outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-		);
-	}
+	onMount(() => {
+		fetchContent().then(() => {
+			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		});
 
-	stores.fileChanged.subscribe(() => {
-		if (!browser || $page.params.file === '') {
-			return;
+		// Set up SSE connection for file watching
+		if (browser) {
+			const eventSource = new EventSource('/api/file-watcher');
+			
+			eventSource.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				if (data.type === 'file-changed') {
+					stats = { size: data.size };
+					fetchContent();
+				}
+			};
+
+			eventSource.onerror = (error) => {
+				console.error('SSE connection error:', error);
+			};
+
+			// Clean up on component unmount
+			return () => {
+				eventSource.close();
+			};
 		}
-
-		html = '';
-		content = '';
-		maximizeCodeBlockWidth = false;
-		stats = { size: data.size };
-
-		fetchContent(window.location.host).catch(console.error);
 	});
 
 	// need this for when changing files, bc for some reason the onMount event does
 	// not reoccur when changing files (ig because of its a glob [...file])
-	page.subscribe(async () => {
-		if ($page.params.file === '' || $page.params.file === prevFileParam) {
+	$effect(() => {
+		if (page.params.file === '' || page.params.file === prevFileParam) {
 			return;
 		}
 
-		prevFileParam = $page.params.file;
+		prevFileParam = page.params.file;
 
+		error = '';
 		html = '';
 		content = '';
 		maximizeCodeBlockWidth = false;
@@ -88,8 +96,9 @@
 			return;
 		}
 
-		await fetchContent().catch(console.error);
-		outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		fetchContent().then(() => {
+			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		})
 
 		// sveltekit has hot refresh development, although
 		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
@@ -122,14 +131,7 @@
 		stores.abortController.set(new AbortController());
 
 		try {
-			const fileContentRes = await fetch(
-				urlPrefix +
-					'/info?action=file-content&file=' +
-					encodeURIComponent($page.params.file)
-			);
-
-			const fileContent =
-				(await fileContentRes.json()) as GetFileContentBodyReturn;
+			const fileContent = await apiClient.getFileContents(page.params.file);
 
 			if (fileContent.error) {
 				error = fileContent.error;
@@ -143,66 +145,39 @@
 			content = fileContent.content;
 			maximizeCodeBlockWidth = fileContent.maximizeCodeBlockWidth;
 
-			console.log(content);
-
 			if (!fileContent.needsHighlighting) {
 				html = fileContent.html;
 				return;
 			}
 
-			const syntaxHighlightingRequest = fetch(
-				urlPrefix +
-					'/info?action=syntax-highlighting&file=' +
-					encodeURIComponent($page.params.file),
-				{ signal: getStore(stores.abortController).signal }
-			)
-				.then((res) => res.text())
-				.then((text) => (html = text))
-				// usually an aborted operation
-				.catch((err) => {
-					if (err.name === 'AbortError') {
-						return;
-					}
-
-					stores.addToastError(err.message);
-				});
-
-			Promise.race([
-				syntaxHighlightingRequest,
-				new Promise((res) => {
-					// possible memory loss?
-					setTimeout(() => res(''), 200);
-				}) as Promise<string>
-			]).then((value) => {
-				if (!html) {
-					html = value || fileContent.html;
-				}
-			});
-		} catch (err: any) {
-			console.error(err);
-
-			if (err.message) {
-				error = err.essage;
+			const syntaxHighlighting = await apiClient.getSyntaxHighlighting(page.params.file, getStore(stores.abortController).signal);
+			html = syntaxHighlighting || fileContent.html;
+		} catch (err) {
+			// if aborted, skip
+			if (err instanceof Error && err.name === 'AbortError') {
+				return;
 			}
+
+			error = err instanceof Error ? err.message : 'Error: Internal server error';
 		}
 	}
 
 	function handleKey(ev: KeyboardEvent) {
 		if (ev.key === 'p' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.update((u) =>
-				u !== 'choose-file' ? 'choose-file' : ''
-			);
-
+			stores.modalState.set(getStore(stores.modalState) === 'choose-file' ? '' : 'choose-file');
 			return;
 		}
 
 		if (ev.key === 'o' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.update((u) =>
-				u !== 'choose-directory' ? 'choose-directory' : ''
-			);
+			stores.modalState.set(getStore(stores.modalState) === 'choose-directory' ? '' : 'choose-directory');
+			return;
+		}
 
+		if (ev.key === 'y' && ev.ctrlKey) {
+			ev.preventDefault();
+			stores.modalState.set(getStore(stores.modalState) === 'search' ? '' : 'search');
 			return;
 		}
 
@@ -210,7 +185,7 @@
 			return;
 		}
 
-		const paths = $page.params.file.split('/');
+		const paths = page.params.file.split('/');
 		const file = paths.pop();
 
 		const itemChildren = getWalkdirItem(
@@ -262,18 +237,19 @@
 <svelte:window on:keydown={handleKey} />
 
 <FilePalette />
+<SearchPalette />
 
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href={'/info?action=get-font-stylesheet&file=' + $page.params.file}
+		href={'/api/font-stylesheet?file=' + page.params.file}
 		type="text/css"
 	/>
 </svelte:head>
 
-<main>
+<main class="h-full w-full csmall:grid csmall:grid-cols-[auto_1fr] bg-background text-foreground">
 	<Sidebar {outlineHeadings} {stats} />
-	<section class="markdown-body">
+	<section class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body">
 		{#if error}
 			<h1>{error}</h1>
 			{#if stats.size}
@@ -283,128 +259,63 @@
 			{#if maximizeCodeBlockWidth}
 				{@html html}
 			{:else}
-				<div class="markdown-content">
+				<div class="max-w-[90ch] mx-auto py-[min(100px,calc((100%-90ch)/2))] markdown-body" >
 					{@html html}
 				</div>
 			{/if}
 		{:else if mimeType?.genre === 'font'}
-			<div class="font-container">
+			<div class="flex flex-wrap font-['placeholder',Arial] content-center h-full max-w-[60ch] mx-auto">
 				{#each fontCharacters as char}
-					<p>{char}</p>
+					<p class="p-1.5 text-3xl">{char}</p>
 				{/each}
 			</div>
 		{:else if mimeType?.genre === 'image'}
-			<div class="center">
+			<div class="grid place-items-center h-full overflow-auto">
 				<img src={servePath} alt="" />
 			</div>
 		{:else if mimeType?.genre === 'audio'}
 			{#key servePath}
-				<audio controls>
+				<audio controls class="w-full">
 					<source src={servePath} />
 					Your browser does not support the audio element.
 				</audio>
 			{/key}
 		{:else if mimeType?.genre === 'video'}
 			{#key servePath}
-				<video controls>
+				<video controls class="w-full">
 					<source src={servePath} />
 					<track kind="captions" />
 					Your browser does not support the audio element. track
 				</video>
 			{/key}
 		{:else if content}
-			<p>{content}</p>
+			<p class="whitespace-pre-wrap max-w-[80ch] text-lg mx-auto py-[min(100px,calc((100%-80ch)/2))]">{content}</p>
 		{/if}
 		{#if mimeType?.specific === 'html' || mimeType?.specific === 'pdf'}
 			<iframe
 				title=""
 				src={servePath}
 				frameborder="0"
+				class="w-full h-full"
 				sandbox={mimeType?.specific === 'html'
 					? HTML_SANDBOX_ATTR
 					: PDF_SANDBOX_ATTR}
-			/>
+			></iframe>
 		{/if}
 	</section>
 </main>
 
 <ErrorTray />
 
-<style lang="scss">
-	@use '../../../lib/styles/variables.scss' as *;
-	.font-container {
-		display: flex;
-		flex-wrap: wrap;
-		font-family: 'placeholder', Arial;
-		align-content: center;
-		height: 100%;
-		max-width: 60ch;
-		margin: auto;
-	}
-
-	.font-container p {
-		padding: 5px;
-		font-size: 2rem;
-	}
-
-	main {
-		height: 100%;
-		width: 100%;
-	}
-
-	p {
-		white-space: pre-wrap;
-		max-width: 80ch;
-		font-size: 1.1rem;
-		margin-inline: auto;
-		padding-block: min(100px, calc((100% - 80ch) / 2));
-	}
-
-	iframe {
-		width: 100%;
-		height: 100%;
-	}
-
-	audio {
-		width: 100%;
-	}
-
-	section {
-		background-color: $main-content-bg;
-		color: $main-content-text-color;
-		padding: 20px;
-		height: 100%;
-		width: 100%;
-		overflow: auto;
-		scroll-behavior: smooth;
-	}
-
-	.markdown-content {
-		--max-width: 90ch;
-		max-width: var(--max-width);
-		margin-inline: auto;
-		padding-block: min(100px, calc((100% - var(--max-width)) / 2));
-	}
-
-	.center {
-		display: grid;
-		place-items: center;
-		height: 100%;
-		overflow: auto;
-	}
-
-	@media screen and (min-width: $size-1) {
-		main {
-			display: grid;
-			grid-template-columns: auto 1fr;
-		}
-
+<style>
+	/* Global styles for code blocks and root font size */
+	@media screen and (min-width: 800px) {
 		:global(pre code) {
 			font-size: 1.1rem;
 		}
 	}
 
-	@media screen and (min-width: $size-2) {
+	@media screen and (min-width: 1100px) {
 		:root {
 			font-size: 18px;
 		}

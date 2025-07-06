@@ -1,14 +1,18 @@
 <!-- inspired by vscode's file/command palette -->
+<!-- TODO: after it reaches half way, the view is always at the middle as you go down. this is not intended-->
 <script lang="ts">
-	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
 	import Fuse from 'fuse.js';
-	import * as mappings from '../../key-mappings';
-	import { modalState, files, addToastError } from '../../stores';
+	import * as mappings from '$lib/client-utils/key-mappings';
+	import { modalState, files, addToastError } from '$lib/stores/index';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
+	import { Button } from '$lib/components/ui/button';
+	import { Search, X, Folder } from '@lucide/svelte';
 
-	import type { WalkDirItem } from '../../mem-fs';
+	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
+	import { cn } from '$lib/utils';
 	interface File {
 		parents: string;
 		name: string;
@@ -23,7 +27,6 @@
 	let fuse: Fuse<string>;
 	let query = '';
 	let input: HTMLInputElement;
-	let currentSelected: Element | null;
 
 	function addToFlattenedArr(
 		item: WalkDirItem,
@@ -57,7 +60,7 @@
 	async function setFilteredDirectoryResults() {
 		const res = await fetch(
 			// vite has some weird thing where if a query=../.. it will try to parse it ig
-			`/info?action=new-base-dir-search&query=` + encodeURIComponent(query)
+			`/api/new-base-dir-search?query=` + encodeURIComponent(query)
 		);
 
 		const json = (await res.json()) as { files: string[]; homedir: string };
@@ -95,17 +98,11 @@
 		return;
 	}
 
-	modalState.subscribe(async () => {
-		if (!browser) {
-			return;
-		}
-
-		if ($modalState === '') {
-			return;
-		}
-
+	// Reactive statement that runs immediately when modalState changes
+	$: if ($modalState && browser) {
+		// Focus input immediately when modal opens
 		if (input) {
-			setTimeout(() => input.focus(), 100);
+			input.focus();
 		}
 
 		query = '';
@@ -130,14 +127,16 @@
 			filteredResults = [];
 			setFilteredDirectoryResults().catch(console.error);
 		}
-	});
+	}
 
-	function changeSelected(newSelected?: Element | null) {
-		if (newSelected) {
-			currentSelected?.classList.remove('selected');
-			newSelected?.classList.add('selected');
-			currentSelected = newSelected;
-			newSelected.scrollIntoView({ block: 'center' });
+	function changeSelected(direction: 'next' | 'prev') {
+		const currentSelected = document.querySelector('button.selected');
+		const nextElement = direction === 'next' ? currentSelected?.nextElementSibling : currentSelected?.previousElementSibling;
+		
+		if (currentSelected && nextElement) {
+			currentSelected.classList.remove('selected');
+			nextElement.classList.add('selected');
+			nextElement.scrollIntoView({ block: 'center' });
 		}
 	}
 
@@ -152,25 +151,33 @@
 			ev.preventDefault();
 		}
 
-		if (!currentSelected) {
-			currentSelected = document.querySelector('.selected');
-		}
 
 		if (
 			ev.key === 'Escape' ||
 			(ev.ctrlKey && (ev.key === 'p' || ev.key === 'o' || ev.key === '['))
 		) {
 			modalState.set('');
+			return;
 		}
 
-		if (ev.key === 'm' && ev.ctrlKey) {
-			handleSubmit();
+		if (ev.key === "Enter" || (ev.key === 'm' && ev.ctrlKey )) {
+			handleItemSubmission(document.querySelector('button.selected')?.getAttribute('data-href') || '');
 		}
 
 		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
 		const isShiftTab = ev.key === 'Tab' && ev.shiftKey;
 
 		if ($modalState === 'choose-directory') {
+			if (ev.key === 'ArrowDown' || (ev.key === 'j' && ev.ctrlKey)) {
+				changeSelected('next');
+				return;
+			}
+
+			if (ev.key === 'ArrowUp' || (ev.key === 'k' && ev.ctrlKey)) {
+				changeSelected('prev');
+				return;
+			}
+
 			if (isShiftTab) {
 				return;
 			}
@@ -189,49 +196,41 @@
 				}
 
 				setFilteredDirectoryResults().catch(console.error);
-				return;
 			}
+
+			return;
 		}
+
 
 		if (
 			isNormalTab ||
 			ev.key === 'ArrowDown' ||
 			(ev.ctrlKey && ev.key === 'j')
 		) {
-			const nextElement = currentSelected?.nextElementSibling;
-			return changeSelected(nextElement);
+			return changeSelected('next');
 		}
 
 		if (isShiftTab || ev.key === 'ArrowUp' || (ev.ctrlKey && ev.key === 'k')) {
-			const prevElement = currentSelected?.previousElementSibling;
-			return changeSelected(prevElement);
+			return changeSelected('prev');
 		}
 	}
 
-	function handleSubmit() {
-		if (!currentSelected) {
-			currentSelected = document.querySelector('.selected');
-		}
-
-		const href =
-			$modalState === 'choose-directory'
-				? query
-				: currentSelected?.getAttribute('data-href');
-
+	function handleItemSubmission(href: string) {
 		if (!href) {
 			return;
 		}
 
 		if ($modalState === 'choose-file') {
-			goto('/preview/' + href).catch((err) => {
+			modalState.set('');
+			goto(href).catch((err) => {
 				if (err.message) {
 					addToastError(err.message);
 				}
 			});
 		} else {
-			fetch('/info', {
+			fetch('/api/new-base-dir', {
 				method: 'POST',
-				body: JSON.stringify({ action: 'new-base-dir', dir: href }),
+				body: JSON.stringify({ dir: href }),
 				headers: {
 					'Content-Type': 'application/json'
 				}
@@ -245,11 +244,9 @@
 					}
 				});
 		}
-
-		modalState.set('');
 	}
 
-	async function handleInput() {
+	async function handleInput(_: Event) {
 		if ($modalState === 'choose-directory') {
 			return setFilteredDirectoryResults().catch(console.error);
 		}
@@ -261,148 +258,82 @@
 				return flattenedResults![e.refIndex];
 			});
 		}
+	}
 
-		currentSelected = document.querySelector('.selected');
+	function getPreviewPath(path: string) {
+		if ($modalState === 'choose-file') {
+			return '/preview/' + path.replace(/^\.?\//, '').replace(/\\/g, '/');
+		}
+
+		return path;
 	}
 </script>
 
-<dialog open={!!$modalState} on:click|self={() => modalState.set('')}>
-	<form on:submit|preventDefault={handleSubmit}>
-		<div class="input-container">
-			<div>
-				<label for="query"
-					>{$modalState === 'choose-directory' ? 'Folder:' : 'File:'}</label
-				>
-				<input
-					type="text"
-					id="query"
-					autocomplete="off"
-					autocapitalize="off"
-					autocorrect="off"
-					bind:this={input}
-					bind:value={query}
-					on:keydown={handleKeydown}
-					on:input={handleInput}
-				/>
+<Dialog open={$modalState === 'choose-file' || $modalState === 'choose-directory'}>
+	<!-- <DialogOverlay /> -->
+	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0" onkeydown={handleKeydown} oninput={handleInput}>
+		<div 
+			class="w-full"
+		>
+			<div class="p-1.5 text-popover-foreground">
+				<div class="flex items-center bg-popover pl-1.5">
+					<label for="palette-search" class="sr-only">Search files</label>
+					<Search class="w-5 h-5 text-muted-foreground mr-2" />
+					<input
+						id="palette-search"
+						class="flex-1 bg-transparent outline-none border-none text-base placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+						type="text"
+						placeholder="Type to search..."
+						bind:value={query}
+						autocomplete="off"
+						autocapitalize="off"
+						autocorrect="off"
+						onkeydown={handleKeydown}
+						oninput={handleInput}
+						bind:this={input}
+					/>
+					<Button type="button" variant="ghost" size="icon" onclick={() => modalState.set('')}
+						class="ml-2">
+						<X class="w-5 h-5" />
+					</Button>
+				</div>
+			</div>
+			<div class="max-h-[60vh] overflow-auto" tabindex="-1">
+				{#if filteredResults.length > 0}
+					{#each filteredResults as file, i (file.parents + '/' + file.name)}
+					{@const href = getPreviewPath(file.parents + '/' + file.name)}
+						<button
+							type="button"
+							data-href={href}
+							class={
+							cn(
+								"flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground",
+								i == filteredResults.length - 1 && 'rounded-sm'
+							)}
+							class:selected={i === 0}
+							onclick={() => handleItemSubmission(href)}
+						>
+							{#if $modalState === 'choose-file'}
+								<FileIcon fileName={file.name} size="20px" />
+							{:else}
+								<Folder />
+							{/if}
+							<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
+							<span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{file.parents}</span>
+						</button>
+					{/each}
+				{:else}
+					<p class="text-popover-foreground p-1.5 px-2.5">No matching results.</p>
+				{/if}
 			</div>
 		</div>
+	</DialogContent>
+</Dialog>
 
-		<div class="button-container" tabindex="-1">
-			{#if filteredResults.length > 0}
-				{#each filteredResults as file, i (file.parents + '/' + file.name)}
-					<button
-						data-href={file.parents + '/' + file.name}
-						class:selected={$modalState === 'choose-file' && i === 0}
-					>
-						{#if $modalState === 'choose-file'}
-							<FileIcon fileName={file.name} size="20px" />
-						{:else}
-							<Icon name="folder" />
-						{/if}
-						<span class="specific">{file.name}</span>
-						<span class="parent">{file.parents}</span>
-					</button>
-				{/each}
-			{:else}
-				<p>No matching results.</p>
-			{/if}
-		</div>
-	</form>
-</dialog>
-
-<style lang="scss">
-	@use '../styles/variables.scss' as *;
-
-	dialog {
-		position: absolute;
-		background-color: transparent;
-		height: 100%;
-		width: 100%;
-		border: none;
-		z-index: 3;
-	}
-
-	form {
-		background-color: $file-palette-bg;
-		color: $file-palette-text-color;
-		border: 2px solid $file-palette-border-color;
-		box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
-		margin: 10px auto;
-		width: 800px;
-		max-width: 90%;
-	}
-
-	.button-container {
-		max-height: 60vh;
-		overflow: auto;
-	}
-
-	.input-container {
-		padding: 5px;
-		color: white;
-	}
-
-	.input-container div {
-		display: flex;
-		align-items: center;
-		background-color: $file-palette-input-bg;
-		padding-left: 5px;
-	}
-
-	.input-container div:focus-within {
-		outline: 2px solid $file-palette-input-focus-outline-color;
-	}
-
-	input {
-		height: 100%;
-		padding: 5px;
-		width: 100%;
-		border: none;
-		color: $file-palette-input-text-color;
-		background-color: transparent;
-		font-size: 0.8rem;
-	}
-
-	input:focus {
-		outline: none;
-	}
-
-	button {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		width: 100%;
-		text-align: start;
-		background-color: $file-palette-item-bg;
-		color: $file-palette-item-text-color;
-		padding: 2px 10px;
-		border: none;
-		font-size: 1rem;
-	}
-
-	span {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	p {
-		color: white;
-		padding: 5px 10px;
-	}
-
+<style>
 	.selected {
 		outline: none;
-		background-color: $file-palette-item-selected-bg;
-		color: $file-palette-item-selected-text-color;
-	}
-
-	button:hover {
-		background-color: $file-palette-item-hover-bg;
-		color: $file-palette-item-hover-text-color;
-	}
-
-	.parent {
-		color: $file-palette-sub-text-color;
+		background-color: var(--accent);
+		color: var(--accent-foreground);
 	}
 </style>

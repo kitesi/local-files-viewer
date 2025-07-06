@@ -33,20 +33,21 @@
 </script>
 
 <script lang="ts">
-	import Icon from './Icon.svelte';
 	import FileIcon from './FileIcon.svelte';
-	import { files, isSidebarOpen, abortController } from '../../stores';
+	import { Folder } from '@lucide/svelte';
+	import { files, isSidebarOpen, abortController } from '$lib/stores/index';
 
 	import { page } from '$app/stores';
 
-	import { getWalkdirItem } from '../../get-walkdir-item';
-	import type { WalkDirItem } from '../../mem-fs';
+	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
+	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
+	import { cn } from '$lib/utils';
 
 	export let item: WalkDirItem;
 	export let parentPath: string;
 
 	const href = parentPath + '/' + item.name;
-	const isActive = '/' + $page.params.file === href;
+	$: isActive = '/' + $page.params.file === href;
 
 	let shouldCollapse = true;
 	let liElement: HTMLLIElement;
@@ -64,7 +65,7 @@
 	}
 
 	async function collapseDirectory() {
-		liElement.classList.toggle('collapse');
+		liElement.classList.toggle('is-collapsed');
 
 		const dataHref = liElement.getAttribute('data-href');
 
@@ -73,7 +74,7 @@
 		}
 
 		const res = await fetch(
-			`/info?dir=${dataHref}/&depth=1&action=complete-search`
+			`/api/complete-search?dir=${dataHref}/&depth=1`
 		);
 		const json = await res.json();
 
@@ -91,19 +92,29 @@
 
 <li
 	bind:this={liElement}
-	class:collapse={shouldCollapse}
+	class={cn("my-2.5", isActive && "bg-sidebar-accent")}
+	class:is-collapsed={shouldCollapse}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
 		: null}
+
 >
 	{#if item.isDirectory}
-		<button on:click={collapseDirectory}>
-			<Icon name="folder" />
-			<span>{item.name}</span>
+		<button 
+			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center px-4"
+			on:click={collapseDirectory}
+		>
+			<Folder />
+			<span class="overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>
 		</button>
 	{:else}
-		<!-- could have id set to the actual expression in isAsctive and remove switchActive(ev), not sure which is move preformant -->
+		<!-- could have id set to the actual expression in isActive and remove switchActive(ev), not sure which is move preformant -->
 		<a
+			class={
+				cn(
+					"text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap px-4",
+				)
+			}
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);
@@ -116,58 +127,10 @@
 		</a>
 	{/if}
 	{#if item.children}
-		<ul>
+		<ul class="ml-2.5 list-none">
 			{#each item.children as child (child.name)}
 				<svelte:self item={child} parentPath={href} />
 			{/each}
 		</ul>
 	{/if}
 </li>
-
-<style lang="scss">
-	@use '../styles/variables.scss' as *;
-	ul {
-		margin-left: 10px;
-		list-style-type: none;
-	}
-
-	li {
-		padding-inline: 5px;
-		/* use collapsing margins */
-		margin-block: 10px;
-	}
-
-	a,
-	button {
-		color: inherit;
-		display: flex;
-		gap: 8px;
-		align-items: center;
-	}
-
-	button {
-		background-color: transparent;
-		width: 100%;
-		border: none;
-		font-size: inherit;
-	}
-
-	button:hover {
-		text-decoration: underline;
-	}
-
-	#active {
-		color: $sidebar-active-text-color;
-	}
-
-	a:hover,
-	button:hover {
-		color: $sidebar-hover-text-color;
-	}
-
-	span {
-		overflow: hidden;
-		text-overflow: '..';
-		white-space: nowrap;
-	}
-</style>

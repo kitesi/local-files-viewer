@@ -1,4 +1,4 @@
-import type { WalkDirItem } from './mem-fs';
+import type { WalkDirItem } from '../server-utils/mem-fs';
 
 export function getWalkdirItem(paths: string[], files: WalkDirItem) {
 	let current: WalkDirItem = files;

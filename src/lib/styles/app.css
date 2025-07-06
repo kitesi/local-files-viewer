@@ -1,0 +1,297 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+	--radius: 0.625rem;
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.129 0.042 264.695);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.129 0.042 264.695);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.129 0.042 264.695);
+	--primary: oklch(0.208 0.042 265.755);
+	--primary-foreground: oklch(0.984 0.003 247.858);
+	--secondary: oklch(0.968 0.007 247.896);
+	--secondary-foreground: oklch(0.208 0.042 265.755);
+	--muted: oklch(0.968 0.007 247.896);
+	--muted-foreground: oklch(0.554 0.046 257.417);
+	--accent: oklch(0.968 0.007 247.896);
+	--accent-foreground: oklch(0.208 0.042 265.755);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.929 0.013 255.508);
+	--input: oklch(0.929 0.013 255.508);
+	--ring: oklch(0.704 0.04 256.788);
+	--chart-1: oklch(0.646 0.222 41.116);
+	--chart-2: oklch(0.6 0.118 184.704);
+	--chart-3: oklch(0.398 0.07 227.392);
+	--chart-4: oklch(0.828 0.189 84.429);
+	--chart-5: oklch(0.769 0.188 70.08);
+	--sidebar: oklch(0.984 0.003 247.858);
+	--sidebar-foreground: oklch(0.129 0.042 264.695);
+	--sidebar-primary: oklch(0.208 0.042 265.755);
+	--sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+	--sidebar-accent: oklch(0.968 0.007 247.896);
+	--sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+	--sidebar-border: oklch(0.929 0.013 255.508);
+	--sidebar-ring: oklch(0.704 0.04 256.788);
+
+	/* for markdown styling */
+	--markdown-focus-outlineColor: #0969da;
+	--markdown-fgColor-default: #1f2328;
+	--markdown-fgColor-muted: #59636e;
+	--markdown-fgColor-accent: #0969da;
+	--markdown-fgColor-success: #1a7f37;
+	--markdown-fgColor-attention: #9a6700;
+	--markdown-fgColor-danger: #d1242f;
+	--markdown-fgColor-done: #8250df;
+	--markdown-bgColor-default: #ffffff;
+	--markdown-bgColor-muted: #f6f8fa;
+	--markdown-bgColor-neutral-muted: #818b981f;
+	--markdown-bgColor-attention-muted: #fff8c5;
+	--markdown-borderColor-default: #d1d9e0;
+	--markdown-borderColor-muted: #d1d9e0b3;
+	--markdown-borderColor-neutral-muted: #d1d9e0b3;
+	--markdown-borderColor-accent-emphasis: #0969da;
+	--markdown-borderColor-success-emphasis: #1a7f37;
+	--markdown-borderColor-attention-emphasis: #9a6700;
+	--markdown-borderColor-danger-emphasis: #cf222e;
+	--markdown-borderColor-done-emphasis: #8250df;
+	--markdown-color-prettylights-syntax-comment: #59636e;
+	--markdown-color-prettylights-syntax-constant: #0550ae;
+	--markdown-color-prettylights-syntax-constant-other-reference-link: #0a3069;
+	--markdown-color-prettylights-syntax-entity: #6639ba;
+	--markdown-color-prettylights-syntax-storage-modifier-import: #1f2328;
+	--markdown-color-prettylights-syntax-entity-tag: #0550ae;
+	--markdown-color-prettylights-syntax-keyword: #cf222e;
+	--markdown-color-prettylights-syntax-string: #0a3069;
+	--markdown-color-prettylights-syntax-variable: #953800;
+	--markdown-color-prettylights-syntax-brackethighlighter-unmatched: #82071e;
+	--markdown-color-prettylights-syntax-brackethighlighter-angle: #59636e;
+	--markdown-color-prettylights-syntax-invalid-illegal-text: #f6f8fa;
+	--markdown-color-prettylights-syntax-invalid-illegal-bg: #82071e;
+	--markdown-color-prettylights-syntax-carriage-return-text: #f6f8fa;
+	--markdown-color-prettylights-syntax-carriage-return-bg: #cf222e;
+	--markdown-color-prettylights-syntax-string-regexp: #116329;
+	--markdown-color-prettylights-syntax-markup-list: #3b2300;
+	--markdown-color-prettylights-syntax-markup-heading: #0550ae;
+	--markdown-color-prettylights-syntax-markup-italic: #1f2328;
+	--markdown-color-prettylights-syntax-markup-bold: #1f2328;
+	--markdown-color-prettylights-syntax-markup-deleted-text: #82071e;
+	--markdown-color-prettylights-syntax-markup-deleted-bg: #ffebe9;
+	--markdown-color-prettylights-syntax-markup-inserted-text: #116329;
+	--markdown-color-prettylights-syntax-markup-inserted-bg: #dafbe1;
+	--markdown-color-prettylights-syntax-markup-changed-text: #953800;
+	--markdown-color-prettylights-syntax-markup-changed-bg: #ffd8b5;
+	--markdown-color-prettylights-syntax-markup-ignored-text: #d1d9e0;
+	--markdown-color-prettylights-syntax-markup-ignored-bg: #0550ae;
+	--markdown-color-prettylights-syntax-meta-diff-range: #8250df;
+	--markdown-color-prettylights-syntax-sublimelinter-gutter-mark: #818b98;
+}
+
+.dark {
+	/* Tokyo Night inspired dark theme */
+	--background: oklch(0.08 0.02 240); /* Deep blue-black background */
+	--foreground: oklch(0.95 0.01 240); /* Soft white text */
+	--card: oklch(0.12 0.03 240); /* Slightly lighter card background */
+	--card-foreground: oklch(0.95 0.01 240);
+	--popover: #000000;
+	--popover-foreground: oklch(0.95 0.01 240);
+	--primary: oklch(0.65 0.15 250); /* Tokyo Night blue */
+	--primary-foreground: oklch(0.08 0.02 240);
+	--secondary: oklch(0.15 0.04 240); /* Subtle secondary */
+	--secondary-foreground: oklch(0.9 0.01 240);
+	--muted: oklch(0.15 0.04 240);
+	--muted-foreground: oklch(0.6 0.05 240); /* Softer muted text */
+	--accent: oklch(0.18 0.05 240); /* Slightly more prominent accent */
+	--accent-foreground: oklch(0.95 0.01 240);
+	--destructive: oklch(0.7 0.2 15); /* Tokyo Night red */
+	--border: var(--sidebar-border); /* Subtle borders */
+	--input: oklch(0.15 0.04 240);
+	--ring: oklch(0.65 0.15 250); /* Primary color for focus rings */
+	--chart-1: oklch(0.65 0.15 250); /* Tokyo Night blue */
+	--chart-2: oklch(0.7 0.12 180); /* Teal */
+	--chart-3: oklch(0.75 0.15 70); /* Green */
+	--chart-4: oklch(0.8 0.2 30); /* Orange */
+	--chart-5: oklch(0.7 0.2 15); /* Red */
+	--sidebar: oklch(0.1 0.025 240); /* Slightly darker sidebar */
+	--sidebar-foreground: oklch(0.9 0.01 240);
+	--sidebar-primary: #1f252b; /* Tokyo Night blue */
+	--sidebar-primary-foreground: oklch(0.08 0.02 240);
+	--sidebar-accent: #11161a;
+	--sidebar-accent-foreground: oklch(0.9 0.01 240);
+	--sidebar-border: #11161a;
+	--sidebar-ring: oklch(0.65 0.15 250);
+
+	--markdown-focus-outlineColor: #1f6feb;
+	--markdown-fgColor-default: #f0f6fc;
+	--markdown-fgColor-muted: #9198a1;
+	--markdown-fgColor-accent: #4493f8;
+	--markdown-fgColor-success: #3fb950;
+	--markdown-fgColor-attention: #d29922;
+	--markdown-fgColor-danger: #f85149;
+	--markdown-fgColor-done: #ab7df8;
+	--markdown-bgColor-default: #0d1117;
+	--markdown-bgColor-muted: #151b23;
+	--markdown-bgColor-neutral-muted: #656c7633;
+	--markdown-bgColor-attention-muted: #bb800926;
+	--markdown-borderColor-default: #3d444d;
+	--markdown-borderColor-muted: #3d444db3;
+	--markdown-borderColor-neutral-muted: #3d444db3;
+	--markdown-borderColor-accent-emphasis: #1f6feb;
+	--markdown-borderColor-success-emphasis: #238636;
+	--markdown-borderColor-attention-emphasis: #9e6a03;
+	--markdown-borderColor-danger-emphasis: #da3633;
+	--markdown-borderColor-done-emphasis: #8957e5;
+	--markdown-color-prettylights-syntax-comment: #9198a1;
+	--markdown-color-prettylights-syntax-constant: #79c0ff;
+	--markdown-color-prettylights-syntax-constant-other-reference-link: #a5d6ff;
+	--markdown-color-prettylights-syntax-entity: #d2a8ff;
+	--markdown-color-prettylights-syntax-storage-modifier-import: #f0f6fc;
+	--markdown-color-prettylights-syntax-entity-tag: #7ee787;
+	--markdown-color-prettylights-syntax-keyword: #ff7b72;
+	--markdown-color-prettylights-syntax-string: #a5d6ff;
+	--markdown-color-prettylights-syntax-variable: #ffa657;
+	--markdown-color-prettylights-syntax-brackethighlighter-unmatched: #f85149;
+	--markdown-color-prettylights-syntax-brackethighlighter-angle: #9198a1;
+	--markdown-color-prettylights-syntax-invalid-illegal-text: #f0f6fc;
+	--markdown-color-prettylights-syntax-invalid-illegal-bg: #8e1519;
+	--markdown-color-prettylights-syntax-carriage-return-text: #f0f6fc;
+	--markdown-color-prettylights-syntax-carriage-return-bg: #b62324;
+	--markdown-color-prettylights-syntax-string-regexp: #7ee787;
+	--markdown-color-prettylights-syntax-markup-list: #f2cc60;
+	--markdown-color-prettylights-syntax-markup-heading: #1f6feb;
+	--markdown-color-prettylights-syntax-markup-italic: #f0f6fc;
+	--markdown-color-prettylights-syntax-markup-bold: #f0f6fc;
+	--markdown-color-prettylights-syntax-markup-deleted-text: #ffdcd7;
+	--markdown-color-prettylights-syntax-markup-deleted-bg: #67060c;
+	--markdown-color-prettylights-syntax-markup-inserted-text: #aff5b4;
+	--markdown-color-prettylights-syntax-markup-inserted-bg: #033a16;
+	--markdown-color-prettylights-syntax-markup-changed-text: #ffdfb6;
+	--markdown-color-prettylights-syntax-markup-changed-bg: #5a1e02;
+	--markdown-color-prettylights-syntax-markup-ignored-text: #f0f6fc;
+	--markdown-color-prettylights-syntax-markup-ignored-bg: #1158c7;
+	--markdown-color-prettylights-syntax-meta-diff-range: #d2a8ff;
+	--markdown-color-prettylights-syntax-sublimelinter-gutter-mark: #3d444d;
+}
+
+@theme inline {
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	--breakpoint-csmall: 800px;
+	--breakpoint-cmedium: 1100px;
+	--breakpoint-clarge: 1600px;
+	--breakpoint-cxlarge: 1750px;
+}
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('/fonts/roboto-regular.woff') format('woff');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('/fonts/roboto-medium.woff') format('woff');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('/fonts/roboto-bold.woff') format('woff');
+	font-weight: 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@layer base {
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+
+	::-webkit-scrollbar {
+		display: none;
+	}
+
+	html {
+		font-family: 'Roboto', Arial, sans-serif;
+		height: 100%;
+	}
+
+	body {
+		height: 100%;
+	}
+
+	button {
+		font-family: 'Roboto', Arial, sans-serif;
+	}
+
+	button:hover {
+		cursor: pointer;
+	}
+
+	a {
+		color: oklch(0.65 0.15 250);
+		text-decoration: none;
+	}
+
+	a:hover {
+		color: oklch(0.75 0.18 250);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.dark a {
+		color: oklch(0.7 0.18 250);
+	}
+
+	.dark a:hover {
+		color: oklch(0.8 0.2 250);
+	}
+}
+
+@utility scrollbar-none {
+	@apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
