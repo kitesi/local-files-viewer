@@ -6,7 +6,7 @@
 </script>
 
 <button 
-	class="flex items-center gap-2 p-2 pl-4 whitespace-nowrap text-ellipsis overflow-hidden border-none border-b-2 border-border bg-sidebar-accent/90 text-sidebar-foreground hover:bg-sidebar-accent/100 transition-colors duration-200 w-full cursor-pointer font-semibold uppercase tracking-wide text-xs"
+	class="flex items-center gap-2 p-2 pl-4 whitespace-nowrap text-ellipsis overflow-hidden border-b-2 border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-200 w-full cursor-pointer font-semibold uppercase tracking-wide text-xs"
 	class:open={open} 
 	on:click={() => (open = !open)}
 >

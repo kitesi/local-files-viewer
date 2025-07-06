@@ -147,7 +147,7 @@
 </script>
 
 <Dialog open={$modalState === 'search'}>
-	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg mx-auto p-0 font-mono max-w-5xl w-[1200px] overflow-hidden" size="none" onkeydown={handleKeydown}>
+	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg p-0 font-mono max-w-5xl overflow-hidden" size="none" onkeydown={handleKeydown}>
 		<div class="w-full h-[70vh] flex flex-col">
 			<div class="flex items-center border-b border-border bg-popover px-4 py-2 text-base min-w-0">
 				<Search class="w-5 h-5 text-muted-foreground mr-2" />
@@ -166,7 +166,7 @@
 				/>
 			</div>
 			<div class="grid grid-cols-[40%_60%] flex-1 h-0 rounded-lg min-w-0 ">
-				<div class="border-r border-border overflow-y-auto overflow-x-hidden">
+				<div class="border-r border-border overflow-y-auto overflow-x-hidden scrollbar-none">
 					{#if query.length < 3}
 						<div class="py-8 text-center text-muted-foreground text-base">Type at least 3 characters to search…</div>
 					{:else if isLoading}

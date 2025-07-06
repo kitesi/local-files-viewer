@@ -92,7 +92,7 @@
 
 <li
 	bind:this={liElement}
-	class={cn("px-1.5 my-2.5", isActive && "bg-sidebar-accent")}
+	class={cn("my-2.5", isActive && "bg-sidebar-accent")}
 	class:is-collapsed={shouldCollapse}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
@@ -101,7 +101,7 @@
 >
 	{#if item.isDirectory}
 		<button 
-			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center"
+			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center px-4"
 			on:click={collapseDirectory}
 		>
 			<Folder />
@@ -112,8 +112,7 @@
 		<a
 			class={
 				cn(
-					"text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap",
-					isActive && "text-blue-800 dark:text-blue-400"
+					"text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap px-4",
 				)
 			}
 			on:click={(ev) => {

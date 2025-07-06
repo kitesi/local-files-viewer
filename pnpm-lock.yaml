@@ -20,6 +20,9 @@ importers:
       html-escaper:
         specifier: ^3.0.3
         version: 3.0.3
+      local-files-viewer:
+        specifier: 'link:'
+        version: 'link:'
       mime-types:
         specifier: ^2.1.35
         version: 2.1.35

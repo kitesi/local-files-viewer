@@ -132,7 +132,7 @@
 			open={true}
 			icon="folder"
 		>
-			<ul class="ml-4 list-none">
+			<ul class="list-none">
 				{#if $files.children && $files.children.length > 0}
 					{#each $files.children as child (child.name)}
 						<SidebarFileItem item={child} parentPath="" />
@@ -272,13 +272,4 @@
 		display: none;
 	}
 
-	/* Hide scrollbars */
-	.scrollbar-none {
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-	}
-
-	.scrollbar-none::-webkit-scrollbar {
-		display: none;
-	}
 </style>
