@@ -68,24 +68,72 @@ palette mode:
 
 `ctrl+[`, `Escape` => close palette
 
-## Technologies / Attribution
+## Live View & Neovim Integration
 
-- SvelteKit, typescript, SCSS, etc..
-- remark: used to render markdown
-- shiki: used for syntax highlighting, mdsvex includes prismjs
-  by default, but I don't like how they handle line highlights
-- Took some inspiration from vscode ui
-- Icons
-  - [feather](https://feathericons.com/), only used `hash`, `file`, and `folder`, `arrow-[right|down]`, and
-    `chevron-[right|down]`
-  - [simple-icons](https://simpleicons.org/), used for language file icons
+This program automatically reloads the content when the current file is changed. If you would like to sync up the cursor position of neovim to the program then you can use the following configuration:
 
-## Future
+```lua
+local uv = vim.loop
 
-- Look into optimizations of reading and showing content
-- Handle large directories more gracefully. Originally the idea was to load x amount deep, then when the user
-  requests load more, but with the file picker I switched it back to loading
-  recursively as much as needed.
-- Error handling
-  - Remove the need for two states of errors.
-  - You should be able to change the base directory on the error page.
+function OpenLfv()
+	local current_dir = vim.fn.getcwd()
+	local buffer_file = vim.fn.expand("%:p")
+	local buffer_dir = vim.fn.fnamemodify(buffer_file, ":h")
+	local target_dir = vim.fn.isdirectory(current_dir) == 1 and current_dir or buffer_dir
+
+	if vim.fn.isdirectory(target_dir) == 1 then
+		vim.cmd("tabnew | terminal lfv " .. vim.fn.shellescape(target_dir))
+
+		local relative_path = vim.fn.fnamemodify(buffer_file, ":~:.")
+		if relative_path:sub(1, #target_dir) == target_dir then
+			relative_path = relative_path:sub(#target_dir + 2)
+		end
+
+		-- Launch browser after delay
+		vim.fn.jobstart("sleep 2", {
+			on_exit = function()
+				local url = "http://localhost:4173/preview/" .. relative_path
+				vim.fn.jobstart({ "xdg-open", url }, { detach = true })
+			end,
+		})
+
+		-- Create autocmd to track cursor movements
+		local debounce_timer = nil
+		local group = vim.api.nvim_create_augroup("LfvLineSync", { clear = true })
+
+		vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+			group = group,
+			callback = function()
+				if debounce_timer then
+					debounce_timer:stop()
+					debounce_timer:close()
+				end
+
+				debounce_timer = vim.loop.new_timer()
+				debounce_timer:start(
+					150,
+					0,
+					vim.schedule_wrap(function()
+						local line = vim.fn.line(".")
+						local payload = string.format('{"file": "%s", "line": %d}', relative_path, line)
+
+						vim.fn.jobstart({
+							"curl",
+							"-X",
+							"POST",
+							"-H",
+							"Content-Type: application/json",
+							"-d",
+							payload,
+							"http://localhost:4173/api/cursor-watcher",
+						}, { detach = true })
+					end)
+				)
+			end,
+		})
+	else
+		print("No valid directory found.")
+	end
+end
+vim.cmd("command! Lfv lua OpenLfv()")
+```

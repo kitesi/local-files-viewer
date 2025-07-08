@@ -56,23 +56,49 @@
 
 		// Set up SSE connection for file watching
 		if (browser) {
-			const eventSource = new EventSource('/api/file-watcher');
+			const fileWatcherEventSource = new EventSource('/api/file-watcher');
 			
-			eventSource.onmessage = (event) => {
+			fileWatcherEventSource.onmessage = (event) => {
 				const data = JSON.parse(event.data);
 				if (data.type === 'file-changed') {
+					console.log('File change detected via SSE');
+					
+					// Trigger content refresh
+					html = '';
+					content = '';
+					maximizeCodeBlockWidth = false;
 					stats = { size: data.size };
 					fetchContent();
 				}
 			};
 
-			eventSource.onerror = (error) => {
+			fileWatcherEventSource.onerror = (error) => {
 				console.error('SSE connection error:', error);
+			};
+
+			// Set up cursor tracking SSE
+			const cursorEventSource = new EventSource('/api/cursor-watcher');
+			
+			cursorEventSource.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				if (data.type === 'cursor-changed') {
+					// update the url to #LXY
+					const line = data.line;
+					const hash = `#L${line}`;
+					window.history.pushState({}, '', hash);
+					const el = document.getElementById(hash.slice(1));
+					el?.scrollIntoView();
+				}
+			};
+
+			cursorEventSource.onerror = (error) => {
+				console.error('Cursor SSE connection error:', error);
 			};
 
 			// Clean up on component unmount
 			return () => {
-				eventSource.close();
+				fileWatcherEventSource.close();
+				cursorEventSource.close();
 			};
 		}
 	});
@@ -117,7 +143,7 @@
 
 	stores.files.set(files);
 
-	async function fetchContent(urlPrefix = '') {
+	async function fetchContent() {
 		if (
 			error ||
 			mimeType?.genre === 'audio' ||
@@ -289,7 +315,14 @@
 				</video>
 			{/key}
 		{:else if content}
-			<p class="whitespace-pre-wrap max-w-[80ch] text-lg mx-auto py-[min(100px,calc((100%-80ch)/2))]">{content}</p>
+			<p class="whitespace-pre-wrap max-w-[80ch] text-lg mx-auto py-[min(100px,calc((100%-80ch)/2))]">
+				{#each content.split('\n') as line, lineNumber}
+					<span id="L{lineNumber + 1}">
+						{line}
+					</span>
+					<br>
+				{/each}
+			</p>
 		{/if}
 		{#if mimeType?.specific === 'html' || mimeType?.specific === 'pdf'}
 			<iframe

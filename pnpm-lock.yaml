@@ -17,6 +17,9 @@ importers:
       fuse.js:
         specifier: ^6.6.2
         version: 6.6.2
+      hast:
+        specifier: ^1.0.0
+        version: 1.0.0
       html-escaper:
         specifier: ^3.0.3
         version: 3.0.3
@@ -81,6 +84,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.11(vite@6.2.6(@types/node@20.19.4)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.2))
+      '@types/hast':
+        specifier: ^3.0.4
+        version: 3.0.4
       '@types/html-escaper':
         specifier: ^3.0.4
         version: 3.0.4
@@ -93,6 +99,9 @@ importers:
       '@types/prismjs':
         specifier: ^1.26.5
         version: 1.26.5
+      '@types/unist':
+        specifier: ^3.0.3
+        version: 3.0.3
       '@types/uuid':
         specifier: ^9.0.8
         version: 9.0.8
@@ -911,6 +920,10 @@ packages:
 
   hast-util-whitespace@3.0.0:
     resolution: {integrity: sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==}
+
+  hast@1.0.0:
+    resolution: {integrity: sha512-vFUqlRV5C+xqP76Wwq2SrM0kipnmpxJm7OfvVXpB35Fp+Fn4MV+ozr+JZr5qFvyR1q/U+Foim2x+3P+x9S1PLA==}
+    deprecated: Renamed to rehype
 
   hastscript@9.0.1:
     resolution: {integrity: sha512-g7df9rMFX/SPi34tyGCyUBREQoKkapwdY/T04Qn9TDWfHhAYt4/I0gMVirzK5wEzeUqIjEB+LXC/ypb7Aqno5w==}
@@ -2266,6 +2279,8 @@ snapshots:
   hast-util-whitespace@3.0.0:
     dependencies:
       '@types/hast': 3.0.4
+
+  hast@1.0.0: {}
 
   hastscript@9.0.1:
     dependencies:

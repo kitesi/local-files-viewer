@@ -19,6 +19,7 @@ import { escape as escapeHtml } from 'html-escaper';
 
 import path from 'path';
 
+// todo: fix typing in this file
 interface UnistNode {
 	type: string;
 	value: string;
@@ -38,6 +39,21 @@ export interface BodyReturn {
 		words?: number;
 	};
 	[k: string]: any;
+}
+
+function rehypeAddLineNumbers() {
+	return (tree: any) => {
+		visit(tree, (node) => {
+			if (
+				node.position &&
+				node.properties &&
+				typeof node.position.start.line === 'number'
+			) {
+				node.properties['data-line'] = node.position.start.line;
+				node.properties['id'] = `L${node.position.start.line}`;
+			}
+		});
+	};
 }
 
 async function getFileContents(url: URL) {
@@ -88,6 +104,7 @@ async function getFileContents(url: URL) {
 					.use(rehypeRaw)
 					.use(rehypeSlug)
 					.use(rehypeStringify)
+					.use(rehypeAddLineNumbers)
 					.process(await readFile(filePath, 'utf-8'));
 
 				body.html = String(vfile).replace(
