@@ -1,4 +1,4 @@
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { walkdirBase } from '$lib/server-utils/mem-fs';
 import type { RequestHandler } from '@sveltejs/kit';
 import path from 'path';

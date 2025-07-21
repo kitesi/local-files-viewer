@@ -2,8 +2,9 @@ import os from 'os';
 import path from 'path';
 import { existsSync } from 'fs';
 import { readdir, stat } from 'fs/promises';
+import { getRootDirectory } from '$lib/server-utils/directory-variables';
 
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -16,6 +17,7 @@ async function oneLevelDirSearch(url: URL) {
 
 	let dir = query;
 
+	// trim the user input to get the directory we should be searching
 	if (query !== homedir && query !== '/' && !query.endsWith('/')) {
 		if (!query.includes('/')) {
 			dir = '';
@@ -32,6 +34,10 @@ async function oneLevelDirSearch(url: URL) {
 
 	if (!path.isAbsolute(dir)) {
 		dir = path.resolve(getBaseDirectory(), dir);
+	}
+
+	if (!dir.startsWith(getRootDirectory())) {
+		return json({ files: [], homedir });
 	}
 
 	if (!existsSync(dir)) {

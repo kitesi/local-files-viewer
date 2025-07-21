@@ -1,6 +1,6 @@
 import { readFile } from '$lib/server-utils/mem-fs';
 import { getMimeType } from '$lib/server-utils/get-mime-types';
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { highlighterWrapper } from '$lib/server-utils/highlight';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';

@@ -1,8 +1,9 @@
 import { existsSync } from 'fs';
 import {
 	setBaseDirectory,
-	getBaseDirectory
-} from '$lib/server-utils/base-directory';
+	getBaseDirectory,
+	getRootDirectory
+} from '$lib/server-utils/directory-variables';
 
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import path from 'path';
@@ -19,6 +20,10 @@ export const POST: RequestHandler = async function ({ request }) {
 
 	if (!path.isAbsolute(dir)) {
 		dir = path.resolve(getBaseDirectory(), dir);
+	}
+
+	if (!dir.startsWith(getRootDirectory())) {
+		return error(400, 'Directory is not in the root directory');
 	}
 
 	if (!existsSync(dir)) {
