@@ -32,9 +32,7 @@ async function oneLevelDirSearch(url: URL) {
 		}
 	}
 
-	if (!path.isAbsolute(dir)) {
-		dir = path.resolve(getBaseDirectory(), dir);
-	}
+	dir = path.resolve(getBaseDirectory(), dir);
 
 	if (!dir.endsWith(path.sep)) {
 		dir += path.sep;

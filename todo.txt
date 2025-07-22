@@ -7,3 +7,6 @@
 - Error handling
   - Remove the need for two states of errors.
   - You should be able to change the base directory on the error page.
+- Error text is white on white background
+- API is very loose and not consistent
+- Dont fetch every file on load... (for me it errors on /home/user page since I guess there's too many files recursively)

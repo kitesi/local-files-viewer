@@ -17,10 +17,7 @@ export const POST: RequestHandler = async function ({ request }) {
 	}
 
 	dir = dir.replace(/(?<!\\)~/, os.homedir());
-
-	if (!path.isAbsolute(dir)) {
-		dir = path.resolve(getBaseDirectory(), dir);
-	}
+	dir = path.resolve(getBaseDirectory(), dir);
 
 	if (!dir.endsWith(path.sep)) {
 		dir += path.sep;
