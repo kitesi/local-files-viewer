@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
@@ -93,7 +92,7 @@
 
 .dark {
 	/* Tokyo Night inspired dark theme */
-	--background: oklch(0.08 0.02 240); /* Deep blue-black background */
+	--background: #0d0d0d; /* Deep blue-black background */
 	--foreground: oklch(0.95 0.01 240); /* Soft white text */
 	--card: oklch(0.12 0.03 240); /* Slightly lighter card background */
 	--card-foreground: oklch(0.95 0.01 240);
@@ -116,13 +115,13 @@
 	--chart-3: oklch(0.75 0.15 70); /* Green */
 	--chart-4: oklch(0.8 0.2 30); /* Orange */
 	--chart-5: oklch(0.7 0.2 15); /* Red */
-	--sidebar: oklch(0.1 0.025 240); /* Slightly darker sidebar */
+	--sidebar: #111111; /* Slightly darker sidebar */
 	--sidebar-foreground: oklch(0.9 0.01 240);
 	--sidebar-primary: #1f252b; /* Tokyo Night blue */
 	--sidebar-primary-foreground: oklch(0.08 0.02 240);
-	--sidebar-accent: #11161a;
+	--sidebar-accent: #222324;
 	--sidebar-accent-foreground: oklch(0.9 0.01 240);
-	--sidebar-border: #11161a;
+	--sidebar-border: #292929;
 	--sidebar-ring: oklch(0.65 0.15 250);
 
 	--markdown-focus-outlineColor: #1f6feb;
