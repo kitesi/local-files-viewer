@@ -36,6 +36,10 @@ async function oneLevelDirSearch(url: URL) {
 		dir = path.resolve(getBaseDirectory(), dir);
 	}
 
+	if (!dir.endsWith(path.sep)) {
+		dir += path.sep;
+	}
+
 	if (!dir.startsWith(getRootDirectory())) {
 		return json({ files: [], homedir });
 	}
@@ -54,9 +58,17 @@ async function oneLevelDirSearch(url: URL) {
 	const filesStats = await Promise.all(
 		files.map((e) => stat(e).catch(() => null))
 	);
+	const filteredDirectories = files.filter((_, i) =>
+		filesStats[i]?.isDirectory()
+	);
+
+	if (query.startsWith('../')) {
+		// add this entry so that the user can go back to the parent directory (if the user presses enter, it selects the first entry)
+		filteredDirectories.unshift('../');
+	}
 
 	return json({
-		files: files.filter((e, i) => filesStats[i]?.isDirectory()),
+		files: filteredDirectories,
 		homedir
 	});
 }

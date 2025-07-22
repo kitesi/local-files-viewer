@@ -10,6 +10,10 @@ if (process.env.LFV_DEFAULT_FOLDER) {
 	throw new Error('No base directory provided.');
 }
 
+if (!baseDirectory.endsWith(path.sep)) {
+	baseDirectory += path.sep;
+}
+
 if (process.env.LFV_ROOT_FOLDER) {
 	rootDirectory = path.resolve(process.env.LFV_ROOT_FOLDER);
 } else {
@@ -20,6 +24,10 @@ if (!baseDirectory.startsWith(rootDirectory)) {
 	throw new Error(
 		`Base directory ${baseDirectory} is not inside the root directory ${rootDirectory}.`
 	);
+}
+
+if (!rootDirectory.endsWith(path.sep)) {
+	rootDirectory += path.sep;
 }
 
 export function getBaseDirectory() {

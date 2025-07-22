@@ -22,6 +22,10 @@ export const POST: RequestHandler = async function ({ request }) {
 		dir = path.resolve(getBaseDirectory(), dir);
 	}
 
+	if (!dir.endsWith(path.sep)) {
+		dir += path.sep;
+	}
+
 	if (!dir.startsWith(getRootDirectory())) {
 		return error(400, 'Directory is not in the root directory');
 	}
