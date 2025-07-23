@@ -2,6 +2,7 @@ import type { FileContentResponse } from '$/routes/api/file-content/+server';
 import type { CompleteSearchResponse } from '$/routes/api/complete-search/+server';
 import type { NewBaseDirSearchResponse } from '$/routes/api/new-base-dir-search/+server';
 import type { GrepResponse } from '$/routes/api/grep/+server';
+import type { FileSearchResponse } from '$/routes/api/file-search/+server';
 
 async function extractErrorMessage(
 	response: Response,
@@ -150,6 +151,30 @@ export class ApiClient {
 
 		return await fetchWithErrorHandling<GrepResponse>(
 			`${this.baseUrl}/api/grep?${params.toString()}`,
+			'Error: unable to search files',
+			{},
+			ResponseType.JSON
+		);
+	}
+
+	/**
+	 * Enhanced file search with multiple strategies
+	 */
+	async searchFilesEnhanced(
+		query: string,
+		searchType: 'filename' | 'content',
+		dir?: string
+	): Promise<FileSearchResponse> {
+		const params = new URLSearchParams({
+			q: query,
+			type: searchType
+		});
+		if (dir) {
+			params.append('dir', dir);
+		}
+
+		return await fetchWithErrorHandling<FileSearchResponse>(
+			`${this.baseUrl}/api/file-search?${params.toString()}`,
 			'Error: unable to search files',
 			{},
 			ResponseType.JSON
