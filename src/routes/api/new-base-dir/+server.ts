@@ -5,7 +5,7 @@ import {
 	getRootDirectory
 } from '$lib/server-utils/directory-variables';
 
-import { error, json, type RequestHandler } from '@sveltejs/kit';
+import { error, type RequestHandler } from '@sveltejs/kit';
 import path from 'path';
 import os from 'os';
 
@@ -32,5 +32,5 @@ export const POST: RequestHandler = async function ({ request }) {
 	}
 
 	setBaseDirectory(dir);
-	return json({ status: '200' });
+	return new Response('OK', { status: 200 });
 };

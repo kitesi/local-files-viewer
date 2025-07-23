@@ -45,7 +45,7 @@
 			const response = await apiClient.searchFiles(query);
 			// Only keep the first match per file (deduplicate by file)
 			const seen = new Set();
-			results = response.results.filter(r => {
+			results = response.results.filter((r) => {
 				if (seen.has(r.file)) return false;
 				seen.add(r.file);
 				return true;
@@ -57,7 +57,10 @@
 				previewLines = [];
 			}
 		} catch (error) {
-			addToastError('Search failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+			addToastError(
+				'Search failed: ' +
+					(error instanceof Error ? error.message : 'Unknown error')
+			);
 			results = [];
 			previewLines = [];
 		} finally {
@@ -66,7 +69,6 @@
 	}
 
 	async function loadPreview(result: SearchResult) {
-        console.log(result)
 		previewLoading = true;
 		previewLines = [];
 		try {
@@ -94,7 +96,11 @@
 
 		if (ev.key === 'Enter') {
 			ev.preventDefault();
-			if (results.length > 0 && selectedIndex >= 0 && selectedIndex < results.length) {
+			if (
+				results.length > 0 &&
+				selectedIndex >= 0 &&
+				selectedIndex < results.length
+			) {
 				handleResultClick(results[selectedIndex]);
 			}
 			return;
@@ -141,15 +147,28 @@
 	function formatResultText(text: string) {
 		// Highlight the search query in the result text
 		if (!query) return text;
-		const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-		return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>');
+		const regex = new RegExp(
+			`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
+			'gi'
+		);
+		return text.replace(
+			regex,
+			'<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>'
+		);
 	}
 </script>
 
 <Dialog open={$modalState === 'search'}>
-	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg p-0 font-mono max-w-5xl overflow-hidden" size="none" onkeydown={handleKeydown}>
+	<DialogContent
+		position="top"
+		class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg p-0 font-mono max-w-5xl overflow-hidden"
+		size="none"
+		onkeydown={handleKeydown}
+	>
 		<div class="w-full h-[70vh] flex flex-col">
-			<div class="flex items-center border-b border-border bg-popover px-4 py-2 text-base min-w-0">
+			<div
+				class="flex items-center border-b border-border bg-popover px-4 py-2 text-base min-w-0"
+			>
 				<Search class="w-5 h-5 text-muted-foreground mr-2" />
 				<input
 					id="search-input"
@@ -165,57 +184,95 @@
 					bind:this={input}
 				/>
 			</div>
-			<div class="grid grid-cols-[40%_60%] flex-1 h-0 rounded-lg min-w-0 ">
-				<div class="border-r border-border overflow-y-auto overflow-x-hidden scrollbar-none">
+			<div class="grid grid-cols-[40%_60%] flex-1 h-0 rounded-lg min-w-0">
+				<div
+					class="border-r border-border overflow-y-auto overflow-x-hidden scrollbar-none"
+				>
 					{#if query.length < 3}
-						<div class="py-8 text-center text-muted-foreground text-base">Type at least 3 characters to search…</div>
+						<div class="py-8 text-center text-muted-foreground text-base">
+							Type at least 3 characters to search…
+						</div>
 					{:else if isLoading}
-						<div class="py-8 text-center text-muted-foreground text-base">Searching...</div>
+						<div class="py-8 text-center text-muted-foreground text-base">
+							Searching...
+						</div>
 					{:else if results.length > 0}
 						{#each results as result, i (result.file + result.line)}
 							<button
 								type="button"
 								class={cn(
 									'grid grid-cols-[1fr_auto] items-center w-full text-left bg-transparent p-2 border-none text-base font-mono',
-									i === selectedIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/60 hover:text-accent-foreground/90'
+									i === selectedIndex
+										? 'bg-accent text-accent-foreground'
+										: 'hover:bg-accent/60 hover:text-accent-foreground/90'
 								)}
 								onclick={() => handleResultClick(result)}
-								onmouseenter={() => { selectedIndex = i; loadPreview(result); }}
+								onmouseenter={() => {
+									selectedIndex = i;
+									loadPreview(result);
+								}}
 							>
 								<span class="flex items-center gap-2">
-									<FileText class="w-4 h-4 flex-shrink-0 text-muted-foreground mr-1" />
-									<span class="text-xs text-muted-foreground truncate">{result.file}:L{result.line} {result.text.trim()}</span>
+									<FileText
+										class="w-4 h-4 flex-shrink-0 text-muted-foreground mr-1"
+									/>
+									<span class="text-xs text-muted-foreground truncate"
+										>{result.file}:L{result.line} {result.text.trim()}</span
+									>
 								</span>
 							</button>
 						{/each}
 					{:else if query && !isLoading}
-						<div class="py-8 text-center text-muted-foreground text-base">No results found for "{query}"</div>
+						<div class="py-8 text-center text-muted-foreground text-base">
+							No results found for "{query}"
+						</div>
 					{/if}
 				</div>
-				<div class="bg-background px-6 py-4 overflow-y-auto border-l border-border flex flex-col">
+				<div
+					class="bg-background px-6 py-4 overflow-y-auto border-l border-border flex flex-col"
+				>
 					{#if results[selectedIndex]}
-						<div class="sticky top-0 z-10 bg-background border-b border-border pb-2 mb-2 flex items-center gap-2">
+						<div
+							class="sticky top-0 z-10 bg-background border-b border-border pb-2 mb-2 flex items-center gap-2"
+						>
 							<FileText class="w-4 h-4 text-muted-foreground" />
-							<span class="font-semibold text-base truncate">{results[selectedIndex].file}</span>
-							<span class="text-xs text-muted-foreground">Line {results[selectedIndex].line}</span>
+							<span class="font-semibold text-base truncate"
+								>{results[selectedIndex].file}</span
+							>
+							<span class="text-xs text-muted-foreground"
+								>Line {results[selectedIndex].line}</span
+							>
 						</div>
 					{/if}
 					{#if previewLoading}
-						<div class="text-muted-foreground text-base py-8 text-center">Loading preview...</div>
+						<div class="text-muted-foreground text-base py-8 text-center">
+							Loading preview...
+						</div>
 					{:else if previewLines.length > 0}
 						<pre class="text-base font-mono leading-snug whitespace-pre-wrap">
 							{#each previewLines as line, idx}
-								<span class={idx + (results[selectedIndex]?.line ? Math.max(0, results[selectedIndex].line - 4) : 0) + 1 === results[selectedIndex]?.line ? 'bg-accent text-accent-foreground rounded px-1' : ''}>{line}</span>
+								<span
+									class={idx +
+										(results[selectedIndex]?.line
+											? Math.max(0, results[selectedIndex].line - 4)
+											: 0) +
+										1 ===
+									results[selectedIndex]?.line
+										? 'bg-accent text-accent-foreground rounded px-1'
+										: ''}>{line}</span
+								>
 								{#if idx < previewLines.length - 1}
 									<br />
 								{/if}
 							{/each}
 						</pre>
 					{:else}
-						<div class="text-muted-foreground text-base py-8 text-center">No preview</div>
+						<div class="text-muted-foreground text-base py-8 text-center">
+							No preview
+						</div>
 					{/if}
 				</div>
 			</div>
 		</div>
 	</DialogContent>
-</Dialog> 
+</Dialog>

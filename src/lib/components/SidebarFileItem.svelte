@@ -42,6 +42,8 @@
 	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
 	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
 	import { cn } from '$lib/utils';
+	import { apiClient } from '$lib/client-utils/api-client';
+	import { addToastError } from '$lib/stores/index';
 
 	export let item: WalkDirItem;
 	export let parentPath: string;
@@ -73,48 +75,49 @@
 			return;
 		}
 
-		const res = await fetch(
-			`/api/complete-search?dir=${dataHref}/&depth=1`
-		);
-		const json = await res.json();
+		try {
+			const res = await apiClient.completeSearch(dataHref, 1);
 
-		const paths = dataHref.split('/').slice(1);
-		const current = getWalkdirItem(paths, $files);
+			const paths = dataHref.split('/').slice(1);
+			const current = getWalkdirItem(paths, $files);
 
-		if (current.name === item.name) {
-			current.children = json.files.children;
+			if (current.name === item.name) {
+				current.children = res.files.children;
+			}
+
+			files.set($files);
+			liElement.setAttribute('data-href', '');
+		} catch (e) {
+			console.error('error collapsing directory', e);
+			addToastError('Error: unable to collapse directory');
 		}
-
-		files.set($files);
-		liElement.setAttribute('data-href', '');
 	}
 </script>
 
 <li
 	bind:this={liElement}
-	class={cn("my-2.5", isActive && "bg-sidebar-accent")}
+	class={cn('my-2.5', isActive && 'bg-sidebar-accent')}
 	class:is-collapsed={shouldCollapse}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
 		: null}
-
 >
 	{#if item.isDirectory}
-		<button 
+		<button
 			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center px-4"
 			on:click={collapseDirectory}
 		>
 			<Folder />
-			<span class="overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>
+			<span class="overflow-hidden text-ellipsis whitespace-nowrap"
+				>{item.name}</span
+			>
 		</button>
 	{:else}
 		<!-- could have id set to the actual expression in isActive and remove switchActive(ev), not sure which is move preformant -->
 		<a
-			class={
-				cn(
-					"text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap px-4",
-				)
-			}
+			class={cn(
+				'text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap px-4'
+			)}
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);

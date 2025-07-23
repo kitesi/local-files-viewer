@@ -27,7 +27,6 @@ async function getSyntaxHighlighting(url: URL): Promise<Response> {
 
 	try {
 		const content = await readFile(filePath, 'utf-8');
-		console.log('content', content);
 		const mimeType = getMimeType(filePath);
 
 		let lang = mimeType.specific;

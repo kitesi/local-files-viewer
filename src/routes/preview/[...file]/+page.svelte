@@ -20,8 +20,8 @@
 	import '$lib/styles/shiki.css';
 
 	import type { PageData } from './$types';
-	import type { BodyReturn as GetFileContentBodyReturn } from '../../api/file-content/+server';
 	import { onMount } from 'svelte';
+	import type { FileContentResponse } from '../../api/file-content/+server';
 
 	const { data } = $props<{ data: PageData }>();
 
@@ -37,7 +37,7 @@
 	let content = $state<string | undefined>('');
 	let maximizeCodeBlockWidth = $state<boolean | undefined>(false);
 	let outlineHeadings = $state<NodeListOf<Element> | null>(null);
-	let stats = $state<GetFileContentBodyReturn['stats'] & { size: number }>({
+	let stats = $state<FileContentResponse['stats'] & { size: number }>({
 		size: data.size
 	});
 
@@ -57,12 +57,12 @@
 		// Set up SSE connection for file watching
 		if (browser) {
 			const fileWatcherEventSource = new EventSource('/api/file-watcher');
-			
+
 			fileWatcherEventSource.onmessage = (event) => {
 				const data = JSON.parse(event.data);
 				if (data.type === 'file-changed') {
 					console.log('File change detected via SSE');
-					
+
 					// Trigger content refresh
 					html = '';
 					content = '';
@@ -78,7 +78,7 @@
 
 			// Set up cursor tracking SSE
 			const cursorEventSource = new EventSource('/api/cursor-watcher');
-			
+
 			cursorEventSource.onmessage = (event) => {
 				const data = JSON.parse(event.data);
 				if (data.type === 'cursor-changed') {
@@ -124,7 +124,7 @@
 
 		fetchContent().then(() => {
 			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-		})
+		});
 
 		// sveltekit has hot refresh development, although
 		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
@@ -176,7 +176,10 @@
 				return;
 			}
 
-			const syntaxHighlighting = await apiClient.getSyntaxHighlighting(page.params.file, getStore(stores.abortController).signal);
+			const syntaxHighlighting = await apiClient.getSyntaxHighlighting(
+				page.params.file,
+				getStore(stores.abortController).signal
+			);
 			html = syntaxHighlighting || fileContent.html;
 		} catch (err) {
 			// if aborted, skip
@@ -184,26 +187,35 @@
 				return;
 			}
 
-			error = err instanceof Error ? err.message : 'Error: Internal server error';
+			error =
+				err instanceof Error ? err.message : 'Error: Internal server error';
 		}
 	}
 
 	function handleKey(ev: KeyboardEvent) {
 		if (ev.key === 'p' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.set(getStore(stores.modalState) === 'choose-file' ? '' : 'choose-file');
+			stores.modalState.set(
+				getStore(stores.modalState) === 'choose-file' ? '' : 'choose-file'
+			);
 			return;
 		}
 
 		if (ev.key === 'o' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.set(getStore(stores.modalState) === 'choose-directory' ? '' : 'choose-directory');
+			stores.modalState.set(
+				getStore(stores.modalState) === 'choose-directory'
+					? ''
+					: 'choose-directory'
+			);
 			return;
 		}
 
 		if (ev.key === 'y' && ev.ctrlKey) {
 			ev.preventDefault();
-			stores.modalState.set(getStore(stores.modalState) === 'search' ? '' : 'search');
+			stores.modalState.set(
+				getStore(stores.modalState) === 'search' ? '' : 'search'
+			);
 			return;
 		}
 
@@ -273,9 +285,13 @@
 	/>
 </svelte:head>
 
-<main class="h-full w-full csmall:grid csmall:grid-cols-[auto_1fr] bg-background text-foreground">
+<main
+	class="h-full w-full csmall:grid csmall:grid-cols-[auto_1fr] bg-background text-foreground"
+>
 	<Sidebar {outlineHeadings} {stats} />
-	<section class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body">
+	<section
+		class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body"
+	>
 		{#if error}
 			<h1>{error}</h1>
 			{#if stats.size}
@@ -285,12 +301,16 @@
 			{#if maximizeCodeBlockWidth}
 				{@html html}
 			{:else}
-				<div class="max-w-[90ch] mx-auto py-[min(100px,calc((100%-90ch)/2))] markdown-body" >
+				<div
+					class="max-w-[90ch] mx-auto py-[min(100px,calc((100%-90ch)/2))] markdown-body"
+				>
 					{@html html}
 				</div>
 			{/if}
 		{:else if mimeType?.genre === 'font'}
-			<div class="flex flex-wrap font-['placeholder',Arial] content-center h-full max-w-[60ch] mx-auto">
+			<div
+				class="flex flex-wrap font-['placeholder',Arial] content-center h-full max-w-[60ch] mx-auto"
+			>
 				{#each fontCharacters as char}
 					<p class="p-1.5 text-3xl">{char}</p>
 				{/each}
@@ -315,12 +335,14 @@
 				</video>
 			{/key}
 		{:else if content}
-			<p class="whitespace-pre-wrap max-w-[80ch] text-lg mx-auto py-[min(100px,calc((100%-80ch)/2))]">
+			<p
+				class="whitespace-pre-wrap max-w-[80ch] text-lg mx-auto py-[min(100px,calc((100%-80ch)/2))]"
+			>
 				{#each content.split('\n') as line, lineNumber}
 					<span id="L{lineNumber + 1}">
 						{line}
 					</span>
-					<br>
+					<br />
 				{/each}
 			</p>
 		{/if}

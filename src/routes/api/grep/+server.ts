@@ -4,6 +4,14 @@ import { error, json } from '@sveltejs/kit';
 import { spawn } from 'child_process';
 import path from 'path';
 
+export interface GrepResponse {
+	results: {
+		file: string;
+		line: number;
+		text: string;
+	}[];
+}
+
 export const GET: RequestHandler = async function ({ url }) {
 	const query = url.searchParams.get('q');
 	const dir = url.searchParams.get('dir') || getBaseDirectory();

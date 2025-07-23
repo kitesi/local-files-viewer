@@ -13,6 +13,8 @@
 
 	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
 	import { cn } from '$lib/utils';
+	import { apiClient } from '$lib/client-utils/api-client';
+
 	interface File {
 		parents: string;
 		name: string;
@@ -58,44 +60,44 @@
 	}
 
 	async function setFilteredDirectoryResults() {
-		const res = await fetch(
-			// vite has some weird thing where if a query=../.. it will try to parse it ig
-			`/api/new-base-dir-search?query=` + encodeURIComponent(query)
-		);
+		try {
+			const res = await apiClient.searchDirectories(query);
 
-		const json = (await res.json()) as { files: string[]; homedir: string };
+			let normalizedQuery = query.replace(/(?<!\\)~/, res.homedir);
+			let pathsOfQuery = normalizedQuery.match(/\/?[^/]*$/);
 
-		let normalizedQuery = query.replace(/(?<!\\)~/, json.homedir);
-		let pathsOfQuery = normalizedQuery.match(/\/?[^/]*$/);
+			if (pathsOfQuery && pathsOfQuery[0]) {
+				normalizedQuery = pathsOfQuery[0];
 
-		if (pathsOfQuery && pathsOfQuery[0]) {
-			normalizedQuery = pathsOfQuery[0];
-
-			if (normalizedQuery.startsWith('/')) {
-				normalizedQuery = normalizedQuery.slice(1);
+				if (normalizedQuery.startsWith('/')) {
+					normalizedQuery = normalizedQuery.slice(1);
+				}
 			}
+
+			filteredResults = res.files
+				.map((e) => {
+					const paths = e.split('/');
+					let name = '';
+
+					if (paths.length > 1) {
+						name = paths.pop()!;
+					}
+
+					return { name, parents: paths.join('/') };
+				})
+				.filter((e) => {
+					if (normalizedQuery.toLowerCase() === normalizedQuery) {
+						return e.name.toLowerCase().startsWith(normalizedQuery);
+					}
+
+					return e.name.startsWith(normalizedQuery);
+				});
+
+			return;
+		} catch (e) {
+			console.error('error setting filtered directory results', e);
+			addToastError('Error: unable to search directories');
 		}
-
-		filteredResults = json.files
-			.map((e) => {
-				const paths = e.split('/');
-				let name = '';
-
-				if (paths.length > 1) {
-					name = paths.pop()!;
-				}
-
-				return { name, parents: paths.join('/') };
-			})
-			.filter((e) => {
-				if (normalizedQuery.toLowerCase() === normalizedQuery) {
-					return e.name.toLowerCase().startsWith(normalizedQuery);
-				}
-
-				return e.name.startsWith(normalizedQuery);
-			});
-
-		return;
 	}
 
 	// Reactive statement that runs immediately when modalState changes
@@ -131,8 +133,11 @@
 
 	function changeSelected(direction: 'next' | 'prev') {
 		const currentSelected = document.querySelector('button.selected');
-		const nextElement = direction === 'next' ? currentSelected?.nextElementSibling : currentSelected?.previousElementSibling;
-		
+		const nextElement =
+			direction === 'next'
+				? currentSelected?.nextElementSibling
+				: currentSelected?.previousElementSibling;
+
 		if (currentSelected && nextElement) {
 			currentSelected.classList.remove('selected');
 			nextElement.classList.add('selected');
@@ -151,7 +156,6 @@
 			ev.preventDefault();
 		}
 
-
 		if (
 			ev.key === 'Escape' ||
 			(ev.ctrlKey && (ev.key === 'p' || ev.key === 'o' || ev.key === '['))
@@ -160,8 +164,11 @@
 			return;
 		}
 
-		if (ev.key === "Enter" || (ev.key === 'm' && ev.ctrlKey )) {
-			handleItemSubmission(document.querySelector('button.selected')?.getAttribute('data-href') || '');
+		if (ev.key === 'Enter' || (ev.key === 'm' && ev.ctrlKey)) {
+			handleItemSubmission(
+				document.querySelector('button.selected')?.getAttribute('data-href') ||
+					''
+			);
 		}
 
 		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
@@ -201,7 +208,6 @@
 			return;
 		}
 
-
 		if (
 			isNormalTab ||
 			ev.key === 'ArrowDown' ||
@@ -228,20 +234,25 @@
 				}
 			});
 		} else {
-			fetch('/api/new-base-dir', {
-				method: 'POST',
-				body: JSON.stringify({ dir: href }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			})
-				.then((res) => res.json())
-				.then((json) => {
-					if (json.error) {
-						addToastError(json.error + ` (${query})`);
-					} else {
-						window.location.href = '/preview';
+			apiClient
+				.setNewBaseDir(href)
+				.then(() => {
+					goto('/preview').catch((err) => {
+						console.error('error navigating to preview', err);
+						if (err.message) {
+							addToastError(err.message);
+						}
+					});
+					window.location.reload();
+				})
+				.catch((err) => {
+					console.error('error setting new base dir', err);
+					if (err.message) {
+						addToastError(err.message);
 					}
+				})
+				.finally(() => {
+					modalState.set('');
 				});
 		}
 	}
@@ -269,12 +280,17 @@
 	}
 </script>
 
-<Dialog open={$modalState === 'choose-file' || $modalState === 'choose-directory'}>
+<Dialog
+	open={$modalState === 'choose-file' || $modalState === 'choose-directory'}
+>
 	<!-- <DialogOverlay /> -->
-	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0" onkeydown={handleKeydown} oninput={handleInput}>
-		<div 
-			class="w-full"
-		>
+	<DialogContent
+		position="top"
+		class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0"
+		onkeydown={handleKeydown}
+		oninput={handleInput}
+	>
+		<div class="w-full">
 			<div class="p-1.5 text-popover-foreground">
 				<div class="flex items-center bg-popover pl-1.5">
 					<label for="palette-search" class="sr-only">Search files</label>
@@ -292,8 +308,13 @@
 						oninput={handleInput}
 						bind:this={input}
 					/>
-					<Button type="button" variant="ghost" size="icon" onclick={() => modalState.set('')}
-						class="ml-2">
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						onclick={() => modalState.set('')}
+						class="ml-2"
+					>
 						<X class="w-5 h-5" />
 					</Button>
 				</div>
@@ -301,13 +322,12 @@
 			<div class="max-h-[60vh] overflow-auto" tabindex="-1">
 				{#if filteredResults.length > 0}
 					{#each filteredResults as file, i (file.parents + '/' + file.name)}
-					{@const href = getPreviewPath(file.parents + '/' + file.name)}
+						{@const href = getPreviewPath(file.parents + '/' + file.name)}
 						<button
 							type="button"
 							data-href={href}
-							class={
-							cn(
-								"flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground",
+							class={cn(
+								'flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground',
 								i == filteredResults.length - 1 && 'rounded-sm'
 							)}
 							class:selected={i === 0}
@@ -318,12 +338,19 @@
 							{:else}
 								<Folder />
 							{/if}
-							<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
-							<span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{file.parents}</span>
+							<span class="whitespace-nowrap overflow-hidden text-ellipsis"
+								>{file.name}</span
+							>
+							<span
+								class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground"
+								>{file.parents}</span
+							>
 						</button>
 					{/each}
 				{:else}
-					<p class="text-popover-foreground p-1.5 px-2.5">No matching results.</p>
+					<p class="text-popover-foreground p-1.5 px-2.5">
+						No matching results.
+					</p>
 				{/if}
 			</div>
 		</div>

@@ -1,44 +1,8 @@
-// API Client for handling all server requests
-export interface FileContentResponse {
-	content?: string;
-	html?: string;
-	error?: string;
-	stats?: {
-		chars?: number;
-		lines?: number;
-		words?: number;
-	};
-	needsHighlighting?: boolean;
-	maximizeCodeBlockWidth?: boolean;
-}
+import type { FileContentResponse } from '$/routes/api/file-content/+server';
+import type { CompleteSearchResponse } from '$/routes/api/complete-search/+server';
+import type { NewBaseDirSearchResponse } from '$/routes/api/new-base-dir-search/+server';
+import type { GrepResponse } from '$/routes/api/grep/+server';
 
-export interface DirectorySearchResponse {
-	files: string[];
-	homedir: string;
-}
-
-export interface CompleteSearchResponse {
-	files: {
-		name: string;
-		isDirectory: boolean;
-		children?: any[];
-	};
-}
-
-export interface NewBaseDirResponse {
-	error?: string;
-	success?: boolean;
-}
-
-export interface SearchResponse {
-	results: Array<{
-		file: string;
-		line: number;
-		text: string;
-	}>;
-}
-
-// Helper function to extract error message from response
 async function extractErrorMessage(
 	response: Response,
 	fallbackMessage: string
@@ -56,25 +20,25 @@ async function extractErrorMessage(
 	}
 }
 
-// Generic fetch with proper error handling
+enum ResponseType {
+	JSON = 'json',
+	TEXT = 'text'
+}
+
 async function fetchWithErrorHandling<T>(
 	url: string,
 	fallbackMessage: string,
-	options?: RequestInit & {
-		signal?: AbortSignal;
-		responseType?: 'json' | 'text';
-	}
+	fetchOptions?: RequestInit,
+	responseType: ResponseType = ResponseType.TEXT
 ): Promise<T> {
-	const response = await fetch(url, options);
+	const response = await fetch(url, fetchOptions);
 
 	if (!response.ok) {
 		const errorMessage = await extractErrorMessage(response, fallbackMessage);
 		throw new Error(errorMessage);
 	}
 
-	const responseType = options?.responseType || 'json';
-
-	if (responseType === 'text') {
+	if (responseType === ResponseType.TEXT) {
 		return response.text() as T;
 	} else {
 		return response.json() as T;
@@ -98,7 +62,8 @@ export class ApiClient {
 		return await fetchWithErrorHandling<FileContentResponse>(
 			`${this.baseUrl}/api/file-content?file=${encodeURIComponent(file)}`,
 			'Error: unable to get file contents',
-			{ signal, responseType: 'json' }
+			{ signal },
+			ResponseType.JSON
 		);
 	}
 
@@ -112,18 +77,20 @@ export class ApiClient {
 		return await fetchWithErrorHandling<string>(
 			`${this.baseUrl}/api/syntax-highlighting?file=${encodeURIComponent(file)}`,
 			'Error: unable to get syntax highlighting',
-			{ signal, responseType: 'text' }
+			{ signal },
+			ResponseType.TEXT
 		);
 	}
 
 	/**
 	 * Search for directories (used in file palette)
 	 */
-	async searchDirectories(query: string): Promise<DirectorySearchResponse> {
-		return await fetchWithErrorHandling<DirectorySearchResponse>(
+	async searchDirectories(query: string): Promise<NewBaseDirSearchResponse> {
+		return await fetchWithErrorHandling<NewBaseDirSearchResponse>(
 			`${this.baseUrl}/api/new-base-dir-search?query=${encodeURIComponent(query)}`,
 			'Error: unable to search directories',
-			{ responseType: 'json' }
+			{},
+			ResponseType.JSON
 		);
 	}
 
@@ -137,15 +104,16 @@ export class ApiClient {
 		return await fetchWithErrorHandling<CompleteSearchResponse>(
 			`${this.baseUrl}/api/complete-search?dir=${encodeURIComponent(dir)}&depth=${depth}`,
 			'Error: unable to complete search',
-			{ responseType: 'json' }
+			{},
+			ResponseType.JSON
 		);
 	}
 
 	/**
 	 * Set new base directory
 	 */
-	async setNewBaseDir(dir: string): Promise<NewBaseDirResponse> {
-		return await fetchWithErrorHandling<NewBaseDirResponse>(
+	async setNewBaseDir(dir: string): Promise<void> {
+		await fetchWithErrorHandling<void>(
 			`${this.baseUrl}/api/new-base-dir`,
 			'Error: unable to set new base directory',
 			{
@@ -153,9 +121,9 @@ export class ApiClient {
 				body: JSON.stringify({ dir }),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				responseType: 'json'
-			}
+				}
+			},
+			ResponseType.TEXT
 		);
 	}
 
@@ -166,23 +134,25 @@ export class ApiClient {
 		return await fetchWithErrorHandling<string>(
 			`${this.baseUrl}/api/font-stylesheet?file=${encodeURIComponent(file)}`,
 			'Error: unable to get font stylesheet',
-			{ responseType: 'text' }
+			{},
+			ResponseType.TEXT
 		);
 	}
 
 	/**
 	 * Search through files using ripgrep
 	 */
-	async searchFiles(query: string, dir?: string): Promise<SearchResponse> {
+	async searchFiles(query: string, dir?: string): Promise<GrepResponse> {
 		const params = new URLSearchParams({ q: query });
 		if (dir) {
 			params.append('dir', dir);
 		}
 
-		return await fetchWithErrorHandling<SearchResponse>(
+		return await fetchWithErrorHandling<GrepResponse>(
 			`${this.baseUrl}/api/grep?${params.toString()}`,
 			'Error: unable to search files',
-			{ responseType: 'json' }
+			{},
+			ResponseType.JSON
 		);
 	}
 }
