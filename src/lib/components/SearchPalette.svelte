@@ -16,6 +16,8 @@
 	let query = '';
 	let results: SearchResult[] = [];
 	let isLoading = false;
+	let errorText = '';
+
 	let input: HTMLInputElement;
 	let selectedIndex = 0;
 	let previewLines: string[] = [];
@@ -42,14 +44,20 @@
 		}
 		isLoading = true;
 		try {
-			const response = await apiClient.searchFiles(query);
+			const response = await apiClient.searchFilesEnhanced(query, 'content');
 			// Only keep the first match per file (deduplicate by file)
 			const seen = new Set();
-			results = response.results.filter((r) => {
-				if (seen.has(r.file)) return false;
-				seen.add(r.file);
-				return true;
-			});
+			results = response.results
+				.filter((r) => {
+					if (seen.has(r.file)) return false;
+					seen.add(r.file);
+					return true;
+				})
+				.map((r) => ({
+					file: r.path || r.file,
+					line: r.line || 1,
+					text: r.text || ''
+				}));
 			selectedIndex = 0;
 			if (results.length > 0) {
 				await loadPreview(results[0]);
@@ -57,10 +65,12 @@
 				previewLines = [];
 			}
 		} catch (error) {
-			addToastError(
-				'Search failed: ' +
-					(error instanceof Error ? error.message : 'Unknown error')
-			);
+			if (error instanceof Error) {
+				errorText = error.message;
+			} else {
+				errorText = 'Search failed';
+			}
+
 			results = [];
 			previewLines = [];
 		} finally {
@@ -142,19 +152,6 @@
 				addToastError(err.message);
 			}
 		});
-	}
-
-	function formatResultText(text: string) {
-		// Highlight the search query in the result text
-		if (!query) return text;
-		const regex = new RegExp(
-			`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
-			'gi'
-		);
-		return text.replace(
-			regex,
-			'<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>'
-		);
 	}
 </script>
 
@@ -266,6 +263,10 @@
 								{/if}
 							{/each}
 						</pre>
+					{:else if errorText}
+						<div class="text-muted-foreground text-base py-8 text-center">
+							{errorText}
+						</div>
 					{:else}
 						<div class="text-muted-foreground text-base py-8 text-center">
 							No preview

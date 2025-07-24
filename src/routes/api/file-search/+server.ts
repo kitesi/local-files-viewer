@@ -144,6 +144,9 @@ async function searchInMemory(
 ): Promise<FileSearchResponse['results']> {
 	const files = await walkdir(searchDir, Infinity);
 	const results: FileSearchResponse['results'] = [];
+	const timeout = setTimeout(() => {
+		throw new Error('Search timeout');
+	}, SEARCH_STRATEGIES.SEARCH_TIMEOUT);
 
 	function searchRecursive(item: any, currentPath: string = '') {
 		const itemPath = currentPath ? `${currentPath}/${item.name}` : item.name;
@@ -167,6 +170,7 @@ async function searchInMemory(
 	}
 
 	searchRecursive(files);
+	clearTimeout(timeout);
 	return results;
 }
 
@@ -204,10 +208,15 @@ export const GET: RequestHandler = async function ({ url }) {
 					results.push(...ripgrepResults);
 					searchStrategy = 'ripgrep';
 				} catch (e) {
-					console.warn(
-						'Ripgrep search failed, falling back to memory search:',
-						e
-					);
+					console.warn('Ripgrep search failed', e);
+
+					if (searchType === 'content') {
+						throw new Error('Ripgrep search failed');
+					}
+				}
+			} else {
+				if (searchType === 'content') {
+					throw new Error('ripgrep is not installed');
 				}
 			}
 		}
@@ -227,14 +236,19 @@ export const GET: RequestHandler = async function ({ url }) {
 		}
 
 		// Strategy 3: Fallback to in-memory search
-		if (SEARCH_STRATEGIES.USE_MEMORY_SEARCH && results.length === 0) {
+		if (
+			SEARCH_STRATEGIES.USE_MEMORY_SEARCH &&
+			searchType === 'filename' &&
+			results.length === 0
+		) {
+			console.log('using memory search');
 			try {
 				const memoryResults = await searchInMemory(query, searchDir);
 				results.push(...memoryResults);
 				searchStrategy = 'memory';
 			} catch (e) {
 				console.error('Memory search failed:', e);
-				return error(500, 'All search strategies failed');
+				throw new Error('All search strategies failed');
 			}
 		}
 
@@ -252,7 +266,10 @@ export const GET: RequestHandler = async function ({ url }) {
 			totalResults: uniqueResults.length
 		});
 	} catch (err) {
-		console.error('Search error:', err);
-		return error(500, 'Search failed');
+		if (err instanceof Error) {
+			return error(500, err.message);
+		} else {
+			return error(500, 'Search failed');
+		}
 	}
 };

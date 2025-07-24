@@ -2,7 +2,6 @@
 <!-- TODO: after it reaches half way, the view is always at the middle as you go down. this is not intended-->
 <script lang="ts">
 	import FileIcon from './FileIcon.svelte';
-	import Fuse from 'fuse.js';
 	import * as mappings from '$lib/client-utils/key-mappings';
 	import { modalState, files, addToastError } from '$lib/stores/index';
 	import { browser } from '$app/environment';
@@ -14,6 +13,7 @@
 	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
 	import { cn } from '$lib/utils';
 	import { apiClient } from '$lib/client-utils/api-client';
+	import { onDestroy } from 'svelte';
 
 	interface File {
 		parents: string;
@@ -26,9 +26,12 @@
 
 	let flattenedResults: File[] = [];
 	let filteredResults: File[] = [];
-	let fuse: Fuse<string>;
 	let query = '';
 	let input: HTMLInputElement;
+	let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+	const THROTTLE_DELAY = 200;
+	let lastExecuted = 0;
+	let currentAbortController: AbortController | null = null;
 
 	function addToFlattenedArr(
 		item: WalkDirItem,
@@ -61,7 +64,16 @@
 
 	async function setFilteredDirectoryResults() {
 		try {
-			const res = await apiClient.searchDirectories(query);
+			// Abort previous request if it exists
+			if (currentAbortController) {
+				currentAbortController.abort();
+			}
+			currentAbortController = new AbortController();
+
+			const res = await apiClient.searchDirectories(
+				query,
+				currentAbortController.signal
+			);
 
 			let normalizedQuery = query.replace(/(?<!\\)~/, res.homedir);
 			let pathsOfQuery = normalizedQuery.match(/\/?[^/]*$/);
@@ -95,8 +107,44 @@
 
 			return;
 		} catch (e) {
+			// Don't show error if request was aborted
+			if (e instanceof Error && e.name === 'AbortError') {
+				return;
+			}
+
 			console.error('error setting filtered directory results', e);
 			addToastError('Error: unable to search directories');
+		}
+	}
+
+	async function setFilteredFileResults() {
+		try {
+			// Abort previous request if it exists
+			if (currentAbortController) {
+				currentAbortController.abort();
+			}
+			currentAbortController = new AbortController();
+
+			const res = await apiClient.searchFilesEnhanced(
+				query,
+				'filename',
+				undefined,
+				currentAbortController.signal
+			);
+			filteredResults = res.results.map((r) => {
+				const lastSlash = r.path.lastIndexOf('/');
+				return {
+					name: r.file,
+					parents: lastSlash !== -1 ? r.path.slice(0, lastSlash) : ''
+				};
+			});
+		} catch (e) {
+			// Don't show error if request was aborted
+			if (e instanceof Error && e.name === 'AbortError') {
+				return;
+			}
+			console.error('error setting filtered file results', e);
+			addToastError('Error: unable to search files');
 		}
 	}
 
@@ -121,7 +169,6 @@
 				});
 
 			filteredResults = flattenedResults;
-			fuse = new Fuse(flattenedResults.map((e) => e.parents + '/' + e.name));
 		}
 
 		if ($modalState === 'choose-directory') {
@@ -257,19 +304,42 @@
 		}
 	}
 
-	async function handleInput(_: Event) {
+	async function executeSearch() {
 		if ($modalState === 'choose-directory') {
-			return setFilteredDirectoryResults().catch(console.error);
-		}
-
-		if (!query) {
-			filteredResults = flattenedResults;
+			await setFilteredDirectoryResults().catch(console.error);
 		} else {
-			filteredResults = fuse.search(query).map((e) => {
-				return flattenedResults![e.refIndex];
-			});
+			if (!query) {
+				filteredResults = flattenedResults;
+			} else {
+				await setFilteredFileResults();
+			}
 		}
 	}
+
+	async function handleInput(_: Event) {
+		const now = Date.now();
+
+		if (now - lastExecuted >= THROTTLE_DELAY) {
+			executeSearch();
+			lastExecuted = now;
+		} else {
+			if (throttleTimer) clearTimeout(throttleTimer);
+			throttleTimer = setTimeout(
+				() => {
+					executeSearch();
+					lastExecuted = now;
+				},
+				THROTTLE_DELAY - (now - lastExecuted)
+			);
+		}
+	}
+
+	onDestroy(() => {
+		if (throttleTimer) clearTimeout(throttleTimer);
+		if (currentAbortController) {
+			currentAbortController.abort();
+		}
+	});
 
 	function getPreviewPath(path: string) {
 		if ($modalState === 'choose-file') {
@@ -286,7 +356,7 @@
 	<!-- <DialogOverlay /> -->
 	<DialogContent
 		position="top"
-		class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0"
+		class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0 overflow-x-hidden"
 		onkeydown={handleKeydown}
 		oninput={handleInput}
 	>
@@ -319,7 +389,7 @@
 					</Button>
 				</div>
 			</div>
-			<div class="max-h-[60vh] overflow-auto" tabindex="-1">
+			<div class="max-h-[60vh] overflow-auto overflow-x-hidden" tabindex="-1">
 				{#if filteredResults.length > 0}
 					{#each filteredResults as file, i (file.parents + '/' + file.name)}
 						{@const href = getPreviewPath(file.parents + '/' + file.name)}

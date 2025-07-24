@@ -1,7 +1,6 @@
 import type { FileContentResponse } from '$/routes/api/file-content/+server';
 import type { CompleteSearchResponse } from '$/routes/api/complete-search/+server';
 import type { NewBaseDirSearchResponse } from '$/routes/api/new-base-dir-search/+server';
-import type { GrepResponse } from '$/routes/api/grep/+server';
 import type { FileSearchResponse } from '$/routes/api/file-search/+server';
 
 async function extractErrorMessage(
@@ -86,11 +85,14 @@ export class ApiClient {
 	/**
 	 * Search for directories (used in file palette)
 	 */
-	async searchDirectories(query: string): Promise<NewBaseDirSearchResponse> {
+	async searchDirectories(
+		query: string,
+		signal?: AbortSignal
+	): Promise<NewBaseDirSearchResponse> {
 		return await fetchWithErrorHandling<NewBaseDirSearchResponse>(
 			`${this.baseUrl}/api/new-base-dir-search?query=${encodeURIComponent(query)}`,
 			'Error: unable to search directories',
-			{},
+			{ signal },
 			ResponseType.JSON
 		);
 	}
@@ -100,12 +102,13 @@ export class ApiClient {
 	 */
 	async completeSearch(
 		dir: string,
-		depth: number = 1
+		depth: number = 1,
+		signal?: AbortSignal
 	): Promise<CompleteSearchResponse> {
 		return await fetchWithErrorHandling<CompleteSearchResponse>(
 			`${this.baseUrl}/api/complete-search?dir=${encodeURIComponent(dir)}&depth=${depth}`,
 			'Error: unable to complete search',
-			{},
+			{ signal },
 			ResponseType.JSON
 		);
 	}
@@ -113,7 +116,7 @@ export class ApiClient {
 	/**
 	 * Set new base directory
 	 */
-	async setNewBaseDir(dir: string): Promise<void> {
+	async setNewBaseDir(dir: string, signal?: AbortSignal): Promise<void> {
 		await fetchWithErrorHandling<void>(
 			`${this.baseUrl}/api/new-base-dir`,
 			'Error: unable to set new base directory',
@@ -131,29 +134,12 @@ export class ApiClient {
 	/**
 	 * Get font stylesheet for a file
 	 */
-	async getFontStylesheet(file: string): Promise<string> {
+	async getFontStylesheet(file: string, signal?: AbortSignal): Promise<string> {
 		return await fetchWithErrorHandling<string>(
 			`${this.baseUrl}/api/font-stylesheet?file=${encodeURIComponent(file)}`,
 			'Error: unable to get font stylesheet',
-			{},
+			{ signal },
 			ResponseType.TEXT
-		);
-	}
-
-	/**
-	 * Search through files using ripgrep
-	 */
-	async searchFiles(query: string, dir?: string): Promise<GrepResponse> {
-		const params = new URLSearchParams({ q: query });
-		if (dir) {
-			params.append('dir', dir);
-		}
-
-		return await fetchWithErrorHandling<GrepResponse>(
-			`${this.baseUrl}/api/grep?${params.toString()}`,
-			'Error: unable to search files',
-			{},
-			ResponseType.JSON
 		);
 	}
 
@@ -163,7 +149,8 @@ export class ApiClient {
 	async searchFilesEnhanced(
 		query: string,
 		searchType: 'filename' | 'content',
-		dir?: string
+		dir?: string,
+		signal?: AbortSignal
 	): Promise<FileSearchResponse> {
 		const params = new URLSearchParams({
 			q: query,
@@ -176,7 +163,7 @@ export class ApiClient {
 		return await fetchWithErrorHandling<FileSearchResponse>(
 			`${this.baseUrl}/api/file-search?${params.toString()}`,
 			'Error: unable to search files',
-			{},
+			{ signal },
 			ResponseType.JSON
 		);
 	}
