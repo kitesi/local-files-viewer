@@ -4,7 +4,7 @@
 	import SearchPalette from '$lib/components/SearchPalette.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
 	import * as stores from '$lib/stores/index';
-	import * as mappings from '$lib/client-utils/key-mappings';
+	import mappings from '$lib/client-utils/key-mappings';
 	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
 	import { apiClient } from '$lib/client-utils/api-client';
 	import { formatBytes } from '$lib/client-utils/format-bytes';
@@ -193,7 +193,7 @@
 	}
 
 	function handleKey(ev: KeyboardEvent) {
-		if (ev.key === 'p' && ev.ctrlKey) {
+		if (mappings.notOpened.shouldOpenFilePalette(ev)) {
 			ev.preventDefault();
 			stores.modalState.set(
 				getStore(stores.modalState) === 'choose-file' ? '' : 'choose-file'
@@ -201,7 +201,7 @@
 			return;
 		}
 
-		if (ev.key === 'o' && ev.ctrlKey) {
+		if (mappings.notOpened.shouldOpenDirectoryPalette(ev)) {
 			ev.preventDefault();
 			stores.modalState.set(
 				getStore(stores.modalState) === 'choose-directory'
@@ -211,7 +211,7 @@
 			return;
 		}
 
-		if (ev.key === 'y' && ev.ctrlKey) {
+		if (mappings.notOpened.shouldOpenSearchPalette(ev)) {
 			ev.preventDefault();
 			stores.modalState.set(
 				getStore(stores.modalState) === 'search' ? '' : 'search'
@@ -219,7 +219,7 @@
 			return;
 		}
 
-		if (!mappings.single.includes(ev.key)) {
+		if (ev.key !== 'h' && ev.key !== 'l') {
 			return;
 		}
 

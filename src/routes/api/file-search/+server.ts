@@ -39,19 +39,10 @@ async function searchWithRipgrep(
 			reject(new Error('Search timeout'));
 		}, SEARCH_STRATEGIES.SEARCH_TIMEOUT);
 
-		const rg = spawn('rg', [
-			'--json',
-			'--type-add',
-			'web:*.{html,css,js,ts,jsx,tsx,vue,svelte}',
-			'--type',
-			'web',
-			query,
-			searchDir
-		]);
+		const rg = spawn('rg', ['--json', query, searchDir]);
 
 		let results: FileSearchResponse['results'] = [];
 		let errorOutput = '';
-
 		rg.stdout.on('data', (data) => {
 			const lines = data.toString().split('\n').filter(Boolean);
 			for (const line of lines) {
@@ -60,7 +51,7 @@ async function searchWithRipgrep(
 					if (obj.type === 'match') {
 						results.push({
 							file: path.basename(obj.data.path.text),
-							path: obj.data.path.text.replace(searchDir + '/', ''),
+							path: obj.data.path.text.replace(searchDir, ''),
 							isDirectory: false,
 							matchType: 'content',
 							line: obj.data.line_number,
@@ -104,7 +95,9 @@ async function searchWithFind(
 			'-iname',
 			`*${query}*`,
 			'-type',
-			'f'
+			'f',
+			'-printf',
+			'%P\n'
 		]);
 
 		let results: FileSearchResponse['results'] = [];
@@ -241,7 +234,6 @@ export const GET: RequestHandler = async function ({ url }) {
 			searchType === 'filename' &&
 			results.length === 0
 		) {
-			console.log('using memory search');
 			try {
 				const memoryResults = await searchInMemory(query, searchDir);
 				results.push(...memoryResults);

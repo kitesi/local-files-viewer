@@ -34,7 +34,7 @@
 
 <script lang="ts">
 	import FileIcon from './FileIcon.svelte';
-	import { Folder } from '@lucide/svelte';
+	import { ChevronDown, ChevronRight } from '@lucide/svelte';
 	import { files, isSidebarOpen, abortController } from '$lib/stores/index';
 
 	import { page } from '$app/stores';
@@ -51,7 +51,6 @@
 	const href = parentPath + '/' + item.name;
 	$: isActive = '/' + $page.params.file === href;
 
-	let shouldCollapse = true;
 	let liElement: HTMLLIElement;
 
 	const filesInPageParam = $page.params.file.split('/');
@@ -60,13 +59,15 @@
 	// prob a better/faster way to do this
 	// if a folder has already been collapsed, obv it's siblings can't be collapsed
 	// originally had $page.params.file.split('/').includes(name) but that's in accurate
-	for (let i = 0; i < filesInHref.length && shouldCollapse; i++) {
+	let isCollapsed = true;
+	for (let i = 0; i < filesInHref.length && isCollapsed; i++) {
 		if (filesInHref[i] !== filesInPageParam[i]) {
-			shouldCollapse = false;
+			isCollapsed = false;
 		}
 	}
 
 	async function collapseDirectory() {
+		isCollapsed = !isCollapsed;
 		liElement.classList.toggle('is-collapsed');
 
 		const dataHref = liElement.getAttribute('data-href');
@@ -92,12 +93,14 @@
 			addToastError('Error: unable to collapse directory');
 		}
 	}
+
+	const depth = filesInHref.length;
 </script>
 
 <li
 	bind:this={liElement}
-	class={cn('my-2.5', isActive && 'bg-sidebar-accent')}
-	class:is-collapsed={shouldCollapse}
+	class={cn('my-2.5 w-full', isActive && 'bg-sidebar-accent')}
+	class:is-collapsed={isCollapsed}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
 		: null}
@@ -105,9 +108,14 @@
 	{#if item.isDirectory}
 		<button
 			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center px-4"
+			style={`padding-left: ${depth * 16}px`}
 			on:click={collapseDirectory}
 		>
-			<Folder />
+			{#if isCollapsed}
+				<ChevronRight />
+			{:else}
+				<ChevronDown />
+			{/if}
 			<span class="overflow-hidden text-ellipsis whitespace-nowrap"
 				>{item.name}</span
 			>
@@ -115,22 +123,23 @@
 	{:else}
 		<!-- could have id set to the actual expression in isActive and remove switchActive(ev), not sure which is move preformant -->
 		<a
-			class={cn(
-				'text-inherit flex gap-2 items-center overflow-hidden text-ellipsis whitespace-nowrap px-4'
-			)}
+			class={cn('w-full text-inherit flex gap-2 items-center px-4')}
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);
 			}}
 			id={isActive ? 'active' : null}
 			href={'/preview' + href}
+			style={`padding-left: ${depth * 16}px`}
 		>
 			<FileIcon fileName={item.name} size="20px" />
-			<span>{item.name}</span>
+			<span class="overflow-hidden text-ellipsis whitespace-nowrap"
+				>{item.name}</span
+			>
 		</a>
 	{/if}
 	{#if item.children}
-		<ul class="ml-2.5 list-none">
+		<ul class="list-none">
 			{#each item.children as child (child.name)}
 				<svelte:self item={child} parentPath={href} />
 			{/each}

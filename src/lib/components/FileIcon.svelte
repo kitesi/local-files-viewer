@@ -16,13 +16,14 @@
 		width={size}
 		height={size}
 		fill={fileIconContents.styles.fill}
-		style="width: {size}; height: {size}"
+		style="width: {size}; height: {size};"
+		class="flex-shrink-0"
 	>
 		<title>{fileIconContents.simpleIcon.title}</title>
 		<path d={fileIconContents.simpleIcon.path} />
 	</svg>
 {:else}
-	<File size={size} />
+	<File {size} class="flex-shrink-0" />
 {/if}
 
 <style>

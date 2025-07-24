@@ -2,13 +2,12 @@
 <!-- TODO: after it reaches half way, the view is always at the middle as you go down. this is not intended-->
 <script lang="ts">
 	import FileIcon from './FileIcon.svelte';
-	import * as mappings from '$lib/client-utils/key-mappings';
+	import mappings from '$lib/client-utils/key-mappings';
 	import { modalState, files, addToastError } from '$lib/stores/index';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Search, X, Folder } from '@lucide/svelte';
+	import { Search, Folder } from '@lucide/svelte';
 
 	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
 	import { cn } from '$lib/utils';
@@ -195,23 +194,12 @@
 	async function handleKeydown(ev: KeyboardEvent) {
 		ev.stopPropagation();
 
-		if (
-			ev.key === 'Escape' ||
-			ev.key === 'Tab' ||
-			(mappings.ctrl.includes(ev.key) && ev.ctrlKey)
-		) {
-			ev.preventDefault();
-		}
-
-		if (
-			ev.key === 'Escape' ||
-			(ev.ctrlKey && (ev.key === 'p' || ev.key === 'o' || ev.key === '['))
-		) {
+		if (mappings.opened.shouldClosePalette(ev)) {
 			modalState.set('');
 			return;
 		}
 
-		if (ev.key === 'Enter' || (ev.key === 'm' && ev.ctrlKey)) {
+		if (mappings.opened.shouldSubmitItem(ev)) {
 			handleItemSubmission(
 				document.querySelector('button.selected')?.getAttribute('data-href') ||
 					''
@@ -222,12 +210,12 @@
 		const isShiftTab = ev.key === 'Tab' && ev.shiftKey;
 
 		if ($modalState === 'choose-directory') {
-			if (ev.key === 'ArrowDown' || (ev.key === 'j' && ev.ctrlKey)) {
+			if (mappings.opened.shouldNavigateNext(ev)) {
 				changeSelected('next');
 				return;
 			}
 
-			if (ev.key === 'ArrowUp' || (ev.key === 'k' && ev.ctrlKey)) {
+			if (mappings.opened.shouldNavigatePrevious(ev)) {
 				changeSelected('prev');
 				return;
 			}
@@ -255,15 +243,11 @@
 			return;
 		}
 
-		if (
-			isNormalTab ||
-			ev.key === 'ArrowDown' ||
-			(ev.ctrlKey && ev.key === 'j')
-		) {
+		if (isNormalTab || mappings.opened.shouldNavigateNext(ev)) {
 			return changeSelected('next');
 		}
 
-		if (isShiftTab || ev.key === 'ArrowUp' || (ev.ctrlKey && ev.key === 'k')) {
+		if (isShiftTab || mappings.opened.shouldNavigatePrevious(ev)) {
 			return changeSelected('prev');
 		}
 	}
@@ -348,15 +332,20 @@
 
 		return path;
 	}
+
+	function getOpenState() {
+		return $modalState === 'choose-file' || $modalState === 'choose-directory';
+	}
+
+	function setOpenState(state: boolean) {
+		modalState.set(state ? 'choose-file' : '');
+	}
 </script>
 
-<Dialog
-	open={$modalState === 'choose-file' || $modalState === 'choose-directory'}
->
-	<!-- <DialogOverlay /> -->
+<Dialog bind:open={getOpenState, setOpenState}>
 	<DialogContent
 		position="top"
-		class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0 overflow-x-hidden"
+		class="bg-popover text-popover-foreground border-1 border-popover-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0 overflow-x-hidden"
 		onkeydown={handleKeydown}
 		oninput={handleInput}
 	>
@@ -378,15 +367,6 @@
 						oninput={handleInput}
 						bind:this={input}
 					/>
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon"
-						onclick={() => modalState.set('')}
-						class="ml-2"
-					>
-						<X class="w-5 h-5" />
-					</Button>
 				</div>
 			</div>
 			<div class="max-h-[60vh] overflow-auto overflow-x-hidden" tabindex="-1">
@@ -397,7 +377,7 @@
 							type="button"
 							data-href={href}
 							class={cn(
-								'flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground',
+								'flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-sidebar-accent-hover',
 								i == filteredResults.length - 1 && 'rounded-sm'
 							)}
 							class:selected={i === 0}
@@ -430,7 +410,7 @@
 <style>
 	.selected {
 		outline: none;
-		background-color: var(--accent);
-		color: var(--accent-foreground);
+		background-color: var(--sidebar-accent);
+		color: var(--sidebar-accent-foreground);
 	}
 </style>

@@ -6,6 +6,7 @@
 	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
 	import { apiClient } from '$lib/client-utils/api-client';
 	import { cn } from '$lib/utils';
+	import mappings from '$lib/client-utils/key-mappings';
 
 	interface SearchResult {
 		file: string;
@@ -98,13 +99,13 @@
 	function handleKeydown(ev: KeyboardEvent) {
 		ev.stopPropagation();
 
-		if (ev.key === 'Escape' || (ev.ctrlKey && ev.key === 'y')) {
+		if (mappings.opened.shouldClosePalette(ev)) {
 			ev.preventDefault();
 			modalState.set('');
 			return;
 		}
 
-		if (ev.key === 'Enter') {
+		if (mappings.opened.shouldSubmitItem(ev)) {
 			ev.preventDefault();
 			if (
 				results.length > 0 &&
@@ -116,14 +117,17 @@
 			return;
 		}
 
-		if (ev.key === 'ArrowDown') {
+		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
+		const isShiftTab = ev.key === 'Tab' && ev.shiftKey;
+
+		if (isNormalTab || mappings.opened.shouldNavigateNext(ev)) {
 			ev.preventDefault();
 			selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
 			if (results[selectedIndex]) loadPreview(results[selectedIndex]);
 			return;
 		}
 
-		if (ev.key === 'ArrowUp') {
+		if (isShiftTab || mappings.opened.shouldNavigatePrevious(ev)) {
 			ev.preventDefault();
 			selectedIndex = Math.max(selectedIndex - 1, 0);
 			if (results[selectedIndex]) loadPreview(results[selectedIndex]);
@@ -145,7 +149,6 @@
 
 	function handleResultClick(result: SearchResult) {
 		modalState.set('');
-		// Navigate to the file and line
 		const filePath = result.file.replace(/^\.\//, '');
 		goto(`/preview/${filePath}#L${result.line}`).catch((err) => {
 			if (err.message) {
@@ -158,7 +161,7 @@
 <Dialog open={$modalState === 'search'}>
 	<DialogContent
 		position="top"
-		class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg p-0 font-mono max-w-5xl overflow-hidden"
+		class="bg-popover text-popover-foreground border-1 border-popover-border shadow-lg rounded-lg p-0 font-mono max-w-[90vw] lg:max-w-5xl overflow-hidden w-full"
 		size="none"
 		onkeydown={handleKeydown}
 	>
@@ -200,8 +203,8 @@
 								class={cn(
 									'grid grid-cols-[1fr_auto] items-center w-full text-left bg-transparent p-2 border-none text-base font-mono',
 									i === selectedIndex
-										? 'bg-accent text-accent-foreground'
-										: 'hover:bg-accent/60 hover:text-accent-foreground/90'
+										? 'bg-sidebar-accent text-sidebar-accent-foreground'
+										: 'hover:bg-sidebar-accent-hover hover:text-sidebar-accent-foreground'
 								)}
 								onclick={() => handleResultClick(result)}
 								onmouseenter={() => {
@@ -210,10 +213,8 @@
 								}}
 							>
 								<span class="flex items-center gap-2">
-									<FileText
-										class="w-4 h-4 flex-shrink-0 text-muted-foreground mr-1"
-									/>
-									<span class="text-xs text-muted-foreground truncate"
+									<FileText class="w-4 h-4 flex-shrink-0  mr-1" />
+									<span class="text-xs truncate"
 										>{result.file}:L{result.line} {result.text.trim()}</span
 									>
 								</span>
