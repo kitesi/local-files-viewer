@@ -14,9 +14,6 @@ importers:
       '@sveltejs/kit':
         specifier: ^2.22.2
         version: 2.22.2(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.35.2)(vite@6.2.6(@types/node@20.19.4)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.2)))(svelte@5.35.2)(vite@6.2.6(@types/node@20.19.4)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.2))
-      fuse.js:
-        specifier: ^6.6.2
-        version: 6.6.2
       hast:
         specifier: ^1.0.0
         version: 1.0.0
@@ -875,10 +872,6 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
-
-  fuse.js@6.6.2:
-    resolution: {integrity: sha512-cJaJkxCCxC8qIIcPBF9yGxY0W/tVZS3uEISDxhYIdtk8OL93pe+6Zj7LjCqVV4dzbqcriOZ+kQ/NE4RXZHsIGA==}
-    engines: {node: '>=10'}
 
   gemoji@8.1.0:
     resolution: {integrity: sha512-HA4Gx59dw2+tn+UAa7XEV4ufUKI4fH1KgcbenVA9YKSj1QJTT0xh5Mwv5HMFNN3l2OtUe3ZIfuRwSyZS5pLIWw==}
@@ -2191,8 +2184,6 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
-
-  fuse.js@6.6.2: {}
 
   gemoji@8.1.0: {}
 

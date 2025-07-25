@@ -8,6 +8,11 @@ import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
+export interface NewBaseDirSearchResponse {
+	files: string[];
+	homedir: string;
+}
+
 async function oneLevelDirSearch(url: URL) {
 	const homedir = os.homedir();
 	const query = (url.searchParams?.get('query') || '').replace(
@@ -38,18 +43,23 @@ async function oneLevelDirSearch(url: URL) {
 		dir += path.sep;
 	}
 
+	const response: NewBaseDirSearchResponse = {
+		files: [],
+		homedir
+	};
+
 	if (!dir.startsWith(getRootDirectory())) {
-		return json({ files: [], homedir });
+		return json(response);
 	}
 
 	if (!existsSync(dir)) {
-		return json({ files: [], homedir });
+		return json(response);
 	}
 
 	const stats = await stat(dir);
 
 	if (!stats.isDirectory()) {
-		return json({ files: [], homedir });
+		return json(response);
 	}
 
 	const files = (await readdir(dir)).map((e) => path.join(dir, e));
@@ -65,10 +75,8 @@ async function oneLevelDirSearch(url: URL) {
 		filteredDirectories.unshift('../');
 	}
 
-	return json({
-		files: filteredDirectories,
-		homedir
-	});
+	response.files = filteredDirectories;
+	return json(response);
 }
 
 export const GET: RequestHandler = async function ({ url }) {

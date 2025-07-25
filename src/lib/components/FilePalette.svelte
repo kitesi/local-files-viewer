@@ -2,17 +2,18 @@
 <!-- TODO: after it reaches half way, the view is always at the middle as you go down. this is not intended-->
 <script lang="ts">
 	import FileIcon from './FileIcon.svelte';
-	import Fuse from 'fuse.js';
-	import * as mappings from '$lib/client-utils/key-mappings';
+	import mappings from '$lib/client-utils/key-mappings';
 	import { modalState, files, addToastError } from '$lib/stores/index';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Search, X, Folder } from '@lucide/svelte';
+	import { Search, Folder } from '@lucide/svelte';
 
 	import type { WalkDirItem } from '$lib/server-utils/mem-fs';
 	import { cn } from '$lib/utils';
+	import { apiClient } from '$lib/client-utils/api-client';
+	import { onDestroy } from 'svelte';
+
 	interface File {
 		parents: string;
 		name: string;
@@ -24,9 +25,12 @@
 
 	let flattenedResults: File[] = [];
 	let filteredResults: File[] = [];
-	let fuse: Fuse<string>;
 	let query = '';
 	let input: HTMLInputElement;
+	let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+	const THROTTLE_DELAY = 200;
+	let lastExecuted = 0;
+	let currentAbortController: AbortController | null = null;
 
 	function addToFlattenedArr(
 		item: WalkDirItem,
@@ -58,44 +62,89 @@
 	}
 
 	async function setFilteredDirectoryResults() {
-		const res = await fetch(
-			// vite has some weird thing where if a query=../.. it will try to parse it ig
-			`/api/new-base-dir-search?query=` + encodeURIComponent(query)
-		);
-
-		const json = (await res.json()) as { files: string[]; homedir: string };
-
-		let normalizedQuery = query.replace(/(?<!\\)~/, json.homedir);
-		let pathsOfQuery = normalizedQuery.match(/\/?[^/]*$/);
-
-		if (pathsOfQuery && pathsOfQuery[0]) {
-			normalizedQuery = pathsOfQuery[0];
-
-			if (normalizedQuery.startsWith('/')) {
-				normalizedQuery = normalizedQuery.slice(1);
+		try {
+			// Abort previous request if it exists
+			if (currentAbortController) {
+				currentAbortController.abort();
 			}
+			currentAbortController = new AbortController();
+
+			const res = await apiClient.searchDirectories(
+				query,
+				currentAbortController.signal
+			);
+
+			let normalizedQuery = query.replace(/(?<!\\)~/, res.homedir);
+			let pathsOfQuery = normalizedQuery.match(/\/?[^/]*$/);
+
+			if (pathsOfQuery && pathsOfQuery[0]) {
+				normalizedQuery = pathsOfQuery[0];
+
+				if (normalizedQuery.startsWith('/')) {
+					normalizedQuery = normalizedQuery.slice(1);
+				}
+			}
+
+			filteredResults = res.files
+				.map((e) => {
+					const paths = e.split('/');
+					let name = '';
+
+					if (paths.length > 1) {
+						name = paths.pop()!;
+					}
+
+					return { name, parents: paths.join('/') };
+				})
+				.filter((e) => {
+					if (normalizedQuery.toLowerCase() === normalizedQuery) {
+						return e.name.toLowerCase().startsWith(normalizedQuery);
+					}
+
+					return e.name.startsWith(normalizedQuery);
+				});
+
+			return;
+		} catch (e) {
+			// Don't show error if request was aborted
+			if (e instanceof Error && e.name === 'AbortError') {
+				return;
+			}
+
+			console.error('error setting filtered directory results', e);
+			addToastError('Error: unable to search directories');
 		}
+	}
 
-		filteredResults = json.files
-			.map((e) => {
-				const paths = e.split('/');
-				let name = '';
+	async function setFilteredFileResults() {
+		try {
+			// Abort previous request if it exists
+			if (currentAbortController) {
+				currentAbortController.abort();
+			}
+			currentAbortController = new AbortController();
 
-				if (paths.length > 1) {
-					name = paths.pop()!;
-				}
-
-				return { name, parents: paths.join('/') };
-			})
-			.filter((e) => {
-				if (normalizedQuery.toLowerCase() === normalizedQuery) {
-					return e.name.toLowerCase().startsWith(normalizedQuery);
-				}
-
-				return e.name.startsWith(normalizedQuery);
+			const res = await apiClient.searchFilesEnhanced(
+				query,
+				'filename',
+				undefined,
+				currentAbortController.signal
+			);
+			filteredResults = res.results.map((r) => {
+				const lastSlash = r.path.lastIndexOf('/');
+				return {
+					name: r.file,
+					parents: lastSlash !== -1 ? r.path.slice(0, lastSlash) : ''
+				};
 			});
-
-		return;
+		} catch (e) {
+			// Don't show error if request was aborted
+			if (e instanceof Error && e.name === 'AbortError') {
+				return;
+			}
+			console.error('error setting filtered file results', e);
+			addToastError('Error: unable to search files');
+		}
 	}
 
 	// Reactive statement that runs immediately when modalState changes
@@ -119,7 +168,6 @@
 				});
 
 			filteredResults = flattenedResults;
-			fuse = new Fuse(flattenedResults.map((e) => e.parents + '/' + e.name));
 		}
 
 		if ($modalState === 'choose-directory') {
@@ -131,8 +179,11 @@
 
 	function changeSelected(direction: 'next' | 'prev') {
 		const currentSelected = document.querySelector('button.selected');
-		const nextElement = direction === 'next' ? currentSelected?.nextElementSibling : currentSelected?.previousElementSibling;
-		
+		const nextElement =
+			direction === 'next'
+				? currentSelected?.nextElementSibling
+				: currentSelected?.previousElementSibling;
+
 		if (currentSelected && nextElement) {
 			currentSelected.classList.remove('selected');
 			nextElement.classList.add('selected');
@@ -143,37 +194,28 @@
 	async function handleKeydown(ev: KeyboardEvent) {
 		ev.stopPropagation();
 
-		if (
-			ev.key === 'Escape' ||
-			ev.key === 'Tab' ||
-			(mappings.ctrl.includes(ev.key) && ev.ctrlKey)
-		) {
-			ev.preventDefault();
-		}
-
-
-		if (
-			ev.key === 'Escape' ||
-			(ev.ctrlKey && (ev.key === 'p' || ev.key === 'o' || ev.key === '['))
-		) {
+		if (mappings.opened.shouldClosePalette(ev)) {
 			modalState.set('');
 			return;
 		}
 
-		if (ev.key === "Enter" || (ev.key === 'm' && ev.ctrlKey )) {
-			handleItemSubmission(document.querySelector('button.selected')?.getAttribute('data-href') || '');
+		if (mappings.opened.shouldSubmitItem(ev)) {
+			handleItemSubmission(
+				document.querySelector('button.selected')?.getAttribute('data-href') ||
+					''
+			);
 		}
 
 		const isNormalTab = ev.key === 'Tab' && !ev.shiftKey;
 		const isShiftTab = ev.key === 'Tab' && ev.shiftKey;
 
 		if ($modalState === 'choose-directory') {
-			if (ev.key === 'ArrowDown' || (ev.key === 'j' && ev.ctrlKey)) {
+			if (mappings.opened.shouldNavigateNext(ev)) {
 				changeSelected('next');
 				return;
 			}
 
-			if (ev.key === 'ArrowUp' || (ev.key === 'k' && ev.ctrlKey)) {
+			if (mappings.opened.shouldNavigatePrevious(ev)) {
 				changeSelected('prev');
 				return;
 			}
@@ -201,16 +243,11 @@
 			return;
 		}
 
-
-		if (
-			isNormalTab ||
-			ev.key === 'ArrowDown' ||
-			(ev.ctrlKey && ev.key === 'j')
-		) {
+		if (isNormalTab || mappings.opened.shouldNavigateNext(ev)) {
 			return changeSelected('next');
 		}
 
-		if (isShiftTab || ev.key === 'ArrowUp' || (ev.ctrlKey && ev.key === 'k')) {
+		if (isShiftTab || mappings.opened.shouldNavigatePrevious(ev)) {
 			return changeSelected('prev');
 		}
 	}
@@ -228,37 +265,65 @@
 				}
 			});
 		} else {
-			fetch('/api/new-base-dir', {
-				method: 'POST',
-				body: JSON.stringify({ dir: href }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			})
-				.then((res) => res.json())
-				.then((json) => {
-					if (json.error) {
-						addToastError(json.error + ` (${query})`);
-					} else {
-						window.location.href = '/preview';
+			apiClient
+				.setNewBaseDir(href)
+				.then(() => {
+					goto('/preview').catch((err) => {
+						console.error('error navigating to preview', err);
+						if (err.message) {
+							addToastError(err.message);
+						}
+					});
+					window.location.reload();
+				})
+				.catch((err) => {
+					console.error('error setting new base dir', err);
+					if (err.message) {
+						addToastError(err.message);
 					}
+				})
+				.finally(() => {
+					modalState.set('');
 				});
 		}
 	}
 
-	async function handleInput(_: Event) {
+	async function executeSearch() {
 		if ($modalState === 'choose-directory') {
-			return setFilteredDirectoryResults().catch(console.error);
-		}
-
-		if (!query) {
-			filteredResults = flattenedResults;
+			await setFilteredDirectoryResults().catch(console.error);
 		} else {
-			filteredResults = fuse.search(query).map((e) => {
-				return flattenedResults![e.refIndex];
-			});
+			if (!query) {
+				filteredResults = flattenedResults;
+			} else {
+				await setFilteredFileResults();
+			}
 		}
 	}
+
+	async function handleInput(_: Event) {
+		const now = Date.now();
+
+		if (now - lastExecuted >= THROTTLE_DELAY) {
+			executeSearch();
+			lastExecuted = now;
+		} else {
+			if (throttleTimer) clearTimeout(throttleTimer);
+			throttleTimer = setTimeout(
+				() => {
+					executeSearch();
+					lastExecuted = now;
+				},
+				THROTTLE_DELAY - (now - lastExecuted)
+			);
+		}
+	}
+
+	onDestroy(() => {
+		if (throttleTimer) clearTimeout(throttleTimer);
+		if (currentAbortController) {
+			currentAbortController.abort();
+		}
+	});
 
 	function getPreviewPath(path: string) {
 		if ($modalState === 'choose-file') {
@@ -267,14 +332,24 @@
 
 		return path;
 	}
+
+	function getOpenState() {
+		return $modalState === 'choose-file' || $modalState === 'choose-directory';
+	}
+
+	function setOpenState(state: boolean) {
+		modalState.set(state ? 'choose-file' : '');
+	}
 </script>
 
-<Dialog open={$modalState === 'choose-file' || $modalState === 'choose-directory'}>
-	<!-- <DialogOverlay /> -->
-	<DialogContent position="top" class="bg-popover text-popover-foreground border-2 border-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0" onkeydown={handleKeydown} oninput={handleInput}>
-		<div 
-			class="w-full"
-		>
+<Dialog bind:open={getOpenState, setOpenState}>
+	<DialogContent
+		position="top"
+		class="bg-popover text-popover-foreground border-1 border-popover-border shadow-lg rounded-lg w-full max-w-lg mx-4 p-0 overflow-x-hidden"
+		onkeydown={handleKeydown}
+		oninput={handleInput}
+	>
+		<div class="w-full">
 			<div class="p-1.5 text-popover-foreground">
 				<div class="flex items-center bg-popover pl-1.5">
 					<label for="palette-search" class="sr-only">Search files</label>
@@ -292,22 +367,17 @@
 						oninput={handleInput}
 						bind:this={input}
 					/>
-					<Button type="button" variant="ghost" size="icon" onclick={() => modalState.set('')}
-						class="ml-2">
-						<X class="w-5 h-5" />
-					</Button>
 				</div>
 			</div>
-			<div class="max-h-[60vh] overflow-auto" tabindex="-1">
+			<div class="max-h-[60vh] overflow-auto overflow-x-hidden" tabindex="-1">
 				{#if filteredResults.length > 0}
 					{#each filteredResults as file, i (file.parents + '/' + file.name)}
-					{@const href = getPreviewPath(file.parents + '/' + file.name)}
+						{@const href = getPreviewPath(file.parents + '/' + file.name)}
 						<button
 							type="button"
 							data-href={href}
-							class={
-							cn(
-								"flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-popover hover:text-popover-foreground",
+							class={cn(
+								'flex items-center gap-1.5 w-full text-left bg-transparent text-popover-foreground p-0.5 px-2.5 border-none text-base hover:bg-sidebar-accent-hover',
 								i == filteredResults.length - 1 && 'rounded-sm'
 							)}
 							class:selected={i === 0}
@@ -318,12 +388,19 @@
 							{:else}
 								<Folder />
 							{/if}
-							<span class="whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
-							<span class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{file.parents}</span>
+							<span class="whitespace-nowrap overflow-hidden text-ellipsis"
+								>{file.name}</span
+							>
+							<span
+								class="whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground"
+								>{file.parents}</span
+							>
 						</button>
 					{/each}
 				{:else}
-					<p class="text-popover-foreground p-1.5 px-2.5">No matching results.</p>
+					<p class="text-popover-foreground p-1.5 px-2.5">
+						No matching results.
+					</p>
 				{/if}
 			</div>
 		</div>
@@ -333,7 +410,7 @@
 <style>
 	.selected {
 		outline: none;
-		background-color: var(--accent);
-		color: var(--accent-foreground);
+		background-color: var(--sidebar-accent);
+		color: var(--sidebar-accent-foreground);
 	}
 </style>

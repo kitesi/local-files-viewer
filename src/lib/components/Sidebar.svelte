@@ -3,7 +3,12 @@
 	import SidebarOutlineItem from './SidebarOutlineItem.svelte';
 	import SidebarFileItem from './SidebarFileItem.svelte';
 	import { formatBytes } from '$lib/client-utils/format-bytes';
-	import { baseDirectory, files, isSidebarOpen, theme } from '$lib/stores/index';
+	import {
+		baseDirectory,
+		files,
+		isSidebarOpen,
+		theme
+	} from '$lib/stores/index';
 	import { OUTLINE_OPEN_DEFAULT_STATUS } from '../config';
 	import { Sun, Moon } from '@lucide/svelte';
 
@@ -106,85 +111,84 @@
 	class="toggle-sidebar absolute border-none p-4 z-30 md:opacity-0 md:invisible md:pointer-events-none"
 	style="inset: 7px 0 auto auto;"
 >
-	<ui-button variant="ghost" size="icon">
-		<span class="block relative w-8 h-0.5 bg-sidebar-foreground transition-all duration-150 ease-in-out before:content-[''] before:absolute before:left-0 before:w-8 before:h-0.5 before:bg-sidebar-foreground before:transition-all before:duration-200 before:linear before:top-2 after:content-[''] after:absolute after:left-0 after:w-8 after:h-0.5 after:bg-sidebar-foreground after:transition-all after:duration-200 after:linear after:bottom-2"></span>
-	</ui-button>
+	<span
+		class="block relative w-8 h-0.5 bg-sidebar-foreground transition-all duration-150 ease-in-out before:content-[''] before:absolute before:left-0 before:w-8 before:h-0.5 before:bg-sidebar-foreground before:transition-all before:duration-200 before:linear before:top-2 after:content-[''] after:absolute after:left-0 after:w-8 after:h-0.5 after:bg-sidebar-foreground after:transition-all after:duration-200 after:linear after:bottom-2"
+	></span>
 </button>
 
-<section 
-	bind:this={sidebarElement} 
+<section
+	bind:this={sidebarElement}
 	class="absolute bg-sidebar text-sidebar-foreground top-0 left-0 max-w-[80vw] w-[80vw] h-full -translate-x-full transition-transform duration-100 linear z-20 overflow-auto md:static md:translate-x-0 md:shadow-none md:w-[300px] md:min-w-[250px]"
 	id="sidebar"
 	class:resizing={isResizing}
 >
 	<div class="flex flex-col h-full">
 		<div class="flow-root relative overflow-auto flex-1 scrollbar-none">
-		<!-- TODO: fix this -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="resizer fixed top-0 right-0 bottom-0 w-[0.3em] bg-transparent border-l border-r border-sidebar-border border-l-transparent cursor-ew-resize hover:bg-sidebar-accent hover:border-sidebar-accent"
-			on:mousedown|preventDefault={() => (isResizing = true)}
-			aria-label="resize sidebar"
-		>
-		</div>
-		<CollapsableSidebarSection
-			name={getLastDirectory($baseDirectory)}
-			open={true}
-			icon="folder"
-		>
-			<ul class="list-none">
-				{#if $files.children && $files.children.length > 0}
-					{#each $files.children as child (child.name)}
-						<SidebarFileItem item={child} parentPath="" />
-					{/each}
-				{:else}
-					<p class="pl-1.5 my-1.5"><b>No files</b></p>
-				{/if}
-			</ul>
-		</CollapsableSidebarSection>
+			<!-- TODO: fix this -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="resizer fixed top-0 right-0 bottom-0 w-[0.3em] bg-transparent border-l border-r border-sidebar-border border-l-transparent cursor-ew-resize hover:bg-sidebar-accent hover:border-sidebar-accent"
+				on:mousedown|preventDefault={() => (isResizing = true)}
+				aria-label="resize sidebar"
+			></div>
+			<CollapsableSidebarSection
+				name={getLastDirectory($baseDirectory)}
+				open={true}
+				icon="folder"
+			>
+				<ul class="list-none">
+					{#if $files.children && $files.children.length > 0}
+						{#each $files.children as child (child.name)}
+							<SidebarFileItem item={child} parentPath="" />
+						{/each}
+					{:else}
+						<p class="pl-1.5 my-1.5"><b>No files</b></p>
+					{/if}
+				</ul>
+			</CollapsableSidebarSection>
 
-		<CollapsableSidebarSection
-			name="outline"
-			open={OUTLINE_OPEN_DEFAULT_STATUS}
-			icon="outline"
-		>
-			<ul class="ml-4 list-none mb-5">
-				{#if stats.size}
-					<li class="pl-1.5 first:mt-2.5">Size: {formatBytes(stats.size)}</li>
-				{/if}
-				{#if stats.chars}
-					<li class="pl-1.5 first:mt-2.5">Characters: {stats.chars}</li>
-				{/if}
-				{#if stats.words}
-					<li class="pl-1.5 first:mt-2.5">Words: {stats.words}</li>
-				{/if}
-				{#if stats.lines}
-					<li class="pl-1.5 first:mt-2.5">Lines: {stats.lines}</li>
-				{/if}
-				{#if outlineHeadings && outlineHeadings.length !== 0}
-					{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
-						<SidebarOutlineItem item={heading} />
-					{/each}
-				{/if}
-			</ul>
-		</CollapsableSidebarSection>
+			<CollapsableSidebarSection
+				name="outline"
+				open={OUTLINE_OPEN_DEFAULT_STATUS}
+				icon="outline"
+			>
+				<ul class="ml-4 list-none mb-5">
+					{#if stats.size}
+						<li class="pl-1.5 first:mt-2.5">Size: {formatBytes(stats.size)}</li>
+					{/if}
+					{#if stats.chars}
+						<li class="pl-1.5 first:mt-2.5">Characters: {stats.chars}</li>
+					{/if}
+					{#if stats.words}
+						<li class="pl-1.5 first:mt-2.5">Words: {stats.words}</li>
+					{/if}
+					{#if stats.lines}
+						<li class="pl-1.5 first:mt-2.5">Lines: {stats.lines}</li>
+					{/if}
+					{#if outlineHeadings && outlineHeadings.length !== 0}
+						{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
+							<SidebarOutlineItem item={heading} />
+						{/each}
+					{/if}
+				</ul>
+			</CollapsableSidebarSection>
 		</div>
 
 		<!-- Theme Toggle Button -->
 		<div class="mt-auto p-0 border-t border-sidebar-border h-12 w-full">
 			<button
 				on:click={() => theme.toggle()}
-				class="w-full h-full flex items-center justify-center rounded-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors relative"
+				class="w-full h-full flex items-center justify-center rounded-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative"
 				aria-label="Toggle theme"
 			>
-				<span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex">
-					<Sun 
-						size={20} 
-						class="h-5 w-5 transition-all duration-200 dark:-rotate-90 dark:scale-0 rotate-0 scale-100" 
+				<span class="flex items-center justify-center w-5 h-5 relative">
+					<Sun
+						size={20}
+						class="absolute inset-0 m-auto transition-all duration-200 dark:-rotate-90 dark:scale-0 rotate-0 scale-100"
 					/>
-					<Moon 
-						size={20} 
-						class="h-5 w-5 transition-all duration-200 dark:rotate-0 dark:scale-100 rotate-90 scale-0" 
+					<Moon
+						size={20}
+						class="absolute inset-0 m-auto transition-all duration-200 dark:rotate-0 dark:scale-100 rotate-90 scale-0"
 					/>
 				</span>
 				<span class="sr-only">Toggle theme</span>
@@ -222,7 +226,9 @@
 		width: 2em;
 		height: 3px;
 		background-color: white;
-		transition: transform 150ms ease-in-out, opacity 200ms linear;
+		transition:
+			transform 150ms ease-in-out,
+			opacity 200ms linear;
 	}
 
 	.toggle-sidebar span::before,
@@ -271,5 +277,4 @@
 	#sidebar:global li:not(.is-collapsed) > ul {
 		display: none;
 	}
-
 </style>
