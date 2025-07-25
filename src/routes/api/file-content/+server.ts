@@ -1,6 +1,9 @@
 import { readFile } from '$lib/server-utils/mem-fs';
 import { getMimeType } from '$lib/server-utils/get-mime-types';
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import {
+	getBaseDirectory,
+	getRootDirectory
+} from '$lib/server-utils/directory-variables';
 import { highlighterWrapper } from '$lib/server-utils/highlight';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -63,7 +66,13 @@ async function getFileContents(url: URL) {
 		error(400, 'Did not recieve a file path');
 	}
 
-	const filePath = path.join(getBaseDirectory(), filePathParam);
+	let filePath = path.join(getBaseDirectory(), filePathParam);
+	filePath = path.resolve(filePath);
+
+	if (!filePath.startsWith(getRootDirectory())) {
+		error(400, 'File path is not in the root directory');
+	}
+
 	const mimeType = getMimeType(filePath);
 
 	const content = await readFile(filePath, 'utf-8');

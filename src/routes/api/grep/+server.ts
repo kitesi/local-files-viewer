@@ -1,4 +1,4 @@
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import type { RequestHandler } from '@sveltejs/kit';
 import { error, json } from '@sveltejs/kit';
 import { spawn } from 'child_process';

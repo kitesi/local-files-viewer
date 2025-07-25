@@ -2,8 +2,9 @@ import os from 'os';
 import path from 'path';
 import { existsSync } from 'fs';
 import { readdir, stat } from 'fs/promises';
+import { getRootDirectory } from '$lib/server-utils/directory-variables';
 
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -16,6 +17,7 @@ async function oneLevelDirSearch(url: URL) {
 
 	let dir = query;
 
+	// trim the user input to get the directory we should be searching
 	if (query !== homedir && query !== '/' && !query.endsWith('/')) {
 		if (!query.includes('/')) {
 			dir = '';
@@ -30,8 +32,14 @@ async function oneLevelDirSearch(url: URL) {
 		}
 	}
 
-	if (!path.isAbsolute(dir)) {
-		dir = path.resolve(getBaseDirectory(), dir);
+	dir = path.resolve(getBaseDirectory(), dir);
+
+	if (!dir.endsWith(path.sep)) {
+		dir += path.sep;
+	}
+
+	if (!dir.startsWith(getRootDirectory())) {
+		return json({ files: [], homedir });
 	}
 
 	if (!existsSync(dir)) {
@@ -48,9 +56,17 @@ async function oneLevelDirSearch(url: URL) {
 	const filesStats = await Promise.all(
 		files.map((e) => stat(e).catch(() => null))
 	);
+	const filteredDirectories = files.filter((_, i) =>
+		filesStats[i]?.isDirectory()
+	);
+
+	if (query.startsWith('../')) {
+		// add this entry so that the user can go back to the parent directory (if the user presses enter, it selects the first entry)
+		filteredDirectories.unshift('../');
+	}
 
 	return json({
-		files: files.filter((e, i) => filesStats[i]?.isDirectory()),
+		files: filteredDirectories,
 		homedir
 	});
 }

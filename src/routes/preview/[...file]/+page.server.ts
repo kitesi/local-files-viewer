@@ -8,7 +8,7 @@ import {
 	getMimeType,
 	type MimeType
 } from '../../../lib/server-utils/get-mime-types';
-import { getBaseDirectory } from '../../../lib/server-utils/base-directory';
+import { getBaseDirectory } from '../../../lib/server-utils/directory-variables';
 import {
 	INITIAL_FOLDER_LOAD_DEPTH,
 	MAX_FILE_SIZE_MEGABYTES

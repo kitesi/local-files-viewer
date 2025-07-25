@@ -1,6 +1,6 @@
 import path from 'path';
 import { readFile } from '$lib/server-utils/mem-fs';
-import { getBaseDirectory } from '$lib/server-utils/base-directory';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { getMimeType } from '$lib/server-utils/get-mime-types';
 
 import { error, type RequestHandler } from '@sveltejs/kit';
