@@ -1,5 +1,6 @@
 import path from 'path';
 import {
+	lstat as fsLstat, // use lstat to detect symlinks
 	stat as fsStat,
 	readFile as fsReadFile,
 	readdir as fsReaddir
@@ -40,7 +41,7 @@ export async function walkdirBase(
 	) {
 		const files = await fsReaddir(dir);
 		const stats = await Promise.all(
-			files.map((f) => stat(path.join(dir, f)).catch(() => undefined))
+			files.map((f) => fsLstat(path.join(dir, f)).catch(() => undefined))
 		);
 		const recursivePromises: Promise<any>[] = [];
 
@@ -54,7 +55,8 @@ export async function walkdirBase(
 			if (
 				!currentStats ||
 				currentFile === '.git' ||
-				currentFile === 'node_modules'
+				currentFile === 'node_modules' ||
+				currentStats.isSymbolicLink() // skip symlinks
 			) {
 				continue;
 			}

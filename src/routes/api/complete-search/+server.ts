@@ -8,6 +8,14 @@ import path from 'path';
 import { json, error } from '@sveltejs/kit';
 import { existsSync } from 'fs';
 
+export interface CompleteSearchResponse {
+	files: {
+		name: string;
+		isDirectory: boolean;
+		children?: any[];
+	};
+}
+
 async function completeSearch(url: URL) {
 	let dir = url.searchParams?.get('dir');
 	const depth = url.searchParams?.get('depth');
@@ -32,9 +40,11 @@ async function completeSearch(url: URL) {
 		return error(400, 'Directory does not exist');
 	}
 
-	return json({
+	const response: CompleteSearchResponse = {
 		files: await walkdirBase(dir, depthAsNumber)
-	});
+	};
+
+	return json(response);
 }
 
 export const GET: RequestHandler = async function ({ url }) {

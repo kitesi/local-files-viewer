@@ -30,7 +30,7 @@ interface UnistNode {
 	meta?: string;
 }
 
-export interface BodyReturn {
+export interface FileContentResponse {
 	content?: string;
 	html?: string;
 	error?: string;
@@ -76,7 +76,7 @@ async function getFileContents(url: URL) {
 	const mimeType = getMimeType(filePath);
 
 	const content = await readFile(filePath, 'utf-8');
-	const body: BodyReturn = {
+	const body: FileContentResponse = {
 		stats: {}
 	};
 
