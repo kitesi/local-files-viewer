@@ -1,12 +1,9 @@
 import os from 'os';
 import path from 'path';
-import { existsSync } from 'fs';
 import { readdir, stat } from 'fs/promises';
-import { getRootDirectory } from '$lib/server-utils/directory-variables';
-
-import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import { resolveUserPathWithinRoot } from '$/lib/client-utils/resolve-user-path';
 
 export interface NewBaseDirSearchResponse {
 	files: string[];
@@ -15,10 +12,7 @@ export interface NewBaseDirSearchResponse {
 
 async function oneLevelDirSearch(url: URL) {
 	const homedir = os.homedir();
-	const query = (url.searchParams?.get('query') || '').replace(
-		/(?<!\\)~/,
-		homedir
-	);
+	const query = url.searchParams?.get('query') || '';
 
 	let dir = query;
 
@@ -37,22 +31,15 @@ async function oneLevelDirSearch(url: URL) {
 		}
 	}
 
-	dir = path.resolve(getBaseDirectory(), dir);
-
-	if (!dir.endsWith(path.sep)) {
-		dir += path.sep;
-	}
-
 	const response: NewBaseDirSearchResponse = {
 		files: [],
 		homedir
 	};
 
-	if (!dir.startsWith(getRootDirectory())) {
-		return json(response);
-	}
-
-	if (!existsSync(dir)) {
+	try {
+		dir = resolveUserPathWithinRoot(dir, true);
+	} catch (err) {
+		// on error just return blank response
 		return json(response);
 	}
 

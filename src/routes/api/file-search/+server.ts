@@ -5,7 +5,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { error, json } from '@sveltejs/kit';
 import { spawn } from 'child_process';
 import path from 'path';
-import { resolveUserDir } from '$/lib/client-utils/resolve-user-dir';
+import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
 
 export interface FileSearchResponse {
 	results: {
@@ -180,7 +180,7 @@ export const GET: RequestHandler = async function ({ url }) {
 		return error(400, "Search type must be 'filename' or 'content'");
 	}
 
-	searchDir = resolveUserDir(searchDir);
+	searchDir = resolveUserPathWithinBase(searchDir, true);
 
 	let results: FileSearchResponse['results'] = [];
 	let searchStrategy = '';

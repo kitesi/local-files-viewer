@@ -1,12 +1,8 @@
-import {
-	getBaseDirectory,
-	getRootDirectory
-} from '$lib/server-utils/directory-variables';
 import { walkdirBase } from '$lib/server-utils/mem-fs';
 import type { RequestHandler } from '@sveltejs/kit';
-import path from 'path';
 import { json, error } from '@sveltejs/kit';
 import { existsSync } from 'fs';
+import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
 
 export interface CompleteSearchResponse {
 	files: {
@@ -30,15 +26,7 @@ async function completeSearch(url: URL) {
 		return error(400, 'Depth is not a valid number');
 	}
 
-	dir = path.join(getBaseDirectory(), dir);
-
-	if (!dir.startsWith(getRootDirectory())) {
-		return error(400, 'Directory is not in the root directory');
-	}
-
-	if (!existsSync(dir)) {
-		return error(400, 'Directory does not exist');
-	}
+	dir = resolveUserPathWithinBase(dir, true);
 
 	const response: CompleteSearchResponse = {
 		files: await walkdirBase(dir, depthAsNumber)
