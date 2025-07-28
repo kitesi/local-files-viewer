@@ -29,6 +29,11 @@ interface BodyReturn {
 
 export const load: PageServerLoad = async function ({ params }) {
 	const filePath = path.join(getBaseDirectory(), params.file);
+
+	if (!filePath.startsWith(getBaseDirectory())) {
+		return generateErrorResponse('Path is not in the base directory.');
+	}
+
 	const files = await walkdir(getBaseDirectory(), INITIAL_FOLDER_LOAD_DEPTH);
 
 	function generateErrorResponse(error: string, stats?: Stats) {
