@@ -5,7 +5,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { error, json } from '@sveltejs/kit';
 import { spawn } from 'child_process';
 import path from 'path';
-import { existsSync } from 'fs';
+import { resolveUserDir } from '$/lib/client-utils/resolve-user-dir';
 
 export interface FileSearchResponse {
 	results: {
@@ -170,7 +170,7 @@ async function searchInMemory(
 export const GET: RequestHandler = async function ({ url }) {
 	const query = url.searchParams.get('q');
 	const searchType = url.searchParams.get('type'); // 'filename' or 'content'
-	const dir = url.searchParams.get('dir') || getBaseDirectory();
+	let searchDir = url.searchParams.get('dir') || getBaseDirectory();
 
 	if (!query) {
 		return error(400, 'Missing search query');
@@ -180,13 +180,7 @@ export const GET: RequestHandler = async function ({ url }) {
 		return error(400, "Search type must be 'filename' or 'content'");
 	}
 
-	const searchDir = path.isAbsolute(dir)
-		? dir
-		: path.join(getBaseDirectory(), dir);
-
-	if (!existsSync(searchDir)) {
-		return error(400, 'Search directory does not exist');
-	}
+	searchDir = resolveUserDir(searchDir);
 
 	let results: FileSearchResponse['results'] = [];
 	let searchStrategy = '';
