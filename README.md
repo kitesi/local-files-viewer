@@ -8,6 +8,10 @@ Does not currently handle creating, renaming, or deleting files. Check out
 [filebrowser](https://filebrowser.org/installation), which might better suit
 your needs.
 
+This program also allows you to preview your content live as you edit the file,
+and allows you to have your cursor position match up with the page view, which
+is useful for a live markdown preview.
+
 ## Previews
 
 Markdown:
@@ -26,18 +30,20 @@ Do not open up any folders that include files you do not trust.
 
 ## Installation
 
+This method isn't recommend or maintained, but if you want to install as an npm global package:
+
 ```shell
 npm i -g local-files-viewer
 ```
 
-Or install yourself:
+(Recommend) Install yourself:
 
 ```shell
 git clone https://github.com/kitesi/local-files-viewer.git
 cd local-files-viewer
 npm install
 npm run build
-npm install -g
+npm link
 ```
 
 ## Usage
@@ -60,11 +66,11 @@ To use the script you can just call `lfv [folder]`. If no folder is provided, it
 
 `l` => go to next file
 
-`ctrl+p` => toggle file finder
+`ctrl+p` => open file finder
 
-`ctrl+o` => toggle directory picker (allows you to change the base directory)
+`ctrl+o` => open directory picker (allows you to change the base directory)
 
-`ctrl+y` => directory search (with ripgrep or grep)
+`ctrl+y` => search through the entire directory for words (with ripgrep)
 
 palette mode:
 
