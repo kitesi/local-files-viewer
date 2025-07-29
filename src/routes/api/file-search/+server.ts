@@ -12,7 +12,7 @@ export interface FileSearchResponse {
 		file: string;
 		path: string;
 		isDirectory: boolean;
-		matchType: 'filename' | 'content' | 'path';
+		matchType: 'filename' | 'content';
 		line?: number;
 		text?: string;
 	}[];
@@ -39,10 +39,11 @@ async function searchWithRipgrep(
 			reject(new Error('Search timeout'));
 		}, SEARCH_STRATEGIES.SEARCH_TIMEOUT);
 
-		const rg = spawn('rg', ['--json', query, searchDir]);
+		const rg = spawn('rg', ['--json', '-e', query, searchDir]);
 
 		let results: FileSearchResponse['results'] = [];
 		let errorOutput = '';
+
 		rg.stdout.on('data', (data) => {
 			const lines = data.toString().split('\n').filter(Boolean);
 			for (const line of lines) {
@@ -195,30 +196,29 @@ export const GET: RequestHandler = async function ({ url }) {
 					results.push(...ripgrepResults);
 					searchStrategy = 'ripgrep';
 				} catch (e) {
-					console.warn('Ripgrep search failed', e);
-
-					if (searchType === 'content') {
-						throw new Error('Ripgrep search failed');
-					}
+					throw new Error('Ripgrep search failed');
 				}
 			} else {
-				if (searchType === 'content') {
-					throw new Error('ripgrep is not installed');
-				}
+				throw new Error('ripgrep is not installed');
 			}
 		}
 
 		// Strategy 2: Use find for filename search
+		const findAvailable = await commandExists('find');
+		let triedFind = false;
+
 		if (searchType === 'filename' && SEARCH_STRATEGIES.USE_FIND) {
-			const findAvailable = await commandExists('find');
 			if (findAvailable) {
+				triedFind = true;
 				try {
 					const findResults = await searchWithFind(query, searchDir);
 					results.push(...findResults);
 					searchStrategy = 'find';
 				} catch (e) {
-					console.warn('Find search failed, falling back to memory search:', e);
+					throw new Error('Find search failed');
 				}
+			} else {
+				throw new Error('find is not installed');
 			}
 		}
 
@@ -226,15 +226,14 @@ export const GET: RequestHandler = async function ({ url }) {
 		if (
 			SEARCH_STRATEGIES.USE_MEMORY_SEARCH &&
 			searchType === 'filename' &&
-			results.length === 0
+			!triedFind
 		) {
 			try {
 				const memoryResults = await searchInMemory(query, searchDir);
 				results.push(...memoryResults);
 				searchStrategy = 'memory';
 			} catch (e) {
-				console.error('Memory search failed:', e);
-				throw new Error('All search strategies failed');
+				throw new Error('Memory search failed');
 			}
 		}
 
