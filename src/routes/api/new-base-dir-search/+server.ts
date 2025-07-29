@@ -4,6 +4,7 @@ import { readdir, stat } from 'fs/promises';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { resolveUserPathWithinRoot } from '$/lib/client-utils/resolve-user-path';
+import { getBaseDirectory } from '$/lib/server-utils/directory-variables';
 
 export interface NewBaseDirSearchResponse {
 	files: string[];
@@ -57,9 +58,8 @@ async function oneLevelDirSearch(url: URL) {
 		filesStats[i]?.isDirectory()
 	);
 
-	if (query.startsWith('../')) {
-		// add this entry so that the user can go back to the parent directory (if the user presses enter, it selects the first entry)
-		filteredDirectories.unshift('../');
+	if (query.endsWith('/')) {
+		filteredDirectories.unshift(path.resolve(getBaseDirectory(), query));
 	}
 
 	response.files = filteredDirectories;

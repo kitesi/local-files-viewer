@@ -87,6 +87,10 @@
 
 			filteredResults = res.files
 				.map((e) => {
+					if (e.endsWith('/')) {
+						e = e.slice(0, -1);
+					}
+
 					const paths = e.split('/');
 					let name = '';
 
