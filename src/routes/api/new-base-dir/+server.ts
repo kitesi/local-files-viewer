@@ -1,7 +1,7 @@
 import { setBaseDirectory } from '$lib/server-utils/directory-variables';
 
 import { error, type RequestHandler } from '@sveltejs/kit';
-import { resolveUserPathWithinRoot } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinRoot } from '$/lib/server-utils/resolve-user-path';
 
 export const POST: RequestHandler = async function ({ request }) {
 	let { dir } = await request.json();

@@ -7,7 +7,11 @@
 import path from 'path';
 import os from 'os';
 import { firefox } from 'playwright';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const assetsDir = path.join(__dirname, '..', 'assets');
 
 /** @param {number} ms */
 function sleep(ms) {
@@ -16,29 +20,42 @@ function sleep(ms) {
 	});
 }
 
-(async () => {
-	// this is assuming no ports are using 5173, prob should parse the url
-	// stdout from the exec()
-	const previewPath = 'http://localhost:5173/preview';
-	let controller = new AbortController();
+/** @param {string} image */
+function getImagePath(image) {
+	return path.join(assetsDir, image);
+}
 
-	/** @param {string} dir */
-	async function newBaseDirectory(dir) {
-		console.log('New directory: ' + dir);
-
-		process.env.LFV_DEFAULT_FOLDER = dir;
-		await sleep(100);
-		controller.abort();
-		controller = new AbortController();
-
-		exec('npx vite dev', { signal: controller.signal });
-		await sleep(2000);
+let viteProcess = null;
+/** @param {string} dir */
+async function newBaseDirectory(dir) {
+	if (viteProcess) {
+		viteProcess.kill();
+		viteProcess = null;
 	}
+	console.log('Starting vite preview with LFV_DEFAULT_FOLDER=' + dir);
+
+	// spawn vite preview with env including LFV_DEFAULT_FOLDER
+	viteProcess = spawn('pnpx', ['vite', 'preview'], {
+		env: { ...process.env, LFV_DEFAULT_FOLDER: dir },
+		stdio: 'inherit'
+	});
+
+	// wait a bit for vite preview to start up
+	await new Promise((resolve) => setTimeout(resolve, 2000));
+}
+
+(async () => {
+	console.log(
+		'Make sure you have built the project & are not running anything on 4173'
+	);
+	// this is assuming no ports are using 4173, prob should parse the url
+	// stdout from the exec()
+	const previewPath = 'http://localhost:4173/preview';
 
 	await newBaseDirectory(path.join(os.homedir(), 'code', 'scoped-sort'));
 
 	let browser = await firefox.launch({
-		// headless: false
+		headless: false
 	});
 	let page = await browser.newPage();
 
@@ -46,47 +63,48 @@ function sleep(ms) {
 	await page.goto(`${previewPath}/README.md`);
 
 	const outlineButton = page.locator(
-		'main section > div > button:nth-of-type(2)'
+		'main section > div > div  > button:nth-of-type(2)'
 	);
 	await outlineButton.click();
 
-	await page.screenshot({ path: `../assets/markdown.png` });
+	await sleep(1000);
+	await page.screenshot({ path: getImagePath(`markdown.png`) });
 
 	console.log('Getting javascript.png');
-	await page.goto(`${previewPath}/previews.js`);
+	await page.goto(`${previewPath}/test-utils.js`);
 	await sleep(1000);
-	await page.screenshot({ path: `../assets/javascript.png` });
+	await page.screenshot({ path: getImagePath(`javascript.png`) });
 
 	console.log('Getting plain-image-file.png');
-	await page.goto(`${previewPath}/vscode/../assets/command-preview.gif`);
-	await page.screenshot({ path: `../assets/plain-image-file.png` });
+	await page.goto(`${previewPath}/assets/command-preview.gif`);
+	await page.screenshot({ path: getImagePath(`plain-image-file.png`) });
 
 	console.log('getting folder-picker.png');
 	await page.keyboard.press('Control+o');
-	const form = await page.locator('form');
-	await form.screenshot({ path: '../assets/folder-picker.png' });
+	const form = page.locator('div[role="dialog"]');
+	await form.screenshot({ path: getImagePath('folder-picker.png') });
 
 	console.log('getting font.png');
-	await newBaseDirectory('/' + path.join('usr', 'share', 'fonts', 'truetype'));
+	await newBaseDirectory(path.join(__dirname, '..'));
 	await page.setViewportSize({
 		width: 1000,
 		height: 700
 	});
-	await page.goto(`${previewPath}/CascadiaCode/CascadiaCode.ttf`);
+	await page.goto(`${previewPath}/assets/CascadiaCode.ttf`);
 	await page.screenshot({
-		path: '../assets/font.png'
+		path: getImagePath('font.png')
 	});
 
 	console.log('Getting html.png');
-	await newBaseDirectory(path.join(os.homedir(), 'code', 'html-preview-test'));
 	await page.setViewportSize({
 		width: 1100,
 		height: 1000
 	});
 	await page.goto(`${previewPath}/index.html`);
+	await page.goto(`${previewPath}/assets/index.html`);
 	await sleep(1000);
 	await page.screenshot({
-		path: '../assets/html.png'
+		path: getImagePath('html.png')
 	});
 
 	await browser.close();

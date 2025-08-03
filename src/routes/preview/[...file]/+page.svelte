@@ -290,7 +290,7 @@
 >
 	<Sidebar {outlineHeadings} {stats} />
 	<section
-		class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body"
+		class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body prose-ul:list-disc"
 	>
 		{#if error}
 			<h1>{error}</h1>

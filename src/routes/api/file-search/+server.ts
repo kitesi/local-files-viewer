@@ -5,7 +5,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { error, json } from '@sveltejs/kit';
 import { spawn } from 'child_process';
 import path from 'path';
-import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinBase } from '$lib/server-utils/resolve-user-path';
 
 export interface FileSearchResponse {
 	results: {

@@ -3,7 +3,7 @@ import path from 'path';
 import { readdir, stat } from 'fs/promises';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
-import { resolveUserPathWithinRoot } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinRoot } from '$/lib/server-utils/resolve-user-path';
 import { getBaseDirectory } from '$/lib/server-utils/directory-variables';
 
 export interface NewBaseDirSearchResponse {
