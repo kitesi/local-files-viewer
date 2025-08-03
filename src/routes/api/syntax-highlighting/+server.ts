@@ -3,7 +3,7 @@ import { getMimeType } from '$lib/server-utils/get-mime-types';
 
 import { error, type RequestHandler } from '@sveltejs/kit';
 import { getHighlighter, BUNDLED_LANGUAGES } from 'shiki';
-import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinBase } from '$/lib/server-utils/resolve-user-path';
 
 const cache: Map<string, string> = new Map();
 

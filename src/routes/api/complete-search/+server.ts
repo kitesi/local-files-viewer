@@ -1,8 +1,7 @@
 import { walkdirBase } from '$lib/server-utils/mem-fs';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json, error } from '@sveltejs/kit';
-import { existsSync } from 'fs';
-import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinBase } from '$lib/server-utils/resolve-user-path';
 
 export interface CompleteSearchResponse {
 	files: {

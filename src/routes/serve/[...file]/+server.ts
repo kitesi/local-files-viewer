@@ -2,7 +2,7 @@ import path from 'path';
 
 import { readFile } from '../../../lib/server-utils/mem-fs';
 import { getMimeType } from '../../../lib/server-utils/get-mime-types';
-import { resolveUserPathWithinRoot } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinRoot } from '$/lib/server-utils/resolve-user-path';
 
 export const GET = async function ({ params }: { params: any }) {
 	let filePath = resolveUserPathWithinRoot(params.file, false);

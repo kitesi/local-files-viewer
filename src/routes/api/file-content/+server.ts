@@ -17,7 +17,7 @@ import { visit } from 'unist-util-visit';
 import { escape as escapeHtml } from 'html-escaper';
 
 import path from 'path';
-import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinBase } from '$/lib/server-utils/resolve-user-path';
 
 // todo: fix typing in this file
 interface UnistNode {
