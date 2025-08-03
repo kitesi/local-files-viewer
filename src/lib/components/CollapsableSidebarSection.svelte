@@ -20,7 +20,12 @@
 	{:else if icon === 'outline'}
 		<FileText class="w-4 h-4 text-sidebar-foreground" />
 	{/if}
-	<span class="font-medium">{name}</span>
+
+	{#if name}
+		<span class="font-medium">{name}</span>
+	{:else}
+		<div class="w-full h-2 rounded-md animate-pulse bg-sidebar-accent"></div>
+	{/if}
 	{#if open}
 		<ChevronDown class="w-4 h-4 ml-auto text-sidebar-foreground" />
 	{:else}
