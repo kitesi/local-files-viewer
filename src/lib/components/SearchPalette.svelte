@@ -221,7 +221,7 @@
 							</button>
 						{/each}
 					{:else if query && !isLoading}
-						<div class="py-8 text-center text-muted-foreground text-base">
+						<div class="px-2 py-8 text-center text-muted-foreground text-base">
 							No results found for "{query}"
 						</div>
 					{/if}
