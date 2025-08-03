@@ -6,4 +6,3 @@
   - Error text is white on white background
 - API is very loose and not consistent
 - loading state for file content
-- images don't work anymore sometimes?

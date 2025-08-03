@@ -1,5 +1,5 @@
 import { readFile } from '$lib/server-utils/mem-fs';
-import { getMimeType } from '$lib/server-utils/get-mime-types';
+import { getMimeType } from '$/lib/server-utils/get-mime-types';
 
 import { error, type RequestHandler } from '@sveltejs/kit';
 import { getHighlighter, BUNDLED_LANGUAGES } from 'shiki';

@@ -23,6 +23,7 @@
 	import { onMount } from 'svelte';
 	import type { FileContentResponse } from '../../api/file-content/+server';
 
+	import type { MimeType } from '$lib/server-utils/get-mime-types';
 	const { data } = $props<{ data: PageData }>();
 
 	const fontCharacters =
@@ -30,9 +31,10 @@
 			''
 		);
 
-	let { files, mimeType } = data;
-	let error = $state(data.error);
+	let { files } = data;
 
+	let mimeType = $state<MimeType | undefined>(data.mimeType);
+	let error = $state<string | undefined>(data.error);
 	let html = $state<string | undefined>('');
 	let content = $state<string | undefined>('');
 	let maximizeCodeBlockWidth = $state<boolean | undefined>(false);
@@ -144,13 +146,7 @@
 	stores.files.set(files);
 
 	async function fetchContent() {
-		if (
-			error ||
-			mimeType?.genre === 'audio' ||
-			mimeType?.genre === 'video' ||
-			mimeType?.genre === 'image' ||
-			mimeType?.genre === 'font'
-		) {
+		if (error) {
 			return;
 		}
 
@@ -158,11 +154,14 @@
 
 		try {
 			const fileContent = await apiClient.getFileContents(page.params.file);
+			console.log(fileContent);
 
 			if (fileContent.error) {
 				error = fileContent.error;
 				return;
 			}
+
+			mimeType = fileContent.mimeType;
 
 			stats.chars = fileContent.stats?.chars;
 			stats.lines = fileContent.stats?.lines;
@@ -307,6 +306,10 @@
 					{@html html}
 				</div>
 			{/if}
+		{:else if mimeType?.genre === 'application'}
+			<div class="grid place-items-center h-full overflow-auto">
+				<p>Application</p>
+			</div>
 		{:else if mimeType?.genre === 'font'}
 			<div
 				class="flex flex-wrap font-['placeholder',Arial] content-center h-full max-w-[60ch] mx-auto"

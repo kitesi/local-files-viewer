@@ -1,29 +1,22 @@
 import path from 'path';
-import {
-	stat,
-	walkdir,
-	type WalkDirItem
-} from '../../../lib/server-utils/mem-fs';
-import {
-	getMimeType,
-	type MimeType
-} from '../../../lib/server-utils/get-mime-types';
-import { getBaseDirectory } from '../../../lib/server-utils/directory-variables';
+import { stat, walkdir, type WalkDirItem } from '$lib/server-utils/mem-fs';
+import { getBaseDirectory } from '$lib/server-utils/directory-variables';
 import {
 	INITIAL_FOLDER_LOAD_DEPTH,
 	MAX_FILE_SIZE_MEGABYTES
-} from '../../../lib/config';
+} from '$lib/config';
 
 import { existsSync } from 'fs';
 import type { Stats } from 'fs';
 import type { PageServerLoad } from './$types';
+import { getMimeType, type MimeType } from '$/lib/server-utils/get-mime-types';
 
-interface BodyReturn {
+interface PageData {
 	files: WalkDirItem;
 	baseDirectory: string;
-	mimeType?: MimeType;
 	error?: string;
 	size: number;
+	mimeType?: MimeType;
 	[k: string]: any;
 }
 
@@ -42,7 +35,7 @@ export const load: PageServerLoad = async function ({ params }) {
 			error: error,
 			baseDirectory: getBaseDirectory(),
 			size: stats?.size || 0
-		} as BodyReturn;
+		} as PageData;
 	}
 
 	if (!existsSync(filePath)) {
@@ -68,12 +61,11 @@ export const load: PageServerLoad = async function ({ params }) {
 		);
 	}
 
-	const mimeType = getMimeType(filePath);
-	const body: BodyReturn = {
+	const body: PageData = {
 		files: files,
-		mimeType,
 		baseDirectory: getBaseDirectory(),
-		size: stats.size
+		size: stats.size,
+		mimeType: getMimeType(filePath)
 	};
 
 	return body;

@@ -1,6 +1,6 @@
 import { readFile } from '$lib/server-utils/mem-fs';
-import { getMimeType } from '$lib/server-utils/get-mime-types';
-import { highlighterWrapper } from '$lib/server-utils/highlight';
+import { getMimeType, type MimeType } from '$/lib/server-utils/get-mime-types';
+import { highlighterWrapper } from '$/lib/server-utils/highlight';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -33,6 +33,7 @@ export interface FileContentResponse {
 	error?: string;
 	maximizeCodeBlockWidth?: boolean;
 	needsHighlighting?: boolean;
+	mimeType?: MimeType;
 	stats: {
 		lines?: number;
 		chars?: number;
@@ -68,6 +69,7 @@ async function getFileContents(url: URL) {
 
 	const content = await readFile(filePath, 'utf-8');
 	const body: FileContentResponse = {
+		mimeType,
 		stats: {}
 	};
 
@@ -77,6 +79,16 @@ async function getFileContents(url: URL) {
 
 	if (mimeType.specific === 'plain') {
 		body.content = content;
+		return json(body);
+	}
+
+	if (
+		mimeType?.genre === 'application' ||
+		mimeType?.genre === 'audio' ||
+		mimeType?.genre === 'video' ||
+		mimeType?.genre === 'image' ||
+		mimeType?.genre === 'font'
+	) {
 		return json(body);
 	}
 
@@ -145,10 +157,6 @@ async function getFileContents(url: URL) {
 			body.needsHighlighting = true;
 			break;
 		default:
-			if (mimeType.genre === 'application') {
-				error(400, 'Could not handle mime type of: ' + mimeType.full);
-			}
-
 			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
 			body.maximizeCodeBlockWidth = true;
 			body.needsHighlighting = true;
