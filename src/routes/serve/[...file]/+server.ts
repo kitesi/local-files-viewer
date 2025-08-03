@@ -2,11 +2,10 @@ import path from 'path';
 
 import { readFile } from '../../../lib/server-utils/mem-fs';
 import { getMimeType } from '../../../lib/server-utils/get-mime-types';
-import { getBaseDirectory } from '../../../lib/server-utils/directory-variables';
+import { resolveUserPathWithinRoot } from '$/lib/client-utils/resolve-user-path';
 
 export const GET = async function ({ params }: { params: any }) {
-	const filePath = path.join(getBaseDirectory(), params.file);
-
+	let filePath = resolveUserPathWithinRoot(params.file, false);
 	const mimeType = getMimeType(filePath);
 
 	return new Response(await readFile(filePath, null), {
