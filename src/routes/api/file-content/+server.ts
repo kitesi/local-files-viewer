@@ -8,10 +8,12 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGemoji from 'remark-gemoji';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
+import rehypeKatex from 'rehype-katex';
 import { visit } from 'unist-util-visit';
 
 import { escape as escapeHtml } from 'html-escaper';
@@ -98,6 +100,7 @@ async function getFileContents(url: URL) {
 					.use(remarkParse)
 					.use(remarkGemoji)
 					.use(remarkGfm)
+					.use(remarkMath)
 					.use(function () {
 						return (tree) => {
 							visit(tree, 'code', (node: UnistNode) => {
@@ -114,6 +117,7 @@ async function getFileContents(url: URL) {
 					.use(remarkRehype, { allowDangerousHtml: true })
 					.use(rehypeRaw)
 					.use(rehypeSlug)
+					.use(rehypeKatex)
 					.use(rehypeStringify)
 					.use(rehypeAddLineNumbers)
 					.process(await readFile(filePath, 'utf-8'));

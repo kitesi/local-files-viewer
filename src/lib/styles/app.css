@@ -307,3 +307,6 @@
 @utility scrollbar-none {
 	@apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }
+
+/* KaTeX styles for LaTeX math rendering */
+@import 'katex/dist/katex.min.css';
