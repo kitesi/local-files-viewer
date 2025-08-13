@@ -39,6 +39,9 @@
 	--sidebar-border: oklch(0.929 0.013 255.508);
 	--sidebar-ring: oklch(0.704 0.04 256.788);
 
+	--code: #24292e;
+	--code-foreground: #f0f6fc;
+
 	/* for markdown styling */
 	--markdown-focus-outlineColor: #0969da;
 	--markdown-fgColor-default: #1f2328;
@@ -127,6 +130,10 @@
 	--sidebar-border: #292929;
 	--sidebar-ring: oklch(0.65 0.15 250);
 	--sidebar-accent-hover: #1b1b1b;
+
+	--code: #24292e;
+	--code-foreground: #f0f6fc;
+
 	--markdown-focus-outlineColor: #1f6feb;
 	--markdown-fgColor-default: #f0f6fc;
 	--markdown-fgColor-muted: #9198a1;
@@ -217,6 +224,8 @@
 	--color-sidebar-accent-hover: var(--sidebar-accent-hover);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
+	--color-code: var(--code);
+	--color-code-foreground: var(--code-foreground);
 	--breakpoint-csmall: 800px;
 	--breakpoint-cmedium: 1100px;
 	--breakpoint-clarge: 1600px;

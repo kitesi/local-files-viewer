@@ -151,12 +151,12 @@ async function getFileContents(url: URL) {
 		case 'javascript':
 		case 'json':
 		case 'x-scss':
-			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
+			body.html = `<pre class="bg-code text-code-foreground"><code>${escapeHtml(content)}</code></pre>`;
 			body.maximizeCodeBlockWidth = true;
 			body.needsHighlighting = true;
 			break;
 		default:
-			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
+			body.html = `<pre class="bg-code text-code-foreground"><code>${escapeHtml(content)}</code></pre>`;
 			body.maximizeCodeBlockWidth = true;
 			body.needsHighlighting = true;
 

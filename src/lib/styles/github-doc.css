@@ -779,8 +779,6 @@
 	overflow: auto;
 	font-size: 85%;
 	line-height: 1.45;
-	color: var(--markdown-fgColor-default);
-	background-color: var(--markdown-bgColor-muted);
 	border-radius: 6px;
 }
 
