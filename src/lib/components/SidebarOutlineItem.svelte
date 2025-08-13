@@ -14,49 +14,53 @@
 
 	export let item: OutlineItem;
 
-	let collapse = item.level < OUTLINE_HEADING_LEVEL_AUTO_COLLAPSE;
+	let isCollapsed = item.level < OUTLINE_HEADING_LEVEL_AUTO_COLLAPSE;
 
 	function collapseParent(ev: Event) {
 		const target = ev.target as HTMLElement;
 
 		if (!target) return;
 
-		collapse = !collapse;
+		isCollapsed = !isCollapsed;
 	}
 </script>
 
-<li 
-	class="m-1.5"
-	class:collapse={collapse}
+<li
+	class="m-0.5 hover:bg-transparent"
+	class:is-collapsed={isCollapsed}
 	class:has-children={item.children.length > 0}
 >
 	{#if item.children.length > 0}
-		<div class="flex items-center gap-1.5">
-			<button 
-				class="bg-transparent border-none text-inherit text-base hover:underline hover:text-white"
+		<div
+			class="flex items-center gap-1.5 hover:bg-sidebar-accent rounded p-1 transition-colors min-w-0"
+		>
+			<button
+				class="bg-transparent border-none hover:bg-sidebar-accent rounded transition-colors flex-shrink-0"
 				on:click={collapseParent}
 			>
-				{#if collapse}
-					<ChevronDown />
+				{#if isCollapsed}
+					<ChevronDown class="w-4 h-4 text-sidebar-foreground" />
 				{:else}
-					<ChevronRight />
+					<ChevronRight class="w-4 h-4 text-sidebar-foreground" />
 				{/if}
 			</button>
-			<a 
+			<a
 				href="#{item.id}"
-				class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
+				class="text-inherit flex gap-2 items-center hover:text-sidebar-foreground hover:no-underline overflow-hidden text-ellipsis whitespace-nowrap min-w-0 flex-1"
 			>
-				<span>{item.name}</span>
+				<span class="truncate">{item.name}</span>
 			</a>
 		</div>
 	{:else}
-		<a 
-			href="#{item.id}"
-			class="text-inherit flex gap-2 items-center hover:text-white overflow-hidden text-ellipsis whitespace-nowrap"
-		>
-			<Hash />
-			<span>{item.name}</span>
-		</a>
+		<div class="hover:bg-sidebar-accent rounded p-1 transition-colors min-w-0">
+			<a
+				href="#{item.id}"
+				class="text-inherit flex gap-2 items-center hover:text-sidebar-foreground hover:no-underline overflow-hidden text-ellipsis whitespace-nowrap min-w-0 flex-1"
+			>
+				<Hash class="w-4 h-4 text-sidebar-foreground flex-shrink-0" />
+				<span class="truncate">{item.name}</span>
+			</a>
+		</div>
 	{/if}
 
 	{#if item.children}
@@ -67,5 +71,3 @@
 		</ul>
 	{/if}
 </li>
-
-

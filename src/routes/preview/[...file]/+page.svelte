@@ -20,7 +20,7 @@
 	import '$lib/styles/shiki.css';
 
 	import type { PageData } from './$types';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import type { FileContentResponse } from '../../api/file-content/+server';
 
 	import type { MimeType } from '$lib/server-utils/get-mime-types';
@@ -52,10 +52,7 @@
 	});
 
 	onMount(() => {
-		fetchContent().then(() => {
-			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-		});
-
+		fetchContent();
 		// Set up SSE connection for file watching
 		if (browser) {
 			const fileWatcherEventSource = new EventSource('/api/file-watcher');
@@ -124,9 +121,7 @@
 			return;
 		}
 
-		fetchContent().then(() => {
-			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-		});
+		fetchContent();
 
 		// sveltekit has hot refresh development, although
 		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
@@ -146,6 +141,7 @@
 	stores.files.set(files);
 
 	async function fetchContent() {
+		console.log('fetching content');
 		if (error) {
 			return;
 		}
@@ -154,7 +150,6 @@
 
 		try {
 			const fileContent = await apiClient.getFileContents(page.params.file);
-			console.log(fileContent);
 
 			if (fileContent.error) {
 				error = fileContent.error;
@@ -179,6 +174,7 @@
 				page.params.file,
 				getStore(stores.abortController).signal
 			);
+
 			html = syntaxHighlighting || fileContent.html;
 		} catch (err) {
 			// if aborted, skip
@@ -269,6 +265,16 @@
 
 		goto(path);
 	}
+
+	$effect(() => {
+		if (!html) {
+			return;
+		}
+
+		tick().then(() => {
+			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		});
+	});
 </script>
 
 <svelte:window on:keydown={handleKey} />
