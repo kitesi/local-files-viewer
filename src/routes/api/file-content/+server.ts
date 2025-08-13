@@ -83,7 +83,6 @@ async function getFileContents(url: URL) {
 	}
 
 	if (
-		mimeType?.genre === 'application' ||
 		mimeType?.genre === 'audio' ||
 		mimeType?.genre === 'video' ||
 		mimeType?.genre === 'image' ||

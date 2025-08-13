@@ -140,8 +140,21 @@
 
 	stores.files.set(files);
 
+	$effect(() => {
+		console.log(
+			html,
+			content,
+			maximizeCodeBlockWidth,
+			stats,
+			files,
+			page.params.file,
+			servePath,
+			mimeType,
+			error
+		);
+	});
+
 	async function fetchContent() {
-		console.log('fetching content');
 		if (error) {
 			return;
 		}
@@ -312,10 +325,6 @@
 					{@html html}
 				</div>
 			{/if}
-		{:else if mimeType?.genre === 'application'}
-			<div class="grid place-items-center h-full overflow-auto">
-				<p>Application</p>
-			</div>
 		{:else if mimeType?.genre === 'font'}
 			<div
 				class="flex flex-wrap font-['placeholder',Arial] content-center h-full max-w-[60ch] mx-auto"
