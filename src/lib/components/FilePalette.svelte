@@ -272,13 +272,16 @@
 			apiClient
 				.setNewBaseDir(href)
 				.then(() => {
-					goto('/preview').catch((err) => {
-						console.error('error navigating to preview', err);
-						if (err.message) {
-							addToastError(err.message);
-						}
-					});
-					window.location.reload();
+					goto('/preview')
+						.then(() => {
+							window.location.reload();
+						})
+						.catch((err) => {
+							console.error('error navigating to preview', err);
+							if (err.message) {
+								addToastError(err.message);
+							}
+						});
 				})
 				.catch((err) => {
 					console.error('error setting new base dir', err);

@@ -63,7 +63,7 @@ async function getFileContents(url: URL) {
 	const filePathParam = url.searchParams?.get('file');
 
 	if (!filePathParam) {
-		error(400, 'Did not recieve a file path');
+		error(400, 'In directory.');
 	}
 
 	const filePath = resolveUserPathWithinBase(filePathParam, false);
