@@ -77,7 +77,7 @@
 		}
 
 		try {
-			const res = await apiClient.completeSearch(dataHref, 1);
+			const res = await apiClient.completeSearch(dataHref.slice(1), 1);
 
 			const paths = dataHref.split('/').slice(1);
 			const current = getWalkdirItem(paths, $files);
