@@ -77,7 +77,7 @@
 		}
 
 		try {
-			const res = await apiClient.completeSearch(dataHref, 1);
+			const res = await apiClient.completeSearch(dataHref.slice(1), 1);
 
 			const paths = dataHref.split('/').slice(1);
 			const current = getWalkdirItem(paths, $files);
@@ -99,7 +99,7 @@
 
 <li
 	bind:this={liElement}
-	class={cn('my-2.5 w-full', isActive && 'bg-sidebar-accent')}
+	class={cn('w-full', isActive && 'bg-sidebar-accent')}
 	class:is-collapsed={isCollapsed}
 	data-href={item.isDirectory && item.children && item.children.length === 0
 		? href
@@ -107,7 +107,10 @@
 >
 	{#if item.isDirectory}
 		<button
-			class="bg-transparent w-full border-none text-base hover:underline flex gap-2 items-center px-4"
+			class={cn(
+				'bg-transparent w-full border-none text-base rounded transition-colors flex gap-2 items-center px-4 py-1',
+				!isActive && 'hover:bg-sidebar-accent-hover'
+			)}
 			style={`padding-left: ${depth * 16}px`}
 			on:click={collapseDirectory}
 		>
@@ -123,7 +126,10 @@
 	{:else}
 		<!-- could have id set to the actual expression in isActive and remove switchActive(ev), not sure which is move preformant -->
 		<a
-			class={cn('w-full text-inherit flex gap-2 items-center px-4')}
+			class={cn(
+				'w-full text-inherit flex gap-2 items-center px-4 hover:no-underline rounded transition-colors py-1',
+				!isActive && 'hover:bg-sidebar-accent-hover'
+			)}
 			on:click={(ev) => {
 				$abortController.abort();
 				switchActive(ev);

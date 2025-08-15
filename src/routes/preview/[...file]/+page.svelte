@@ -20,9 +20,10 @@
 	import '$lib/styles/shiki.css';
 
 	import type { PageData } from './$types';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import type { FileContentResponse } from '../../api/file-content/+server';
 
+	import type { MimeType } from '$lib/server-utils/get-mime-types';
 	const { data } = $props<{ data: PageData }>();
 
 	const fontCharacters =
@@ -30,9 +31,10 @@
 			''
 		);
 
-	let { files, mimeType } = data;
-	let error = $state(data.error);
+	let { files } = data;
 
+	let mimeType = $state<MimeType | undefined>(data.mimeType);
+	let error = $state<string | undefined>(data.error);
 	let html = $state<string | undefined>('');
 	let content = $state<string | undefined>('');
 	let maximizeCodeBlockWidth = $state<boolean | undefined>(false);
@@ -50,10 +52,7 @@
 	});
 
 	onMount(() => {
-		fetchContent().then(() => {
-			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-		});
-
+		fetchContent();
 		// Set up SSE connection for file watching
 		if (browser) {
 			const fileWatcherEventSource = new EventSource('/api/file-watcher');
@@ -122,9 +121,7 @@
 			return;
 		}
 
-		fetchContent().then(() => {
-			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-		});
+		fetchContent();
 
 		// sveltekit has hot refresh development, although
 		// when you are in a section in the page with the #fragments (<a href="#section"></a>),
@@ -144,13 +141,7 @@
 	stores.files.set(files);
 
 	async function fetchContent() {
-		if (
-			error ||
-			mimeType?.genre === 'audio' ||
-			mimeType?.genre === 'video' ||
-			mimeType?.genre === 'image' ||
-			mimeType?.genre === 'font'
-		) {
+		if (error) {
 			return;
 		}
 
@@ -163,6 +154,8 @@
 				error = fileContent.error;
 				return;
 			}
+
+			mimeType = fileContent.mimeType;
 
 			stats.chars = fileContent.stats?.chars;
 			stats.lines = fileContent.stats?.lines;
@@ -180,6 +173,7 @@
 				page.params.file,
 				getStore(stores.abortController).signal
 			);
+
 			html = syntaxHighlighting || fileContent.html;
 		} catch (err) {
 			// if aborted, skip
@@ -270,6 +264,16 @@
 
 		goto(path);
 	}
+
+	$effect(() => {
+		if (!html) {
+			return;
+		}
+
+		tick().then(() => {
+			outlineHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		});
+	});
 </script>
 
 <svelte:window on:keydown={handleKey} />
@@ -290,7 +294,7 @@
 >
 	<Sidebar {outlineHeadings} {stats} />
 	<section
-		class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body"
+		class="bg-transparent p-5 h-full w-full overflow-auto scroll-smooth markdown-body prose-ul:list-disc"
 	>
 		{#if error}
 			<h1>{error}</h1>

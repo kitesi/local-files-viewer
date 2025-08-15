@@ -10,6 +10,7 @@ import { watch } from 'fs';
 
 import type { Stats } from 'fs';
 import { _notifyFileChanged } from '../../routes/api/file-watcher/+server';
+import { resolveUserPathWithinRoot } from './resolve-user-path';
 
 export interface WalkDirItem {
 	name: string;
@@ -28,6 +29,8 @@ export async function walkdirBase(
 	baseDirectory: string,
 	depth: number
 ): Promise<WalkDirItem> {
+	baseDirectory = resolveUserPathWithinRoot(baseDirectory, true);
+
 	const baseItem: WalkDirItem & { children: WalkDirItem[] } = {
 		name: path.basename(baseDirectory),
 		isDirectory: true,
@@ -101,6 +104,8 @@ export async function walkdirBase(
 }
 
 export async function walkdir(dir: string, depth: number) {
+	dir = resolveUserPathWithinRoot(dir, true);
+
 	if (!cached.walkdir.has(dir)) {
 		cached.walkdir.set(dir, await walkdirBase(dir, depth));
 	}
@@ -109,6 +114,8 @@ export async function walkdir(dir: string, depth: number) {
 }
 
 export async function readdir(filePath: string) {
+	filePath = resolveUserPathWithinRoot(filePath, false);
+
 	if (!cached.readdir.has(filePath)) {
 		cached.readdir.set(filePath, await fsReaddir(filePath, 'utf-8'));
 	}
@@ -128,6 +135,7 @@ export async function readFile(
 	filePath: string,
 	encoding: 'utf-8' | 'base64' | null
 ) {
+	filePath = resolveUserPathWithinRoot(filePath, false);
 	const key = [filePath, encoding].toString();
 
 	if (!cached.readFile.has(key)) {
@@ -144,6 +152,8 @@ export async function readFile(
 }
 
 export async function stat(filePath: string) {
+	filePath = resolveUserPathWithinRoot(filePath, false);
+
 	if (!cached.stats.has(filePath)) {
 		cached.stats.set(filePath, await fsStat(filePath));
 	}

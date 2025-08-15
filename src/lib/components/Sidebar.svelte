@@ -166,6 +166,13 @@
 						<li class="pl-1.5 first:mt-2.5">Lines: {stats.lines}</li>
 					{/if}
 					{#if outlineHeadings && outlineHeadings.length !== 0}
+						<div class="pl-1.5 mt-2.5 mb-2">
+							<p
+								class="text-sm font-semibold text-sidebar-foreground uppercase tracking-wide"
+							>
+								Headings
+							</p>
+						</div>
 						{#each transformOutlineHeadings(outlineHeadings).children as heading (heading.id)}
 							<SidebarOutlineItem item={heading} />
 						{/each}

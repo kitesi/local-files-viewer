@@ -1,12 +1,8 @@
 ## Future
 
 - Look into optimizations of reading and showing content
-- Handle large directories more gracefully. Originally the idea was to load x amount deep, then when the user
-  requests load more, but with the file picker I switched it back to loading
-  recursively as much as needed.
 - Error handling
-  - Remove the need for two states of errors.
-  - You should be able to change the base directory on the error page.
-- Error text is white on white background
+  - make toast errors nicer and remove the ugliness of code currently
+  - Error text is white on white background
 - API is very loose and not consistent
-- Dont fetch every file on load... (for me it errors on /home/user page since I guess there's too many files recursively)
+- loading state for file content

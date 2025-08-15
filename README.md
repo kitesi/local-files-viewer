@@ -1,10 +1,16 @@
 # Local Files Viewer
 
-Simple program to view files in your browser including text files, markdown,
-HTML, PDFs, images, videos, audio, and fonts.
+A simple program to view files in your browser including text files, markdown,
+HTML, PDFs, images, videos, audio, and fonts. You can use it as a self-hosted
+knowledge base where the knowledge is stored in files.
 
-Check out [filebrowser](https://filebrowser.org/installation), which might better
-suit your needs.
+Does not currently handle creating, renaming, or deleting files. Check out
+[filebrowser](https://filebrowser.org/installation), which might better suit
+your needs.
+
+This program also allows you to preview your content live as you edit the file,
+and allows you to have your cursor position match up with the page view, which
+is useful for a live markdown preview.
 
 ## Previews
 
@@ -16,33 +22,43 @@ For more previews, visit [previews.md](previews.md)
 
 ### Security Note
 
-I don't believe this program exposes any additional security threat, but in the
-instances of one, I am not responsible for any damages.
-
-It uses the web browser's provided API for images, videos, audios, fonts, and
+This program uses the web browser's provided API for images, videos, audios, fonts, and
 iframes to display HTML & PDF content. It uses node's `fs.readFile` to read the
 file contents.
 
+Do not open up any folders that include files you do not trust.
+
 ## Installation
+
+This method isn't recommend or maintained, but if you want to install as an npm global package:
 
 ```shell
 npm i -g local-files-viewer
 ```
 
-Or install yourself:
+(Recommend) Install yourself:
 
 ```shell
 git clone https://github.com/kitesi/local-files-viewer.git
 cd local-files-viewer
 npm install
 npm run build
-npm install -g
+npm link
 ```
 
 ## Usage
 
-Once you have this package installed you can just call `lfv [folder]`.
-If no folder is provided, it will default to your env variable of `LFV_DEFAULT_FOLDER`.
+This program works off of two environment variables: `LFV_DEFAULT_FOLDER` and `LFV_ROOT_FOLDER`.
+
+- `LFV_DEFAULT_FOLDER`: The folder that is being opened to examine
+- `LFV_ROOT_FOLDER`: The root directory that the program is allowed to traverse. For example if `LFV_ROOT_FOLDER=/home/user` then the user is allowed to traverse through `/home/user/`, `/home/user/code`, and `/home/user/Downloads` but not `/home`. If this environment variable is unset, it will default to `LFV_DEFAULT_FOLDER`.
+
+This program provides a script (in `./bin/lfv.js`) to run the program and set
+the `LFV_DEFAULT_FOLDER` variable temporarily.
+
+If you installed this package globally hopefully `lfv` is available to you. If you installed it locally you will have to do `npm link`.
+
+To use the script you can just call `lfv [folder]`. If no folder is provided, it will default to your env variable of `LFV_DEFAULT_FOLDER`.
 
 ## Keybindings
 
@@ -50,9 +66,11 @@ If no folder is provided, it will default to your env variable of `LFV_DEFAULT_F
 
 `l` => go to next file
 
-`ctrl+p` => toggle file finder
+`ctrl+p` => open file finder
 
-`ctrl+o` => toggle directory (allows you to change the base directory)
+`ctrl+o` => open directory picker (allows you to change the base directory)
+
+`ctrl+y` => search through the entire directory for words (with ripgrep)
 
 palette mode:
 

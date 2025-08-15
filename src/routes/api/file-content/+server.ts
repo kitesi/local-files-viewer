@@ -1,6 +1,6 @@
 import { readFile } from '$lib/server-utils/mem-fs';
-import { getMimeType } from '$lib/server-utils/get-mime-types';
-import { highlighterWrapper } from '$lib/server-utils/highlight';
+import { getMimeType, type MimeType } from '$/lib/server-utils/get-mime-types';
+import { highlighterWrapper } from '$/lib/server-utils/highlight';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -8,16 +8,18 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGemoji from 'remark-gemoji';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
+import rehypeKatex from 'rehype-katex';
 import { visit } from 'unist-util-visit';
 
 import { escape as escapeHtml } from 'html-escaper';
 
 import path from 'path';
-import { resolveUserPathWithinBase } from '$/lib/client-utils/resolve-user-path';
+import { resolveUserPathWithinBase } from '$/lib/server-utils/resolve-user-path';
 
 // todo: fix typing in this file
 interface UnistNode {
@@ -33,6 +35,7 @@ export interface FileContentResponse {
 	error?: string;
 	maximizeCodeBlockWidth?: boolean;
 	needsHighlighting?: boolean;
+	mimeType?: MimeType;
 	stats: {
 		lines?: number;
 		chars?: number;
@@ -60,7 +63,7 @@ async function getFileContents(url: URL) {
 	const filePathParam = url.searchParams?.get('file');
 
 	if (!filePathParam) {
-		error(400, 'Did not recieve a file path');
+		error(400, 'In directory.');
 	}
 
 	const filePath = resolveUserPathWithinBase(filePathParam, false);
@@ -68,6 +71,7 @@ async function getFileContents(url: URL) {
 
 	const content = await readFile(filePath, 'utf-8');
 	const body: FileContentResponse = {
+		mimeType,
 		stats: {}
 	};
 
@@ -80,6 +84,15 @@ async function getFileContents(url: URL) {
 		return json(body);
 	}
 
+	if (
+		mimeType?.genre === 'audio' ||
+		mimeType?.genre === 'video' ||
+		mimeType?.genre === 'image' ||
+		mimeType?.genre === 'font'
+	) {
+		return json(body);
+	}
+
 	switch (mimeType.specific) {
 		case 'markdown':
 			try {
@@ -87,6 +100,7 @@ async function getFileContents(url: URL) {
 					.use(remarkParse)
 					.use(remarkGemoji)
 					.use(remarkGfm)
+					.use(remarkMath)
 					.use(function () {
 						return (tree) => {
 							visit(tree, 'code', (node: UnistNode) => {
@@ -103,6 +117,7 @@ async function getFileContents(url: URL) {
 					.use(remarkRehype, { allowDangerousHtml: true })
 					.use(rehypeRaw)
 					.use(rehypeSlug)
+					.use(rehypeKatex)
 					.use(rehypeStringify)
 					.use(rehypeAddLineNumbers)
 					.process(await readFile(filePath, 'utf-8'));
@@ -140,16 +155,12 @@ async function getFileContents(url: URL) {
 		case 'javascript':
 		case 'json':
 		case 'x-scss':
-			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
+			body.html = `<pre class="bg-code text-code-foreground"><code>${escapeHtml(content)}</code></pre>`;
 			body.maximizeCodeBlockWidth = true;
 			body.needsHighlighting = true;
 			break;
 		default:
-			if (mimeType.genre === 'application') {
-				error(400, 'Could not handle mime type of: ' + mimeType.full);
-			}
-
-			body.html = `<pre><code>${escapeHtml(content)}</code></pre>`;
+			body.html = `<pre class="bg-code text-code-foreground"><code>${escapeHtml(content)}</code></pre>`;
 			body.maximizeCodeBlockWidth = true;
 			body.needsHighlighting = true;
 
