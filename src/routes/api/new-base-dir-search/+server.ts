@@ -58,8 +58,8 @@ async function oneLevelDirSearch(url: URL) {
 		filesStats[i]?.isDirectory()
 	);
 
-	if (query.endsWith('/')) {
-		filteredDirectories.unshift(path.resolve(getBaseDirectory(), query));
+	if (dir.endsWith('/')) {
+		filteredDirectories.unshift(dir);
 	}
 
 	response.files = filteredDirectories;

@@ -140,20 +140,6 @@
 
 	stores.files.set(files);
 
-	$effect(() => {
-		console.log(
-			html,
-			content,
-			maximizeCodeBlockWidth,
-			stats,
-			files,
-			page.params.file,
-			servePath,
-			mimeType,
-			error
-		);
-	});
-
 	async function fetchContent() {
 		if (error) {
 			return;
