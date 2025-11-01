@@ -1,6 +1,5 @@
 import { readFile } from '$lib/server-utils/mem-fs';
 import { getMimeType, type MimeType } from '$/lib/server-utils/get-mime-types';
-import { highlighterWrapper } from '$/lib/server-utils/highlight';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -15,19 +14,12 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
 import rehypeKatex from 'rehype-katex';
 import { visit } from 'unist-util-visit';
-
+import rehypeShiki from '@shikijs/rehype';
+import { transformerMetaHighlight } from '@shikijs/transformers';
 import { escape as escapeHtml } from 'html-escaper';
 
 import path from 'path';
 import { resolveUserPathWithinBase } from '$/lib/server-utils/resolve-user-path';
-
-// todo: fix typing in this file
-interface UnistNode {
-	type: string;
-	value: string;
-	lang?: string;
-	meta?: string;
-}
 
 export interface FileContentResponse {
 	content?: string;
@@ -98,23 +90,16 @@ async function getFileContents(url: URL) {
 			try {
 				const vfile = await unified()
 					.use(remarkParse)
+
 					.use(remarkGemoji)
 					.use(remarkGfm)
 					.use(remarkMath)
-					.use(function () {
-						return (tree) => {
-							visit(tree, 'code', (node: UnistNode) => {
-								// @ts-ignore
-								node.type = 'html';
-								node.value = highlighterWrapper(
-									node.value,
-									node.lang || undefined,
-									node.meta || ''
-								);
-							});
-						};
-					})
 					.use(remarkRehype, { allowDangerousHtml: true })
+					.use(rehypeShiki, {
+						theme: 'github-dark',
+						defaultLanguage: 'plaintext',
+						transformers: [transformerMetaHighlight()]
+					})
 					.use(rehypeRaw)
 					.use(rehypeSlug)
 					.use(rehypeKatex)
