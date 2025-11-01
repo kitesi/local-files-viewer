@@ -2,14 +2,10 @@ import { readFile } from '$lib/server-utils/mem-fs';
 import { getMimeType } from '$/lib/server-utils/get-mime-types';
 
 import { error, type RequestHandler } from '@sveltejs/kit';
-import { getHighlighter, BUNDLED_LANGUAGES } from 'shiki';
+import { codeToHtml, bundledLanguagesInfo } from 'shiki';
 import { resolveUserPathWithinBase } from '$/lib/server-utils/resolve-user-path';
 
 const cache: Map<string, string> = new Map();
-
-const highlighter = await getHighlighter({
-	theme: 'github-dark'
-});
 
 async function getSyntaxHighlighting(url: URL): Promise<Response> {
 	const filePathParam = url.searchParams.get('file');
@@ -37,11 +33,19 @@ async function getSyntaxHighlighting(url: URL): Promise<Response> {
 		}
 
 		if (
-			!BUNDLED_LANGUAGES.some((e) => e.id === lang || e.aliases?.includes(lang))
+			!bundledLanguagesInfo.some(
+				(e) => e.id === lang || e.aliases?.includes(lang)
+			)
 		) {
-			cache.set(content, '');
+			cache.set(
+				content,
+				await codeToHtml(content, { lang: 'plaintext', theme: 'github-dark' })
+			);
 		} else {
-			cache.set(content, highlighter.codeToHtml(content, { lang }));
+			cache.set(
+				content,
+				await codeToHtml(content, { lang, theme: 'github-dark' })
+			);
 		}
 
 		return new Response(cache.get(content));
