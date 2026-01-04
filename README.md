@@ -4,13 +4,18 @@ A simple program to view files in your browser including text files, markdown,
 HTML, PDFs, images, videos, audio, and fonts. You can use it as a self-hosted
 knowledge base where the knowledge is stored in files.
 
-Does not currently handle creating, renaming, or deleting files. Check out
-[filebrowser](https://filebrowser.org/installation), which might better suit
-your needs.
-
 This program also allows you to preview your content live as you edit the file,
 and allows you to have your cursor position match up with the page view, which
 is useful for a live markdown preview.
+
+It is read-only, such that it does not currently handle creating, editing,
+renaming, or deleting files. Check out [filebrowser](https://filebrowser.org/installation),
+which might better suit your needs for file management.
+
+If you are interested in this idea of a self-hosted knowledge base (and one
+that you can securely access anywhere), I would suggest looking into
+[Trilium](https://github.com/TriliumNext/Trilium). While this program can host
+on a server that can be access anywhere, I'm not so confident on its security.
 
 ## Previews
 
