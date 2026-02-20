@@ -5,7 +5,7 @@ import { error, type RequestHandler } from '@sveltejs/kit';
 import { codeToHtml, bundledLanguagesInfo } from 'shiki';
 import { resolveUserPathWithinBase } from '$/lib/server-utils/resolve-user-path';
 
-const cache: Map<string, string> = new Map();
+const cache = new Map<string, string>();
 
 async function getSyntaxHighlighting(url: URL): Promise<Response> {
 	const filePathParam = url.searchParams.get('file');
@@ -15,9 +15,9 @@ async function getSyntaxHighlighting(url: URL): Promise<Response> {
 	}
 
 	const filePath = resolveUserPathWithinBase(filePathParam, false);
-
-	if (cache.has(filePath)) {
-		return new Response(cache.get(filePath));
+	const cached = cache.get(filePath);
+	if (cached !== undefined) {
+		return new Response(cached);
 	}
 
 	try {
@@ -32,23 +32,18 @@ async function getSyntaxHighlighting(url: URL): Promise<Response> {
 				break;
 		}
 
-		if (
+		const html =
 			!bundledLanguagesInfo.some(
 				(e) => e.id === lang || e.aliases?.includes(lang)
 			)
-		) {
-			cache.set(
-				content,
-				await codeToHtml(content, { lang: 'plaintext', theme: 'github-dark' })
-			);
-		} else {
-			cache.set(
-				content,
-				await codeToHtml(content, { lang, theme: 'github-dark' })
-			);
-		}
+				? await codeToHtml(content, {
+						lang: 'plaintext',
+						theme: 'github-dark'
+					})
+				: await codeToHtml(content, { lang, theme: 'github-dark' });
 
-		return new Response(cache.get(content));
+		cache.set(filePath, html);
+		return new Response(html);
 	} catch (err) {
 		console.error(err);
 		return error(500, 'error highlighting code');

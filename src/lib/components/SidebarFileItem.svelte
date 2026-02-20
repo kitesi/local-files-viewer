@@ -53,7 +53,7 @@
 
 	let liElement: HTMLLIElement;
 
-	const filesInPageParam = $page.params.file.split('/');
+	const filesInPageParam = $page.params.file?.split('/') ?? [];
 	const filesInHref = href.split('/').slice(1);
 
 	// prob a better/faster way to do this

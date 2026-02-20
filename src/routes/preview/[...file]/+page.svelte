@@ -3,6 +3,7 @@
 	import FilePalette from '$lib/components/FilePalette.svelte';
 	import SearchPalette from '$lib/components/SearchPalette.svelte';
 	import ErrorTray from '$lib/components/ErrorTray.svelte';
+	import ContentSkeleton from '$lib/components/ContentSkeleton.svelte';
 	import * as stores from '$lib/stores/index';
 	import mappings from '$lib/client-utils/key-mappings';
 	import { getWalkdirItem } from '$lib/client-utils/get-walkdir-item';
@@ -44,8 +45,23 @@
 	});
 
 	let prevFileParam = page.params.file;
+	let isLoading = $state(false);
 
 	const servePath = $derived('/serve/' + page.params.file);
+
+	function getSkeletonVariant(): 'prose' | 'code' | 'plain' | 'media' {
+		const m = data.mimeType;
+		if (!m) return 'prose';
+		if (m.genre === 'image' || m.genre === 'audio' || m.genre === 'video')
+			return 'media';
+		if (m.specific === 'markdown') return 'prose';
+		if (
+			['typescript', 'javascript', 'json', 'x-scss'].includes(m.specific ?? '')
+		)
+			return 'code';
+		if (m.specific === 'plain') return 'plain';
+		return 'prose';
+	}
 
 	$effect(() => {
 		stores.baseDirectory.set(data.baseDirectory);
@@ -144,11 +160,14 @@
 		if (error) {
 			return;
 		}
+		const fileParam = page.params.file;
+		if (!fileParam) return;
 
+		isLoading = true;
 		stores.abortController.set(new AbortController());
 
 		try {
-			const fileContent = await apiClient.getFileContents(page.params.file);
+			const fileContent = await apiClient.getFileContents(fileParam);
 
 			if (fileContent.error) {
 				error = fileContent.error;
@@ -170,7 +189,7 @@
 			}
 
 			const syntaxHighlighting = await apiClient.getSyntaxHighlighting(
-				page.params.file,
+				fileParam,
 				getStore(stores.abortController).signal
 			);
 
@@ -183,6 +202,10 @@
 
 			error =
 				err instanceof Error ? err.message : 'Error: Internal server error';
+		} finally {
+			if (page.params.file === fileParam) {
+				isLoading = false;
+			}
 		}
 	}
 
@@ -217,7 +240,9 @@
 			return;
 		}
 
-		const paths = page.params.file.split('/');
+		const currentFile = page.params.file;
+		if (!currentFile) return;
+		const paths = currentFile.split('/');
 		const file = paths.pop();
 
 		const itemChildren = getWalkdirItem(
@@ -301,6 +326,8 @@
 			{#if stats.size}
 				<h2>Size: {formatBytes(stats.size)}</h2>
 			{/if}
+		{:else if isLoading}
+			<ContentSkeleton variant={getSkeletonVariant()} />
 		{:else if html}
 			{#if maximizeCodeBlockWidth}
 				{@html html}
